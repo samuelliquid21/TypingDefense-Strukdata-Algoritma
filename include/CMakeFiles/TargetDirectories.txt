@@ -1,0 +1,3 @@
+C:/Users/user/TypingDefense-Strukdata-Algoritma/include/CMakeFiles/game.dir
+C:/Users/user/TypingDefense-Strukdata-Algoritma/include/CMakeFiles/edit_cache.dir
+C:/Users/user/TypingDefense-Strukdata-Algoritma/include/CMakeFiles/rebuild_cache.dir

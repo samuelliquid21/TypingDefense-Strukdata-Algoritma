@@ -1,0 +1,3 @@
+E:/Dokumen/C++/testraylib/build/CMakeFiles/game.dir
+E:/Dokumen/C++/testraylib/build/CMakeFiles/edit_cache.dir
+E:/Dokumen/C++/testraylib/build/CMakeFiles/rebuild_cache.dir

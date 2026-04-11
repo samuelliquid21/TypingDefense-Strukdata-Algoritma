@@ -1,0 +1,14 @@
+[
+{
+  "directory": "E:/Dokumen/C++/testraylib/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles/game.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\game.dir\\src\\Game.cpp.obj -c E:\\Dokumen\\C++\\testraylib\\src\\Game.cpp",
+  "file": "E:/Dokumen/C++/testraylib/src/Game.cpp",
+  "output": "CMakeFiles/game.dir/src/Game.cpp.obj"
+},
+{
+  "directory": "E:/Dokumen/C++/testraylib/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles/game.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\game.dir\\src\\main.cpp.obj -c E:\\Dokumen\\C++\\testraylib\\src\\main.cpp",
+  "file": "E:/Dokumen/C++/testraylib/src/main.cpp",
+  "output": "CMakeFiles/game.dir/src/main.cpp.obj"
+}
+]
