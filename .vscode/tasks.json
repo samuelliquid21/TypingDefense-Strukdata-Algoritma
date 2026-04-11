@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Build Raylib Project",
+            "command": "g++",
+            "args": [
+                "-g",                           // Adds debugging symbols
+                "${workspaceFolder}/main.cpp",
+                "-I${workspaceFolder}/include", // Points to raylib.h
+                "-L${workspaceFolder}/lib",     // Points to libraylib.a
+                "-lraylib",
+                "-lgdi32",                      // Windows dependency for raylib
+                "-lwinmm",                      // Windows dependency for raylib
+                "-o",
+                "${workspaceFolder}/main.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Compiler: g++"
+        }
+    ]
+}
