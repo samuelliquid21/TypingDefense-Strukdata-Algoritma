@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {
   "data": [
     {
@@ -22,29 +21,4 @@
       "score": 4200
     }
   ]
-=======
-{
-  "data": [
-    {
-      "username": "ShadowHunter99",
-      "score": 2540
-    },
-    {
-      "username": "PixelQueen_x",
-      "score": 1890
-    },
-    {
-      "username": "TurboVortex",
-      "score": 3120
-    },
-    {
-      "username": "Lofi_Vibes",
-      "score": 950
-    },
-    {
-      "username": "CyberKnight",
-      "score": 4200
-    }
-  ]
->>>>>>> typing-defense-game/master
 }
