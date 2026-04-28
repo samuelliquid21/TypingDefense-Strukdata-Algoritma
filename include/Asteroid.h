@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include "json.hpp"
 #include "raylib.h"
 
 struct Asteroid {
@@ -22,8 +21,9 @@ struct Asteroid {
 
     // METHOD
 
-    // Update properti asteroid sesuai dengan tier. @param tier: tingkat kesulitan asteroid (1 sampai 10)
+    // Update properti asteroid sesuai dengan tier. @param tier: tingkat kesulitan asteroid (1 sampai 6)
     void asteroidType(const int tier);  
+    int typingAsteroid(char characterTyped);
 
     // GAME LOGIC
     void update(float deltaTime);

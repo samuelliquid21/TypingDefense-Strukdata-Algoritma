@@ -6,6 +6,9 @@
 #include <vector>
 #include <string>
 
+// testing
+#include "SpaceShip.h"
+
 class Game
 {
 public:
@@ -18,6 +21,9 @@ private:
 
     Background bg;
     MainMenu mainMenu;
+
+    // testing
+    SpaceShip player;
 
     void Update();
     void Draw ();

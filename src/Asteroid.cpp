@@ -4,28 +4,19 @@
 #include "raymath.h"
 
 namespace {
+    // Menghitung kecepatan Y agar asteroid menuju pemain
     float velocityYToPlayer(const Asteroid& asteroid) {
         Vector2 direction = Vector2Subtract(Config::playerStartPos, asteroid.position);
-        float length = Vector2Length(direction);
-
-        if (length > 0.0f) {
-            direction = Vector2Scale(direction, 1.0f / length); // normalize
-
-            float speedX = asteroid.velocity.x;
-
-            // jaga proporsi arah → supaya tidak lebih cepat dari X
-            return direction.y * fabs(speedX);
-        }
-
-        return 0.0f;
+        direction = Vector2Normalize(direction);
+        return direction.y * fabsf(asteroid.velocity.x);
     }
 
     // Menghasilkan kecepatan Y acak untuk asteroid yang tidak langsung menuju pemain
     float randomVelocityY(const Asteroid& asteroid) {
         if (asteroid.position.y < Config::screenHeight / 2) {
-            return GetRandomValue(20, 50); // ke bawah
+            return GetRandomValue(20, 50); 
         } else {
-            return GetRandomValue(-50, -20); // ke atas
+            return GetRandomValue(-50, -20); 
         }
     }
 }
@@ -37,14 +28,55 @@ Asteroid::Asteroid() { counter++; }
 Asteroid::~Asteroid() { counter--; }
 
 // METHOD
-// void Asteroid::asteroidType(const int tier) {
-//     int toPlayer = GetRandomValue(0, 1); 
-//     if (toPlayer) {
-//         velocity.y = velocityYToPlayer(*this);
-//     } else {
-//         velocity.y = randomVelocityY(*this);
-//     }
-// }
+void Asteroid::asteroidType(const int tier) {
+
+    // Set properti asteroid berdasarkan tier
+    switch (tier) {
+    case 1:
+        word = WordSystem::getRandomWord(Difficulty::EASY);
+        velocity.x = 90;
+        break;
+    case 2:
+        word = WordSystem::getRandomWord(Difficulty::EASY);
+        velocity.x = 120;
+        break;
+    case 3:
+        word = WordSystem::getRandomWord(Difficulty::MEDIUM);
+        velocity.x = 90;
+        break;
+    case 4:
+        word = WordSystem::getRandomWord(Difficulty::MEDIUM);
+        velocity.x = 120;
+        break;
+    case 5:
+        word = WordSystem::getRandomWord(Difficulty::HARD);
+        velocity.x = 90;
+        break;
+    case 6:
+        word = WordSystem::getRandomWord(Difficulty::HARD);
+        velocity.x = 120;
+        break;
+    default:
+        break;
+    }
+
+    // Set properti lain yang tidak bergantung pada tier
+    position.x = -radius;
+    position.y = GetRandomValue(0, Config::screenHeight);
+    wordIndex = 0;
+    radius = 20 + (word.length() * 10);
+    textureId = GetRandomValue(0, 3);
+    active = true;
+    targeted = false;
+    
+    // Tentukan apakah asteroid akan langsung menuju pemain atau tidak
+    int toPlayer = GetRandomValue(0, 1); 
+    if (toPlayer) {
+        velocity.y = velocityYToPlayer(*this);
+    } else {
+        velocity.y = randomVelocityY(*this);
+    }
+}
 
 // GAME LOGIC
 void Asteroid::update(float deltaTime) {
@@ -54,23 +86,11 @@ void Asteroid::update(float deltaTime) {
         if (position.x - radius > Config::screenWidth) {
             this->active = false;
         }
-        // tesitng: targeting asteroid
-        if (IsKeyDown(KEY_A)) {
-            this->targeted = true;
-        } else {
-            this->targeted = false;
-        }
     }
 }
 void Asteroid::draw() {
-    if (this->active) {
-        DrawCircleV(position, radius, GRAY);
-        if (this->targeted) {
-            // draw kotak merah transparan di sekitar asteroid yang ditargetkan
-            DrawRectangleV({position.x - radius - 5.0f, position.y - radius - 5.0f}, {radius * 2.0f + 10.0f, radius * 2.0f + 10.0f}, (Color){255, 0, 0, 100});
-        }
-        DrawTextEx(GetFontDefault(), word.c_str(), {position.x - radius, position.y - radius}, 20, 1, WHITE);
-    }
+    DrawCircleV(position, radius, GRAY);
+    DrawText(word.c_str(), position.x - radius, position.y - radius, 20, BLACK);
 }
 
 

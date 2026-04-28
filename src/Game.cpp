@@ -120,10 +120,11 @@ void Game::DrawMenu() {
 
 // ===== GAMEPLAY =====
 void Game::UpdateGameplay() {
-
+    player.update(GetFrameTime());
 }
 void Game::DrawGameplay() {
     DrawText("ini gameplay", 0, 0, 20, WHITE);
+    player.draw();
 }
 
 // ===== GAME OVER =====
