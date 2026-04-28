@@ -1,64 +1,60 @@
+#pragma once
 #include "Asteroid.h"
 #include "DifficultyManager.h"
 
-// Event
 enum EventType {
     NORMAL = 1,
-    ASTEROID_SHOWER
+    ASTEROID_SHOWER = 2
 };
 
-// struct asteroid shower
 struct AsteroidShowerData {
     Asteroid asteroids;
     AsteroidShowerData *next;
 };
 
-// struct event handler
-struct Event {
-    int events[10];
-    int size{10};
-    int Front{-1};
-    int Back{-1};
+struct PriorityEvent {
+    int type;
+    int priority;
+    bool valid;
 };
-
 
 class AsteroidManager
 {
 private:
-    // difficulty manager
     DifficultyManager difficultyManager;
 
-    // Asteroid biasa circular queue
     Asteroid asteroid[20];
     int asteroidFront = 0;
+    int asteroidBack = 0;
+    int asteroidCount = 0;
     void activateAsteroid(int diff);
-    Asteroid *checkAsteroid(char charTyped);
+    Asteroid* checkAsteroid(char charTyped);
 
-
-    // Asteroid Shower linked list
-    AsteroidShowerData *asteroidShowerHead{nullptr};
-    AsteroidShowerData *current{nullptr};
-    float AsteroidShowerTime{0.0f};
+    AsteroidShowerData* asteroidShowerHead = nullptr;
+    AsteroidShowerData* current = nullptr;
+    float showerActivateTime = 0.0f;
+    void initShowerLinkedList();
+    void addShowerNode();
     void executeShowerWave();
-    Asteroid *checkAsteroidShower(char charTyped);
+    Asteroid* checkAsteroidShower(char charTyped);
 
-    // Event handling
-    Event event;
-    float eventNormalTime{0.0f};
-    float eventShowerTime{0.0f};
-    void enqueue();
-    void dequeue();
-    int pickEvent();
+    PriorityEvent eventQueue[10];
+    int eventFront = 0;
+    int eventBack = 0;
+    int eventCount = 0;
+    float eventNormalTime = 0.0f;
+    float eventShowerTime = 0.0f;
+    float eventExecuteTime = 0.0f;
+    float eventAddNode = 0.0f;
+    void enqueueEvent(int type, int priority);
+    PriorityEvent dequeueEvent();
+    void executeEvent(const PriorityEvent& event);
 
 public:
-    // CONSTRUCTOR DAN DESTRUCTOR
     AsteroidManager();
     ~AsteroidManager();
 
-    // METHOD UTAMA
-    Asteroid *getTarget(char charTyped); // memberi alamat asteroid ketika char yang diketik benar
-
-    // METHOD
+    Asteroid* getTarget(char charTyped);
     void update(float deltaTime);
     void draw();
 };

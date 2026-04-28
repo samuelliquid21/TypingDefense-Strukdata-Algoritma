@@ -33,10 +33,6 @@ char SpaceShip::getCharPressed() {
 
 void SpaceShip::update(float deltaTime) {
     pressed = GetCharPressed();
-    if (IsKeyPressed(KEY_L)) {
-        Vector2 mousePos = GetMousePosition();
-        activateLaser(mousePos);
-    } 
     deactivateLaser();
 }
 

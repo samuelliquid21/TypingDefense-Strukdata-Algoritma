@@ -14,9 +14,9 @@ namespace {
     // Menghasilkan kecepatan Y acak untuk asteroid yang tidak langsung menuju pemain
     float randomVelocityY(const Asteroid& asteroid) {
         if (asteroid.position.y < Config::screenHeight / 2) {
-            return GetRandomValue(20, 50); 
+            return GetRandomValue(5, 50); 
         } else {
-            return GetRandomValue(-50, -20); 
+            return GetRandomValue(-50, -5); 
         }
     }
 }
@@ -34,27 +34,27 @@ void Asteroid::asteroidType(const int tier) {
     switch (tier) {
     case 1:
         word = WordSystem::getRandomWord(Difficulty::EASY);
-        velocity.x = 90;
+        velocity.x = 50;
         break;
     case 2:
         word = WordSystem::getRandomWord(Difficulty::EASY);
-        velocity.x = 120;
+        velocity.x = 80;
         break;
     case 3:
         word = WordSystem::getRandomWord(Difficulty::MEDIUM);
-        velocity.x = 90;
+        velocity.x = 50;
         break;
     case 4:
         word = WordSystem::getRandomWord(Difficulty::MEDIUM);
-        velocity.x = 120;
+        velocity.x = 80;
         break;
     case 5:
         word = WordSystem::getRandomWord(Difficulty::HARD);
-        velocity.x = 90;
+        velocity.x = 50;
         break;
     case 6:
         word = WordSystem::getRandomWord(Difficulty::HARD);
-        velocity.x = 120;
+        velocity.x = 80;
         break;
     default:
         break;
@@ -64,7 +64,7 @@ void Asteroid::asteroidType(const int tier) {
     position.x = -radius;
     position.y = GetRandomValue(0, Config::screenHeight);
     wordIndex = 0;
-    radius = 20 + (word.length() * 10);
+    radius = 20 + (word.length() * 2);
     textureId = GetRandomValue(0, 3);
     active = true;
     targeted = false;

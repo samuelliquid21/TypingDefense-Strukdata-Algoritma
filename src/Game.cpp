@@ -120,11 +120,12 @@ void Game::DrawMenu() {
 
 // ===== GAMEPLAY =====
 void Game::UpdateGameplay() {
-    player.update(GetFrameTime());
+    asteroidManager.update(GetFrameTime());
 }
 void Game::DrawGameplay() {
     DrawText("ini gameplay", 0, 0, 20, WHITE);
-    player.draw();
+    asteroidManager.draw();
+
 }
 
 // ===== GAME OVER =====
@@ -150,7 +151,7 @@ void Game::UpdateLeaderboard() {
     // 📌 Scroll / back ke menu, data dari file json yang ada di folder data
 }
 void Game::DrawLeaderboard() {
-    DrawText("ini leaderboard", 0, 0, 20, WHITE);
+    DrawText("ini leaderboard", 0, 0, 20, WHITE);   
     // 📌 Tampilkan ranking
 }
 

@@ -7,7 +7,7 @@
 #include <string>
 
 // testing
-#include "SpaceShip.h"
+#include "AsteroidManager.h"
 
 class Game
 {
@@ -23,7 +23,7 @@ private:
     MainMenu mainMenu;
 
     // testing
-    SpaceShip player;
+    AsteroidManager asteroidManager;
 
     void Update();
     void Draw ();

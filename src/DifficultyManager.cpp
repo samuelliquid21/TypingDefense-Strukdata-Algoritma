@@ -27,11 +27,11 @@ int DifficultyManager::getAsteroidTier() const {
 
 // mendapatkan jumlah asteroid untuk spawn khusus berdasarkan waktu yang telah berlalu
 int DifficultyManager::getAsteroidCountForSpecialSpawn() const {
-    if (counter <= 30.0f)
-        return 1;
+    if (counter <= 60.0f)
+        return 8;
 
-    int count = static_cast<int>(counter / 30.0f) + 1;
-    if (count > 5) count = 5;    
+    int count = static_cast<int>(counter / 60.0f) + 8;
+    if (count > 15) count = 15;    
 
     return count;
 }
