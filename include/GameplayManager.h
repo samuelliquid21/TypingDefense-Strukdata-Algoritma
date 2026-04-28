@@ -6,14 +6,19 @@ enum typingState {
     TARGET_LOCKED
 };
 
-class GamplayManager
+class GameplayManager
 {
 private:
     SpaceShip spaceship;
-    AsteroidManager asteoridManager;
+    AsteroidManager asteroidManager;
+    typingState state = typingState::SEARCH_FOR_TARGET;
+    Asteroid* currentTarget = nullptr;
 public:
     int score = 0;
 
-    void Update(float delteTime);
+    bool isHit();
+
+    void update(float deltaTime);
     void draw();
+    void reset();
 };

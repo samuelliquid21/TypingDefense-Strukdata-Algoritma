@@ -10,8 +10,6 @@ private:
     int radiusHitbox{30};
     bool hitPlayer{false};
 
-    char pressed{'A'};
-
     Vector2 laserTarget{0, 0};
     bool laserIsActive{false};
     double laserNextStop{0};
@@ -20,8 +18,6 @@ private:
     void drawLaser();
     void drawSpaceShip();
 public:
-    // sapceship
-    char getCharPressed();
     bool asteroiHitSpaceship(Vector2 &asteroidPosition, int asteroidRadius);
     void activateLaser(Vector2 &target);
 

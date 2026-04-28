@@ -97,6 +97,7 @@ void Game::UpdateMenu() {
     if (mainMenu.IsOptionChosen()) {
         switch (mainMenu.GetSelectedIndex()) {
             case 0:
+                gameplayManager.reset();
                 state = GameState::GAMEPLAY;
                 break;
             case 1:
@@ -120,17 +121,23 @@ void Game::DrawMenu() {
 
 // ===== GAMEPLAY =====
 void Game::UpdateGameplay() {
-    asteroidManager.update(GetFrameTime());
+    gameplayManager.update(GetFrameTime());
+    if (gameplayManager.isHit()) {
+        gameplayManager.reset();
+        state = GameState::GAME_OVER;
+    }
 }
 void Game::DrawGameplay() {
     DrawText("ini gameplay", 0, 0, 20, WHITE);
-    asteroidManager.draw();
-
+    gameplayManager.draw();
 }
 
 // ===== GAME OVER =====
 void Game::UpdateGameOver() {
     // 📌 Ambil username dan score, tambahkan datanya ke file json (folder data), kembali ke menu
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        state = GameState::MENU;
+    }
 }
 void Game::DrawGameOver() {
     DrawText("ini game over", 0, 0, 20, WHITE);
@@ -139,7 +146,7 @@ void Game::DrawGameOver() {
 
 // ===== PAUSE =====
 void Game::UpdatePause() {
-
+  
 }
 void Game::DrawPause() {
     DrawText("ini pause", 0, 0, 20, WHITE);

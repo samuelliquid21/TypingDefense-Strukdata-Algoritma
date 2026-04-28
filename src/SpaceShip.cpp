@@ -27,17 +27,11 @@ void SpaceShip::drawSpaceShip() {
     DrawCircleV(position, radiusHitbox, RED);
 }
 
-char SpaceShip::getCharPressed() {
-    return pressed;
-}
-
 void SpaceShip::update(float deltaTime) {
-    pressed = GetCharPressed();
     deactivateLaser();
 }
 
 void SpaceShip::draw() {
     drawLaser();
     drawSpaceShip();
-    DrawText(TextFormat("%c", pressed), 100, 100, 20, WHITE);
 }

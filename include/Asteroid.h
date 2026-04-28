@@ -7,7 +7,6 @@ struct Asteroid {
     Vector2 position{0, 0};
     Vector2 velocity{0, 0};
     std::string word{};
-    int wordIndex{0};
     int radius{0};
     int textureId{0};
     bool active{false};
@@ -28,4 +27,5 @@ struct Asteroid {
     // GAME LOGIC
     void update(float deltaTime);
     void draw();
+    void drawTargeted();
 };

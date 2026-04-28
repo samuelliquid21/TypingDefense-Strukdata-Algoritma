@@ -63,7 +63,6 @@ void Asteroid::asteroidType(const int tier) {
     // Set properti lain yang tidak bergantung pada tier
     position.x = -radius;
     position.y = GetRandomValue(0, Config::screenHeight);
-    wordIndex = 0;
     radius = 20 + (word.length() * 2);
     textureId = GetRandomValue(0, 3);
     active = true;
@@ -83,14 +82,63 @@ void Asteroid::update(float deltaTime) {
     if (this->active) {
         position.x += velocity.x * deltaTime;
         position.y += velocity.y * deltaTime;
+
         if (position.x - radius > Config::screenWidth) {
+            this->active = false;
+        }
+        if (position.x + radius < 0) {
+            this->active = false;
+        }
+        if (position.y - radius > Config::screenHeight) {
+            this->active = false;
+        }
+        if (position.y + radius < 0) {
             this->active = false;
         }
     }
 }
+
 void Asteroid::draw() {
     DrawCircleV(position, radius, GRAY);
-    DrawText(word.c_str(), position.x - radius, position.y - radius, 20, BLACK);
+    DrawText(word.c_str(), position.x - radius, position.y - radius, 20, WHITE);
+
+    if (targeted) {
+        drawTargeted();
+    }
+}
+
+void Asteroid::drawTargeted() {
+    float size = radius * 2.2f;
+
+    DrawRectangle(
+        position.x - size/2,
+        position.y - size/2,
+        size,
+        size,
+        Fade(RED, 0.5f)
+    );
+
+    DrawText(
+        "TARGETED",
+        position.x - 45,
+        position.y - radius - 10 - 25,
+        20,
+        RED
+    );
+}
+
+int Asteroid::typingAsteroid(char characterTyped) {
+    if (!active || word.empty()) return 0;
+    if (characterTyped != word[0]) return 0;
+
+    targeted = true;
+    word.erase(0, 1);
+
+    if (word.empty()) {
+        active = false;
+    }
+
+return 1;
 }
 
 

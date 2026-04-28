@@ -1,5 +1,6 @@
 #include "AsteroidManager.h"
 #include "raylib.h"
+#include "GameConfig.h"
 
 AsteroidManager::AsteroidManager() {
     for (int i = 0; i < 20; i++) {
@@ -20,6 +21,7 @@ AsteroidManager::AsteroidManager() {
     eventNormalTime = 0.0f;
     eventShowerTime = 0.0f;
     eventExecuteTime = 0.0f;
+    eventAddNode = 0.0f;
 
     initShowerLinkedList();
 }
@@ -32,6 +34,38 @@ AsteroidManager::~AsteroidManager() {
         current = next;
     }
     asteroidShowerHead = nullptr;
+}
+
+void AsteroidManager::clear() {
+    AsteroidShowerData* temp = asteroidShowerHead;
+    while (temp != nullptr) {
+        AsteroidShowerData* next = temp->next;
+        delete temp;
+        temp = next;
+    }
+    asteroidShowerHead = nullptr;
+    this->current = nullptr;
+    asteroidFront = 0;
+    asteroidBack = 0;
+    asteroidCount = 0;
+    eventFront = 0;
+    eventBack = 0;
+    eventCount = 0;
+    eventNormalTime = 0.0f;
+    eventShowerTime = 0.0f;
+    eventExecuteTime = 0.0f;
+    eventAddNode = 0.0f;
+    showerActivateTime = 0.0f;
+    difficultyManager.resetTime();
+    for (int i = 0; i < 20; i++) {
+        asteroid[i].active = false;
+    }
+    for (int i = 0; i < 10; i++) {
+        eventQueue[i].valid = false;
+        eventQueue[i].type = 0;
+        eventQueue[i].priority = 0;
+    }
+    initShowerLinkedList();
 }
 
 void AsteroidManager::initShowerLinkedList() {
@@ -56,6 +90,7 @@ void AsteroidManager::addShowerNode() {
 
 void AsteroidManager::executeShowerWave() {
     current = asteroidShowerHead;
+    showerActivateTime = 0.0f;
 }
 
 Asteroid* AsteroidManager::checkAsteroidShower(char charTyped) {
@@ -80,6 +115,7 @@ void AsteroidManager::activateAsteroid(int diff) {
         for (int i = 0; i < 20; i++) {
             if (!asteroid[idx].active) {
                 asteroid[idx].asteroidType(diff);
+                asteroidFront = (idx + 1) % 20;
                 return;
             }
             idx = (idx + 1) % 20;
@@ -179,6 +215,31 @@ Asteroid* AsteroidManager::getTarget(char charTyped) {
     return nullptr;
 }
 
+bool AsteroidManager::collisionWithPlayer() {
+    bool collisionStatus = false;
+    for(auto &ast : asteroid) {
+        if (ast.active) {
+            collisionStatus = CheckCollisionCircles(ast.position, ast.radius, Config::playerStartPos, Config::playerHitbox);
+            if (collisionStatus) {
+                return collisionStatus;
+            }
+        }
+    }
+    AsteroidShowerData *currentAst = asteroidShowerHead;
+    while (currentAst != nullptr)
+    {
+        if (currentAst->asteroids.active) {
+            collisionStatus = CheckCollisionCircles(currentAst->asteroids.position, currentAst->asteroids.radius, Config::playerStartPos, Config::playerHitbox);
+            if (collisionStatus) {
+                return collisionStatus;
+            }
+        }
+        currentAst = currentAst->next;
+    }
+    
+    return collisionStatus;
+}
+
 void AsteroidManager::update(float deltaTime) {
     difficultyManager.updateTime();
 
@@ -201,7 +262,7 @@ void AsteroidManager::update(float deltaTime) {
     eventExecuteTime += deltaTime;
     eventAddNode += deltaTime;
 
-    if (eventNormalTime >= 3.0f) {
+    if (eventNormalTime >= 2.0f) {
         enqueueEvent(NORMAL, 1);
         eventNormalTime = 0.0f;
     }
@@ -211,10 +272,12 @@ void AsteroidManager::update(float deltaTime) {
         eventShowerTime = 0.0f;
     }
 
-    if (eventExecuteTime >= 3.0f) {
+    if (eventExecuteTime >= 1.0f) {
         eventExecuteTime = 0.0f;
         PriorityEvent evt = dequeueEvent();
-        executeEvent(evt);
+        if (evt.valid) {
+            executeEvent(evt);
+        }
     }
 
     if (eventAddNode >= 60.0f) {

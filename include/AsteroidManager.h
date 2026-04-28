@@ -54,7 +54,11 @@ public:
     AsteroidManager();
     ~AsteroidManager();
 
-    Asteroid* getTarget(char charTyped);
+    void clear();
+
+    Asteroid *getTarget(char charTyped);
+    bool collisionWithPlayer();
+
     void update(float deltaTime);
     void draw();
 };
