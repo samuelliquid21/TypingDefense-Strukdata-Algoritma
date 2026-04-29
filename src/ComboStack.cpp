@@ -8,6 +8,7 @@ const int ComboStack::MAX_COMBO_LEVEL = 6;  // Max level combo (index 6)
 ComboStack::ComboStack() {
     topNode = nullptr;   // Stack kosong
     currentCombo = 0;    // Level combo 0 (1x multiplier)
+    onComboChanged = nullptr;  // Default: tidak ada callback
 }
 
 // Cleanup semua nodes dari singly linked list
@@ -27,12 +28,22 @@ void ComboStack::Push() {
     topNode = newNode;        
     
     currentCombo++;  
+
+    // Callback: notify perubahan combo
+    if (onComboChanged != nullptr) {
+        onComboChanged(currentCombo, GetMultiplier());
+    }
 }
 
 // Pop: kurangin combo (pas ngetik salah)
 void ComboStack::Pop() {
     if (topNode == nullptr) {
-        currentCombo = 0;  
+        if (currentCombo != 0) {
+            currentCombo = 0;
+            if (onComboChanged != nullptr) {
+                onComboChanged(0, MULTIPLIERS[0]);
+            }
+        }
         return;
     }
     
@@ -45,6 +56,11 @@ void ComboStack::Pop() {
     if (currentCombo < 0) {
         currentCombo = 0;
     }
+
+    // Callback: notify perubahan combo
+    if (onComboChanged != nullptr) {
+        onComboChanged(currentCombo, GetMultiplier());
+    }
 }
 
 // Hapus semua node
@@ -55,6 +71,11 @@ void ComboStack::Reset() {
         delete temp;
     }
     currentCombo = 0;
+
+    // Callback: notify perubahan combo (kembali ke 0)
+    if (onComboChanged != nullptr) {
+        onComboChanged(0, MULTIPLIERS[0]);
+    }
 }
 
 // Mengambil nilai paling atas
@@ -75,4 +96,9 @@ bool ComboStack::IsMaxCombo() const {
 
 bool ComboStack::IsEmpty() const {
     return topNode == nullptr;
+}
+
+// Set callback untuk notifikasi perubahan combo
+void ComboStack::SetComboCallback(ComboChangedCallback callback) {
+    onComboChanged = callback;
 }

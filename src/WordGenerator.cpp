@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 
+// menggunakna namspace anonim agar fungsi di file ini tidak bisa dipakai di luar file
 namespace {
     // Word lists
     const std::vector<std::string> easy = {
@@ -33,6 +34,7 @@ namespace {
     }
 }
 
+// fungsi untuk mengambil kata secara acak dengan tingkat kesulitan yang dipilih
 const std::string& WordSystem::getRandomWord(Difficulty diff) {
     switch (diff) {
         case Difficulty::EASY:
@@ -43,6 +45,5 @@ const std::string& WordSystem::getRandomWord(Difficulty diff) {
             return pick(hard);
     }
 
-    // fallback (harusnya tidak terjadi)
     return easy[0];
 }

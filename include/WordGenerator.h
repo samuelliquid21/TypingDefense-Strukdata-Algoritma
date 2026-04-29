@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+// enum untuk menentukan pilihan kesulitan kata
 enum class Difficulty {
     EASY,
     MEDIUM,

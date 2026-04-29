@@ -6,6 +6,9 @@ struct Node {
     Node* next;      
 };
 
+// Callback type: dipanggil saat combo berubah
+using ComboChangedCallback = void(*)(int newComboLevel, int newMultiplier);
+
 // Class untuk Combo Stack menggunakan singly linked list
 class ComboStack {
 private:
@@ -14,6 +17,8 @@ private:
     
     static const int MULTIPLIERS[];      // Array static untuk mapping level ke multiplier
     static const int MAX_COMBO_LEVEL;    // Max combo level (6)
+    
+    ComboChangedCallback onComboChanged; // Callback untuk notifikasi perubahan combo
     
 public:
     ComboStack();
@@ -39,4 +44,7 @@ public:
     
     // cek jika stack kosong
     bool IsEmpty() const;
+
+    // Set callback untuk notifikasi perubahan combo
+    void SetComboCallback(ComboChangedCallback callback);
 };

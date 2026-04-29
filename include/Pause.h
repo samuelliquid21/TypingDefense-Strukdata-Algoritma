@@ -26,12 +26,12 @@ private:
     std::string title;
     std::vector<std::string> options;
 
-    int selectedIndex;     // Index option yang terpilih
-    bool optionChosen;     // Flag apakah option sudah dipilih
+    int selectedIndex;     
+    bool optionChosen;     
 
     int titleFontSize;
     int menuFontSize;
 
-    bool isCountingDown;   // Flag apakah sedang countdown
-    float countdownTimer;  // Timer untuk countdown (3.99 -> 0)
+    bool isCountingDown;   
+    float countdownTimer;  
 };
