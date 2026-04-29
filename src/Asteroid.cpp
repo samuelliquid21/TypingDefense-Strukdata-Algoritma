@@ -129,7 +129,7 @@ void Asteroid::drawTargeted() {
     DrawText(
         targetText,
         position.x - targetWidth/2,
-        position.y - radius - 15,
+        position.y - radius - 30,
         20,
         RED
     );
