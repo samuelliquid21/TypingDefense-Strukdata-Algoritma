@@ -5,7 +5,6 @@
 #include "MainMenu.h"
 #include <vector>
 #include <string>
-#include <ScoreManager.h>
 
 class Game
 {

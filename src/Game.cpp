@@ -110,29 +110,11 @@ void Game::DrawGameplay() {
 }
 
 void Game::UpdateGameOver() {
-    void Game::UpdateGameOver() {
 
-    if (!isSaved) {
-        auto j = ScoreManager::Load("./data/data.json");
-        ScoreManager::InsertOrUpdate(j, playerName, score);
-        ScoreManager::Save("./data/data.json", j);
-        highestScore = ScoreManager::GetHighest(j);
-        isSaved = true;
-    }
-
-    if (IsKeyPressed(KEY_ENTER)) {
-        state = GameState::MENU;
-    }
-}
-    // 📌 Ambil username dan score, tambahkan datanya ke file json (folder data), kembali ke menu
 }
 
 void Game::DrawGameOver() {
-    DrawText("GAME OVER", 400, 100, 40, RED);
-    DrawText(TextFormat("Score Kamu: %d", score), 400, 200, 20, WHITE);
-    DrawText(TextFormat("Skor Tertinggi: %d", highestScore), 400, 240, 20, GREEN);
-    DrawText("Tekan ENTER untuk kembali", 400, 300, 20, GRAY);
-    // 📌 Tampilkan score akhir, perlihatkan input nama
+    DrawText("ini game over", 0, 0, 20, WHITE);
 }
 
 void Game::UpdatePause() {
