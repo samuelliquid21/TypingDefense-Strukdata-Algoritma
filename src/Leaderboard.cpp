@@ -4,7 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <fstream>
-#include "json.hpp"
+#include "../ext/nlohmann/json.hpp"
 
 using json = nlohmann::json;
 
