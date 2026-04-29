@@ -103,7 +103,10 @@ void Asteroid::update(float deltaTime) {
 
 void Asteroid::draw() {
     DrawCircleV(position, radius, GRAY);
-    DrawText(word.c_str(), position.x - radius, position.y - radius, 20, WHITE);
+
+    int textWidth = MeasureText(word.c_str(), 20);
+    int textHeight = 20;
+    DrawText(word.c_str(), position.x - textWidth/2, position.y - textHeight/2, 20, WHITE);
 
     if (targeted) {
         drawTargeted();
@@ -121,10 +124,12 @@ void Asteroid::drawTargeted() {
         Fade(RED, 0.5f)
     );
 
+    const char* targetText = "TARGETED";
+    int targetWidth = MeasureText(targetText, 20);
     DrawText(
-        "TARGETED",
-        position.x - 45,
-        position.y - radius - 10 - 25,
+        targetText,
+        position.x - targetWidth/2,
+        position.y - radius - 15,
         20,
         RED
     );

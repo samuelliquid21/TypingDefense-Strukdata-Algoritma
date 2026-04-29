@@ -5,7 +5,7 @@
 #include "MainMenu.h"
 #include <vector>
 #include <string>
-#include <ScoreManager.h>
+#include "GameOver.h"
 
 // testing
 #include "GameplayManager.h"
@@ -26,6 +26,7 @@ private:
 
     Background bg;        // Background scrolling
     MainMenu mainMenu;    // Menu utama
+    GameOver gameOver;    // Game over screen
 
     GameplayManager* gameplayManager;  // Pointer ke manajer gameplay (dinamik)
     PauseMenu pauseMenu;  // Menu pause
