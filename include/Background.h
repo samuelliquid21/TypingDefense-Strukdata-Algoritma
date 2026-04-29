@@ -1,6 +1,8 @@
 #pragma once
 #include "raylib.h"
 
+// CLASS UNTUK MENAMPILKAN BACKGROUND
+
 class Background {
 private:
     Texture2D background;

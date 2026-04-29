@@ -1,5 +1,7 @@
 #pragma once
 
+// enum untuk state game
+
 enum class GameState {
     MENU,
     GAMEPLAY,

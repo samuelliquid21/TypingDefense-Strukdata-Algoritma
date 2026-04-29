@@ -2,14 +2,11 @@
 
 // Node untuk singly linked list stack
 struct Node {
-    int multiplier;  // Multiplier value (1, 2, 4, 8, 16, 32, 64)
-    Node* next;      // Pointer ke node berikutnya (LIFO)
+    int multiplier;  
+    Node* next;      
 };
 
 // Class untuk Combo Stack menggunakan singly linked list
-// Push: tambah combo (pas ngetik benar)
-// Pop:  kurangin combo (pas ngetik salah)
-// Stack semantics: LIFO (Last In First Out)
 class ComboStack {
 private:
     Node* topNode;       // Pointer ke top stack
@@ -28,21 +25,18 @@ public:
     // Pop: kurangin combo (pas ngetik salah)
     void Pop();
     
-    // Top: lihat multiplier sekarang
-    int Top() const;
-    
     // Reset: balikin ke 1x
     void Reset();
     
-    // Get multiplier value
+    // mendapatkan nilai teratas
     int GetMultiplier() const;
     
-    // Get combo count (0-6)
+    // mendapatkan banyak kombo (0-6)
     int GetComboCount() const;
     
-    // Check if max combo
+    // cek jika combo max
     bool IsMaxCombo() const;
     
-    // Check if empty
+    // cek jika stack kosong
     bool IsEmpty() const;
 };

@@ -2,7 +2,6 @@
 
 #include "raylib.h"
 #include "GameConfig.h"
-#include "Assets.h"
 
 #define LASER_DELAY 0.1f
 

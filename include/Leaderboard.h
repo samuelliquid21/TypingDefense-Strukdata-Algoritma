@@ -3,10 +3,12 @@
 #include <string>
 #include <vector>
 
+// namespace untuk state fitur leaderboard
+
 namespace LeaderboardSystem {
 
     struct PlayerData {
-        std::string name;       // ← HARUS "name" bukan "username"
+        std::string name;       
         int score;
         float accuracy;
         int wordsTyped;
@@ -20,4 +22,4 @@ namespace LeaderboardSystem {
     void Draw();
     void Unload();
 
-} // namespace LeaderboardSystem
+} 

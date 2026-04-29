@@ -1,5 +1,4 @@
-#ifndef GAME_CONFIG_H
-#define GAME_CONFIG_H
+#pragma once
 
 #include "raylib.h"
 
@@ -10,5 +9,3 @@ namespace Config {
     constexpr Vector2 playerStartPos{screenWidth - 80, screenHeight / 2};
     constexpr int playerHitbox{30};
 }
-
-#endif
