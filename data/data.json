@@ -16,7 +16,7 @@
             "score": 950,
             "username": "Lofi_Vibes"
         },
-        {
+{
             "score": 4200,
             "username": "CyberKnight"
         },
@@ -27,6 +27,12 @@
         {
             "score": 32,
             "username": "biyu"
+        },
+        {
+            "score": 0,
+            "username": "Player"
         }
+    ]
+}
     ]
 }

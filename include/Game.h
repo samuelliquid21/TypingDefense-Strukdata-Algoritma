@@ -3,53 +3,64 @@
 #include "State.h"
 #include "Background.h"
 #include "MainMenu.h"
-#include <vector>
-#include <string>
 #include "GameOver.h"
-
-// testing
+#include "Credit.h"
+#include "ScoreManager.h"
 #include "GameplayManager.h"
 #include "Pause.h"
+#include <vector>
+#include <string>
 
-// Kelas utama game TypingDefense
-// Mengontrol semua state game dan game loop
-class Game
-{
+class Game {
 public:
     Game();
     ~Game();
-    void Run();  // Main game loop
+    void Run();
+
 private:
-    bool statusMenuQuit;  // Flag untuk quit dari menu
-    int score;            // Score player
-    GameState state;      // State game saat ini (menu, gameplay, pause, dll)
+    bool statusMenuQuit;
+    int score;
+    GameState state;
 
     Background bg;        // Background scrolling
     MainMenu mainMenu;    // Menu utama
     GameOver gameOver;    // Game over screen
+    PauseMenu pauseMenu;
+    Credit creditScreen;
 
-    GameplayManager* gameplayManager;  // Pointer ke manajer gameplay (dinamik)
-    PauseMenu pauseMenu;  // Menu pause
+    GameplayManager* gameplayManager;
+    bool isSaved;
+    int highestScore;
+    std::string playerName;
 
-    void Update();  // Update utama (memanggil Update berdasarkan state)
-    void Draw ();   // Draw utama (memanggil Draw berdasarkan state)
-    void restartGame();  // Reset game ke kondisi awal
+    // AUDIO - DAFTARKAN SEMUA DI SINI
+    Music musicCredit; 
+    Music musicLobby;  
 
-    // Fungsi update untuk setiap state
-    void UpdateMenu();       // Update state menu
-    void UpdateGameplay();   // Update state gameplay
-    void UpdatePause();      // Update state pause
-    void UpdateGameOver();   // Update state game over
-    void UpdateLeaderboard();// Update leaderboard
-    void UpdateCredit();     // Update credit screen
+    // Variabel Transisi & Glitch (LOGIKA DARI LEADERBOARD)
+    float transitionTimer;
+    bool isTransitioning;
+    float glitchIntensity; 
+    GameState targetState;
 
-    // Fungsi draw untuk setiap state
-    void DrawMenu();        // Draw menu
-    void DrawGameplay();    // Draw gameplay
-    void DrawPause();       // Draw pause
-    void DrawGameOver();    // Draw game over
-    void DrawLeaderboard(); // Draw leaderboard
-    void DrawCredit();      // Draw credit
+    Sound glitchMasuk;
+    Sound glitchKeluar;
+
+    void Update();
+    void Draw();
+    void restartGame();
+
+    void UpdateMenu();
+    void UpdateGameplay();
+    void UpdatePause();
+    void UpdateGameOver();
+    void UpdateLeaderboard();
+    void UpdateCredit();
+
+    void DrawMenu();
+    void DrawGameplay();
+    void DrawPause();
+    void DrawGameOver();
+    void DrawLeaderboard();
+    void DrawCredit();
 };
-
-
