@@ -199,10 +199,16 @@ void Game::DrawMenu() {
 
 void Game::UpdateGameplay() {
     gameplayManager->update(GetFrameTime());
+    
     if (gameplayManager->isHit()) {
-        restartGame();
+        // 1. Pindah state dulu ke GAME_OVER biar layar ganti
         state = GameState::GAME_OVER;
+
+        // 2. JANGAN langsung restartGame() di sini kalau isinya ngerusak object.
+        // Biar suaranya bunyi dulu pas layar transisi.
+        // Kalau mau aman, panggil restartGame() di dalam logika UpdateGameOver() aja.
     }
+
     if (IsKeyPressed(KEY_ESCAPE)) {
         state = GameState::PAUSE;
     }
