@@ -8,13 +8,6 @@ enum class Difficulty {
 };
 
 namespace WordSystem {
-
-    /**
-     * Mengambil 1 kata random berdasarkan difficulty.
-     * 
-     * @param diff Difficulty (EASY, MEDIUM, HARD)
-     * @return Referensi ke kata (tidak dicopy)
-     */
+    // fungsi untuk mengambil kata random sesuai dengan tingak kesulitan
     const std::string& getRandomWord(Difficulty diff);
-
 }

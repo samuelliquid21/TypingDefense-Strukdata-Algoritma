@@ -1,24 +1,32 @@
 {
-  "data": [
-    {
-      "username": "ShadowHunter99",
-      "score": 2540
-    },
-    {
-      "username": "PixelQueen_x",
-      "score": 1890
-    },
-    {
-      "username": "TurboVortex",
-      "score": 3120
-    },
-    {
-      "username": "Lofi_Vibes",
-      "score": 950
-    },
-    {
-      "username": "CyberKnight",
-      "score": 4200
-    }
-  ]
+    "data": [
+        {
+            "score": 2540,
+            "username": "ShadowHunter99"
+        },
+        {
+            "score": 1890,
+            "username": "PixelQueen_x"
+        },
+        {
+            "score": 3120,
+            "username": "TurboVortex"
+        },
+        {
+            "score": 950,
+            "username": "Lofi_Vibes"
+        },
+        {
+            "score": 4200,
+            "username": "CyberKnight"
+        },
+        {
+            "score": 138,
+            "username": "jeff"
+        },
+        {
+            "score": 32,
+            "username": "biyu"
+        }
+    ]
 }

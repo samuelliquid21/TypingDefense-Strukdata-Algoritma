@@ -3,12 +3,10 @@
 #include <string>
 
 // Node untuk Circular Doubly Linked List menu
-// Each node: data = teks option, prev/next untuk navigasi circular
 struct MenuNode {
-    std::string data;      // Teks menu option
-    MenuNode* prev;        // Pointer ke node sebelumnya (circular)
-    MenuNode* next;        // Pointer ke node berikutnya (circular)
-
+    std::string data;      
+    MenuNode* prev;        
+    MenuNode* next;        
     MenuNode(const std::string& value) : data(value), prev(nullptr), next(nullptr) {}
 };
 
@@ -39,5 +37,5 @@ private:
     int menuFontSize;       // Size font untuk menu options
 
     void AddOption(const std::string& option);  // Tambah node baru ke list
-    void ClearOptions();    // Hapus semua nodes (cleanup memory)
+    void ClearOptions();                        // Hapus semua nodes (cleanup memory)
 };

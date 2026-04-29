@@ -53,7 +53,6 @@ void Game::restartGame() {
 void Game::Update() {
     ClearBackground(BLACK);
     
-    // Update background during all states except pause
     if (state != GameState::PAUSE) {
         bg.Update();
     }
@@ -114,6 +113,8 @@ void Game::UpdateMenu() {
     }
 }
 
+// MENU STATE
+
 void Game::DrawMenu() {
     mainMenu.Draw();
 }
@@ -130,6 +131,8 @@ void Game::UpdateGameplay() {
         state = GameState::PAUSE;
     }
 }
+
+// GAMEPLAY, PAUSE, AND GAME OVER STATE
 
 void Game::DrawGameplay() {
     DrawText("ini gameplay", 0, 0, 20, WHITE);
@@ -159,10 +162,7 @@ void Game::UpdatePause() {
 }
 
 void Game::DrawPause() {
-    // Draw game world first (will show behind semi-transparent overlay)
     gameplayManager->draw();
-
-    // Then draw pause menu on top
     pauseMenu.Draw();
 }
 
@@ -176,6 +176,8 @@ void Game::UpdateGameOver() {
 void Game::DrawGameOver() {
     gameOver.Draw();
 }
+
+// LEADERBOARD STATE
 
 void Game::UpdateLeaderboard() {
     static bool firstTime = true;
@@ -196,6 +198,8 @@ void Game::UpdateLeaderboard() {
 void Game::DrawLeaderboard() {
     LeaderboardSystem::Draw();
 }
+
+// CREDIT STATE
 
 void Game::UpdateCredit() {
 
