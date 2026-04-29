@@ -47,6 +47,8 @@ public:
     void SetScoreCallback(ScoreCallback callback);
     void SetAsteroidDestroyedCallback(AsteroidDestroyedCallback callback);
 
+    void textureInit();
+
     bool isHit();  // Cek collision dengan player
 
     // LOGIKA GAME
