@@ -21,7 +21,7 @@ void Game::Run() {
 // 🌍 GLOBAL INITIALIZATION
 // ===============================
 
-Game::Game() {
+Game::Game() : gameplayManager(new GameplayManager()) {
     InitWindow(1080, 720, "myWindow");
     SetTargetFPS(60);
     SetExitKey(KEY_F12);
@@ -38,6 +38,15 @@ Game::Game() {
     bg.Load("./assets/img/Space_Background.png", 20.0f);
 }
 
+Game::~Game() {
+    delete gameplayManager;
+}
+
+void Game::restartGame() {
+    delete gameplayManager;
+    gameplayManager = new GameplayManager();
+}
+
 // ===============================
 // 🔄 CORE LOOP SYSTEM
 // ===============================
@@ -45,7 +54,11 @@ Game::Game() {
 // Update semua logic (TIDAK BOLEH ADA DRAW DI SINI)
 void Game::Update() {
     ClearBackground(BLACK);
-    bg.Update();
+    
+    // Update background during all states except pause
+    if (state != GameState::PAUSE) {
+        bg.Update();
+    }
 
     switch (state) {
         case GameState::MENU:         UpdateMenu(); break;
@@ -97,7 +110,7 @@ void Game::UpdateMenu() {
     if (mainMenu.IsOptionChosen()) {
         switch (mainMenu.GetSelectedIndex()) {
             case 0:
-                gameplayManager.reset();
+                restartGame();
                 state = GameState::GAMEPLAY;
                 break;
             case 1:
@@ -121,15 +134,18 @@ void Game::DrawMenu() {
 
 // ===== GAMEPLAY =====
 void Game::UpdateGameplay() {
-    gameplayManager.update(GetFrameTime());
-    if (gameplayManager.isHit()) {
-        gameplayManager.reset();
+    gameplayManager->update(GetFrameTime());
+    if (gameplayManager->isHit()) {
+        restartGame();
         state = GameState::GAME_OVER;
+    }
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        state = GameState::PAUSE;
     }
 }
 void Game::DrawGameplay() {
     DrawText("ini gameplay", 0, 0, 20, WHITE);
-    gameplayManager.draw();
+    gameplayManager->draw();
 }
 
 // ===== GAME OVER =====
@@ -146,11 +162,32 @@ void Game::DrawGameOver() {
 
 // ===== PAUSE =====
 void Game::UpdatePause() {
-  
+    pauseMenu.Update();
+    
+    if (pauseMenu.IsOptionChosen()) {
+        if (pauseMenu.GetSelectedIndex() == 0) {
+            // Resume Game - Start countdown
+            pauseMenu.StartCountdown();
+        } else if (pauseMenu.GetSelectedIndex() == 1) {
+            // Back to Menu - Restart game
+            pauseMenu.Reset();
+            restartGame();
+            state = GameState::MENU;
+        }
+    }
+    
+    // Handle countdown completion
+    if (pauseMenu.IsCountingDown() && pauseMenu.IsCountdownFinished()) {
+        pauseMenu.Reset();
+        state = GameState::GAMEPLAY;
+    }
 }
 void Game::DrawPause() {
-    DrawText("ini pause", 0, 0, 20, WHITE);
-    // 📌 Overlay pause screen
+    // Draw game world first (will show behind semi-transparent overlay)
+    gameplayManager->draw();
+    
+    // Then draw pause menu on top
+    pauseMenu.Draw();
 }
 
 // ===== LEADERBOARD =====

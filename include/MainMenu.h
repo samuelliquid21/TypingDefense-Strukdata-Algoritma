@@ -1,26 +1,43 @@
 #pragma once
 #include "raylib.h"
-#include <vector>
 #include <string>
 
+// Node untuk Circular Doubly Linked List menu
+// Each node: data = teks option, prev/next untuk navigasi circular
+struct MenuNode {
+    std::string data;      // Teks menu option
+    MenuNode* prev;        // Pointer ke node sebelumnya (circular)
+    MenuNode* next;        // Pointer ke node berikutnya (circular)
+
+    MenuNode(const std::string& value) : data(value), prev(nullptr), next(nullptr) {}
+};
+
+// Class untuk menu utama dengan Circular Doubly Linked List
+// Navigasi: UP = prev, DOWN = next, circular (head->...->tail->head)
 class MainMenu {
 public:
-    MainMenu();
+    MainMenu();  // Constructor: inisialisasi list dengan options default
+    ~MainMenu(); // Destructor: cleanup memory untuk linked list
 
-    void Update();
-    void Draw();
+    void Update();  // Handle input (UP/DOWN/ENTER)
+    void Draw();    // Render menu dengan traversal linked list
 
-    int GetSelectedIndex() const;
-    bool IsOptionChosen() const;
-    void ResetChoice();
+    int GetSelectedIndex() const;  // Index option yang terpilih
+    bool IsOptionChosen() const;   // Apakah option sudah dipilih?
+    void ResetChoice();            // Reset pilihan untuk frame berikutnya
 
 private:
-    std::string title;
-    std::vector<std::string> options;
+    std::string title;      // Judul menu
+    MenuNode* head;         // Pointer ke head node (first option)
+    MenuNode* current;      // Pointer ke node yang sedang terpilih
 
-    int selectedIndex;
-    bool optionChosen;
+    int selectedIndex;      // Index option yang terpilih (0-based)
+    int optionCount;        // Jumlah total options
+    bool optionChosen;      // Flag: user sudah pilih option?
 
-    int titleFontSize;
-    int menuFontSize;
+    int titleFontSize;      // Size font untuk title
+    int menuFontSize;       // Size font untuk menu options
+
+    void AddOption(const std::string& option);  // Tambah node baru ke list
+    void ClearOptions();    // Hapus semua nodes (cleanup memory)
 };

@@ -3,13 +3,15 @@
 #include "GameConfig.h"
 
 AsteroidManager::AsteroidManager() {
+    // Inisialisasi circular array buffer untuk asteroid pooling (size 20)
     for (int i = 0; i < 20; i++) {
         asteroid[i].active = false;
     }
-    asteroidFront = 0;
-    asteroidBack = 0;
-    asteroidCount = 0;
+    asteroidFront = 0;  // Front index untuk dequeuing
+    asteroidBack = 0;   // Back index untuk enqueuing
+    asteroidCount = 0;  // Count asteroid aktif
 
+    // Inisialisasi priority queue circular buffer (size 10)
     for (int i = 0; i < 10; i++) {
         eventQueue[i].valid = false;
         eventQueue[i].type = 0;
@@ -23,10 +25,11 @@ AsteroidManager::AsteroidManager() {
     eventExecuteTime = 0.0f;
     eventAddNode = 0.0f;
 
-    initShowerLinkedList();
+    initShowerLinkedList();  // Inisialisasi singly linked list untuk asteroid shower
 }
 
 AsteroidManager::~AsteroidManager() {
+    // Cleanup memory untuk singly linked list asteroid shower
     AsteroidShowerData* current = asteroidShowerHead;
     while (current != nullptr) {
         AsteroidShowerData* next = current->next;
@@ -109,22 +112,26 @@ Asteroid* AsteroidManager::checkAsteroidShower(char charTyped) {
     return closest;
 }
 
+// Aktifkan asteroid baru di circular array buffer
+// Menggunakan circular indices dengan modulo 20 untuk wrap-around
 void AsteroidManager::activateAsteroid(int diff) {
     if (asteroidCount >= 20) {
+        // Buffer penuh: cari slot yang tidak aktif untuk reuse
         int idx = asteroidFront;
         for (int i = 0; i < 20; i++) {
             if (!asteroid[idx].active) {
                 asteroid[idx].asteroidType(diff);
-                asteroidFront = (idx + 1) % 20;
+                asteroidFront = (idx + 1) % 20;  // Update front dengan modulo
                 return;
             }
-            idx = (idx + 1) % 20;
+            idx = (idx + 1) % 20;  // Circular increment
         }
         return;
     }
 
+    // Buffer belum penuh: tambah di back position
     asteroid[asteroidBack].asteroidType(diff);
-    asteroidBack = (asteroidBack + 1) % 20;
+    asteroidBack = (asteroidBack + 1) % 20;  // Increment back dengan modulo
     asteroidCount++;
 }
 
@@ -142,12 +149,14 @@ Asteroid* AsteroidManager::checkAsteroid(char charTyped) {
     return closest;
 }
 
+// Tambah event ke priority queue (circular buffer size 10)
+// Menggunakan modulo 10 untuk circular indices
 void AsteroidManager::enqueueEvent(int type, int priority) {
     if (eventCount >= 10) return;
 
     int idx = eventBack;
     while (eventQueue[idx].valid) {
-        idx = (idx + 1) % 10;
+        idx = (idx + 1) % 10;  // Circular search untuk slot kosong
     }
 
     eventQueue[idx].type = type;
@@ -157,6 +166,8 @@ void AsteroidManager::enqueueEvent(int type, int priority) {
     eventCount++;
 }
 
+// Ambil event dengan priority tertinggi dari queue
+// Linear search O(n) untuk priority tertinggi
 PriorityEvent AsteroidManager::dequeueEvent() {
     PriorityEvent emptyEvent;
     emptyEvent.valid = false;

@@ -28,17 +28,20 @@ Asteroid::Asteroid() { counter++; }
 Asteroid::~Asteroid() { counter--; }
 
 // METHOD
+// Fungsi asteroidType menggunakan DEFAULT ARGUMENT (tier = 1)
+// Bisa dipanggil sebagai asteroidType() atau asteroidType(3)
 void Asteroid::asteroidType(const int tier) {
 
-    // Set properti asteroid berdasarkan tier
+    // Set properti asteroid berdasarkan tier (1-6)
+    // Tier 1-2: EASY, 3-4: MEDIUM, 5-6: HARD
     switch (tier) {
     case 1:
         word = WordSystem::getRandomWord(Difficulty::EASY);
-        velocity.x = 50;
+        velocity.x = 50;  // Kecepatan rendah
         break;
     case 2:
         word = WordSystem::getRandomWord(Difficulty::EASY);
-        velocity.x = 80;
+        velocity.x = 80;  // Kecepatan tinggi
         break;
     case 3:
         word = WordSystem::getRandomWord(Difficulty::MEDIUM);
@@ -57,16 +60,16 @@ void Asteroid::asteroidType(const int tier) {
         velocity.x = 80;
         break;
     default:
-        break;
+        break;  // Default tier tidak valid
     }
 
     // Set properti lain yang tidak bergantung pada tier
-    position.x = -radius;
+    position.x = -radius;  // Start dari kiri layar
     position.y = GetRandomValue(0, Config::screenHeight);
-    radius = 20 + (word.length() * 2);
-    textureId = GetRandomValue(0, 3);
-    active = true;
-    targeted = false;
+    radius = 20 + (word.length() * 2);  // Radius berdasarkan panjang kata
+    textureId = GetRandomValue(0, 3);   // Random texture
+    active = true;    // Aktifkan asteroid
+    targeted = false; // Belum ditarget
     
     // Tentukan apakah asteroid akan langsung menuju pemain atau tidak
     int toPlayer = GetRandomValue(0, 1); 

@@ -5,15 +5,23 @@
 namespace {
     // Word lists
     const std::vector<std::string> easy = {
-        "cat", "dog", "sun", "tree", "book"
+        "cat", "dog", "sun", "tree", "book",
+        "run", "fish", "bird", "moon", "star",
+        "ship", "mars", "earth", "venus", "rock"
     };
 
     const std::vector<std::string> medium = {
-        "planet", "rocket", "system", "typing"
+        "planet", "rocket", "system", "typing",
+        "comet", "orbit", "alien", "space",
+        "laser", "pilot", "galaxy", "meteor",
+        "probe", "saturn"
     };
 
     const std::vector<std::string> hard = {
-        "asteroid", "galaxy", "algorithm", "development"
+        "asteroid", "galaxy", "algorithm", "development",
+        "supernova", "astronaut", "telescope", "constellation",
+        "spaceship", "gravity", "universe", "starlight",
+        "satellite", "blackhole"
     };
 
     // Random engine (dibuat sekali)
