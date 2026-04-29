@@ -1,5 +1,8 @@
+#pragma once
+
 #include "raylib.h"
 #include "GameConfig.h"
+#include "Assets.h"
 
 #define LASER_DELAY 0.1f
 
@@ -14,13 +17,20 @@ private:
     bool laserIsActive{false};
     double laserNextStop{0};
 
+    Texture2D texture;
+    Rectangle frame;
+
+    void drawTexture();
     void deactivateLaser();
     void drawLaser();
     void drawSpaceShip();
+
 public:
+    SpaceShip();
+    ~SpaceShip();
+    void init();
     bool asteroiHitSpaceship(Vector2 &asteroidPosition, int asteroidRadius);
     void activateLaser(Vector2 &target);
-
     void update(float deltaTime);
     void draw();
 };

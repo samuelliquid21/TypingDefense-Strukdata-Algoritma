@@ -1,19 +1,19 @@
 #include "Game.h"
+#include "Leaderboard.h"
 
 // ===============================
 // 🎮 GAME ENTRY POINT
 // ===============================
 
-// Menjalankan Game Loop utama
 void Game::Run() {
-    // 🔁 MAIN LOOP (JANGAN TARO LOGIKA BERAT DISINI)
     while (!WindowShouldClose() && !statusMenuQuit) {
-        Update();   // Update logic
-        Draw();     // Render
+        Update();
+        Draw();
     }
 
-    // 🧹 Cleanup (resource release)
     bg.Unload();
+    LeaderboardSystem::Unload();
+    CloseAudioDevice();
     CloseWindow();
 }
 
@@ -23,19 +23,17 @@ void Game::Run() {
 
 Game::Game() : gameplayManager(new GameplayManager()) {
     InitWindow(1080, 720, "myWindow");
+    InitAudioDevice();
     SetTargetFPS(60);
     SetExitKey(KEY_F12);
 
-    // 🎯 Default State
-    // STATE: MENU, GAMEPLAY, PAUSE, GAME_OVER, LEADERBOARD, CREDIT
     state = GameState::MENU; 
     score = 0;
     statusMenuQuit = false;
 
-    // 📌 TEAM NOTE:
-    // - Tambahkan semua inisialisasi global di sini
-    // - Contoh: load texture, audio, font, config
     bg.Load("./assets/img/Space_Background.png", 20.0f);
+    gameplayManager->textureInit();
+    LeaderboardSystem::Init();
 }
 
 Game::~Game() {
@@ -45,13 +43,13 @@ Game::~Game() {
 void Game::restartGame() {
     delete gameplayManager;
     gameplayManager = new GameplayManager();
+    gameplayManager->textureInit();
 }
 
 // ===============================
 // 🔄 CORE LOOP SYSTEM
 // ===============================
 
-// Update semua logic (TIDAK BOLEH ADA DRAW DI SINI)
 void Game::Update() {
     ClearBackground(BLACK);
     
@@ -69,16 +67,10 @@ void Game::Update() {
         case GameState::CREDIT:       UpdateCredit(); break;
         default: break;
     }
-
-    // 📌 TEAM NOTE:
-    // - Hanya logika 
-    // - Jangan render di sini!
 }
 
-// Render semua visual
 void Game::Draw() {
     BeginDrawing();
-
     bg.Draw();
 
     switch (state) {
@@ -92,18 +84,12 @@ void Game::Draw() {
     }
 
     EndDrawing();
-
-    // 📌 TEAM NOTE:
-    // - Hanya untuk rendering
-    // - Jangan update logic di sini!
-    // - jika ingin render sesuatu pastikan ada di antara begin dan end drawing
 }
 
 // ===============================
 // 🧠 GAME STATE LOGIC
 // ===============================
 
-// ===== MENU =====
 void Game::UpdateMenu() {
     mainMenu.Update();
 
@@ -122,17 +108,15 @@ void Game::UpdateMenu() {
             case 3:
                 statusMenuQuit = true;
                 break;
-                
         }
         mainMenu.ResetChoice();
     }
 }
+
 void Game::DrawMenu() {
     mainMenu.Draw();
-    // 📌 Gambar UI menu
 }
 
-// ===== GAMEPLAY =====
 void Game::UpdateGameplay() {
     gameplayManager->update(GetFrameTime());
     if (gameplayManager->isHit()) {
@@ -143,12 +127,12 @@ void Game::UpdateGameplay() {
         state = GameState::PAUSE;
     }
 }
+
 void Game::DrawGameplay() {
     DrawText("ini gameplay", 0, 0, 20, WHITE);
     gameplayManager->draw();
 }
 
-// ===== GAME OVER =====
 void Game::UpdateGameOver() {
     // 📌 Ambil username dan score, tambahkan datanya ke file json (folder data), kembali ke menu
     if (IsKeyPressed(KEY_ESCAPE)) {
@@ -160,7 +144,6 @@ void Game::DrawGameOver() {
     // 📌 Tampilkan score akhir, perlihatkan input nama
 }
 
-// ===== PAUSE =====
 void Game::UpdatePause() {
     pauseMenu.Update();
     
@@ -182,6 +165,7 @@ void Game::UpdatePause() {
         state = GameState::GAMEPLAY;
     }
 }
+
 void Game::DrawPause() {
     // Draw game world first (will show behind semi-transparent overlay)
     gameplayManager->draw();
@@ -190,20 +174,30 @@ void Game::DrawPause() {
     pauseMenu.Draw();
 }
 
-// ===== LEADERBOARD =====
 void Game::UpdateLeaderboard() {
-    // 📌 Scroll / back ke menu, data dari file json yang ada di folder data
-}
-void Game::DrawLeaderboard() {
-    DrawText("ini leaderboard", 0, 0, 20, WHITE);   
-    // 📌 Tampilkan ranking
+    static bool firstTime = true;
+    if (firstTime) {
+        LeaderboardSystem::Init();
+        firstTime = false;
+    }
+    
+    bool kembali = false; 
+    LeaderboardSystem::Update(kembali);
+    
+    if (kembali) {
+        firstTime = true;  // Reset buat next time
+        state = GameState::MENU;
+    }
 }
 
-// ===== CREDIT =====
-void Game::UpdateCredit() {
-    // 📌 Back ke menu
+void Game::DrawLeaderboard() {
+    LeaderboardSystem::Draw();
 }
+
+void Game::UpdateCredit() {
+
+}
+
 void Game::DrawCredit() {
     DrawText("ini credit", 0, 0, 20, WHITE);
-    // 📌 Tampilkan nama anggota
 }

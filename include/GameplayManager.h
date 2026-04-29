@@ -1,3 +1,5 @@
+#pragma once
+
 #include "SpaceShip.h"
 #include "AsteroidManager.h"
 #include "Combostack.h"
@@ -39,6 +41,8 @@ public:
     // Setter untuk callback functions
     void SetScoreCallback(ScoreCallback callback);
     void SetAsteroidDestroyedCallback(AsteroidDestroyedCallback callback);
+
+    void textureInit();
 
     bool isHit();  // Cek collision dengan player
 

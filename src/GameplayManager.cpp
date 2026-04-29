@@ -6,6 +6,10 @@ bool GameplayManager::isHit() {
     return asteroidManager.collisionWithPlayer();
 }
 
+void GameplayManager::textureInit() {
+    spaceship.init();
+}
+
 // Function overloading: AddScore dengan 1 parameter (gunakan current combo)
 void GameplayManager::AddScore(int points) {
     score += points * comboStack.GetMultiplier();
