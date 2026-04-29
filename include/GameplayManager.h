@@ -5,7 +5,6 @@
 #include "Combostack.h"
 #include "raylib.h"
 
-// State untuk typing game: searching atau locked pada target
 enum typingState {
     SEARCH_FOR_TARGET,  
     TARGET_LOCKED       
@@ -30,18 +29,23 @@ private:
     ScoreCallback onScoreChanged = nullptr;                     // Callback pointer (nullable)
     AsteroidDestroyedCallback onAsteroidDestroyed = nullptr;    // Callback pointer (nullable)
 
+    // Sound variables
+    Sound laser;
+    Sound error;
+    Sound gameover;
+
 public:
-    int score = 0;  // Score player
+    int score = 0;
+
+    GameplayManager() = default; 
+    ~GameplayManager(); // DESTRUCTOR UNTUK UNLOAD AUDIO
 
     // Function overloading: AddScore dengan 1 atau 2 parameter
     void AddScore(int points);                      // Gunakan current combo multiplier
     void AddScore(int basePoints, int multiplier);  // Gunakan multiplier custom
 
-    // Setter untuk callback functions
     void SetScoreCallback(ScoreCallback callback);
     void SetAsteroidDestroyedCallback(AsteroidDestroyedCallback callback);
-
-    void textureInit();
 
     bool isHit();  // Cek collision dengan player
 

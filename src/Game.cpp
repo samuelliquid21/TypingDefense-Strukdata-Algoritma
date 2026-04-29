@@ -202,12 +202,14 @@ void Game::DrawMenu() {
 
 void Game::UpdateGameplay() {
     gameplayManager->update(GetFrameTime());
+    
     if (gameplayManager->isHit()) {
         score = gameplayManager->score;
         gameOver.SetScore(score);
         restartGame();
         state = GameState::GAME_OVER;
     }
+
     if (IsKeyPressed(KEY_ESCAPE)) {
         state = GameState::PAUSE;
     }
