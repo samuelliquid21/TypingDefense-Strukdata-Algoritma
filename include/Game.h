@@ -7,35 +7,48 @@
 #include <string>
 #include <ScoreManager.h>
 
+// testing
+#include "GameplayManager.h"
+#include "Pause.h"
+
+// Kelas utama game TypingDefense
+// Mengontrol semua state game dan game loop
 class Game
 {
 public:
     Game();
-    void Run();
+    ~Game();
+    void Run();  // Main game loop
 private:
-    bool statusMenuQuit;
-    int score;
-    GameState state;
+    bool statusMenuQuit;  // Flag untuk quit dari menu
+    int score;            // Score player
+    GameState state;      // State game saat ini (menu, gameplay, pause, dll)
 
-    Background bg;
-    MainMenu mainMenu;
+    Background bg;        // Background scrolling
+    MainMenu mainMenu;    // Menu utama
 
-    void Update();
-    void Draw ();
+    GameplayManager* gameplayManager;  // Pointer ke manajer gameplay (dinamik)
+    PauseMenu pauseMenu;  // Menu pause
 
-    void UpdateMenu();
-    void UpdateGameplay();
-    void UpdatePause();
-    void UpdateGameOver();
-    void UpdateLeaderboard();
-    void UpdateCredit();
+    void Update();  // Update utama (memanggil Update berdasarkan state)
+    void Draw ();   // Draw utama (memanggil Draw berdasarkan state)
+    void restartGame();  // Reset game ke kondisi awal
 
-    void DrawMenu();
-    void DrawGameplay();
-    void DrawPause();
-    void DrawGameOver();
-    void DrawLeaderboard();
-    void DrawCredit();
+    // Fungsi update untuk setiap state
+    void UpdateMenu();       // Update state menu
+    void UpdateGameplay();   // Update state gameplay
+    void UpdatePause();      // Update state pause
+    void UpdateGameOver();   // Update state game over
+    void UpdateLeaderboard();// Update leaderboard
+    void UpdateCredit();     // Update credit screen
+
+    // Fungsi draw untuk setiap state
+    void DrawMenu();        // Draw menu
+    void DrawGameplay();    // Draw gameplay
+    void DrawPause();       // Draw pause
+    void DrawGameOver();    // Draw game over
+    void DrawLeaderboard(); // Draw leaderboard
+    void DrawCredit();      // Draw credit
 };
 
 
