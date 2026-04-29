@@ -1,8 +1,8 @@
 #include "Game.h"
 #include "Leaderboard.h"
 #include "Credit.h"
-#include "rlgl.h"
 #include "raylib.h"
+#include "rlgl.h"
 
 // ===============================
 // 🎮 GAME ENTRY POINT
