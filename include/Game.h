@@ -3,6 +3,7 @@
 #include "State.h"
 #include "Background.h"
 #include "MainMenu.h"
+#include "Credit.h"
 #include <vector>
 #include <string>
 
@@ -15,7 +16,7 @@ private:
     bool statusMenuQuit;
     int score;
     GameState state;
-
+    Credit credit;
     Background bg;
     MainMenu mainMenu;
 

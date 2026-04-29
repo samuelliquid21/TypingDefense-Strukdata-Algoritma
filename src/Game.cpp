@@ -141,6 +141,7 @@ void Game::UpdateLeaderboard() {
     }
 }
 
+<<<<<<< HEAD
 void Game::DrawLeaderboard() {
     LeaderboardSystem::Draw();
 }
@@ -151,4 +152,15 @@ void Game::UpdateCredit() {
 
 void Game::DrawCredit() {
     DrawText("ini credit", 0, 0, 20, WHITE);
+=======
+// ===== CREDIT =====
+void Game::UpdateCredit() {
+    bool back = false;
+    credit.Update(back);
+    if (back) state = GameState::MENU;
+}
+
+void Game::DrawCredit() {
+    credit.Draw();
+>>>>>>> 9bd1da6 (first commit)
 }
