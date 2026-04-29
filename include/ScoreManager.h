@@ -5,6 +5,7 @@
 
 using json = nlohmann::json;
 
+// namespace score manager
 namespace ScoreManager {
 
     inline json Load(const std::string& path) {
