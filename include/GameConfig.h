@@ -8,4 +8,7 @@ namespace Config {
     constexpr int maxAsteroids{100};
     constexpr Vector2 playerStartPos{screenWidth - 80, screenHeight / 2};
     constexpr int playerHitbox{30};
+    constexpr float asteroidShowerInterval{0.1f};
+    constexpr float showerEventInterval{30};
+    constexpr float asteroidEventInterval{30};
 }
