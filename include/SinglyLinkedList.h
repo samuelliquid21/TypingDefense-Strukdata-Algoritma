@@ -145,6 +145,13 @@ public:
         std::cout << "nullptr" << std::endl;
     }
 
+    void resetCursor() {current = head}
+
+    T *peekFront const {
+        if (isEmpty()) return nullptr;
+        return &(head->data) 
+    }
+
     // mendapatkan size dari list
     int getSize() const {
         return size;
