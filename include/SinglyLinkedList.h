@@ -145,9 +145,11 @@ public:
         std::cout << "nullptr" << std::endl;
     }
 
+    // current ke posisi awal (head)
     void resetCursor() {current = head}
 
-    T *peekFront const {
+    // melihat data head
+    T *peekFront() const {
         if (isEmpty()) return nullptr;
         return &(head->data) 
     }
