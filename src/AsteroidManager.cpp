@@ -6,11 +6,11 @@
 
 AsteroidManager::AsteroidManager() {
     // inisiasi awal ketika class dipanggil
-    for (int i = 0; i < 5; i++) addShowerNode(); // buat 5 node asteroid shower di awal
-    timerNormal.start(2.0f);
-    timerShower.start(30.0f);
-    timerExecute.start(1.0f);
-    timerAddNode.start(60.0f);
+    for (int i = 0; i < Config::initialShowerNodes; i++) addShowerNode();
+    timerNormal.start(Config::normalSpawnInterval);
+    timerShower.start(Config::showerEventInterval);
+    timerExecute.start(Config::executeEventInterval);
+    timerAddNode.start(Config::addShowerNodeInterval);
 }
 
 AsteroidManager::~AsteroidManager() {}
@@ -79,7 +79,7 @@ void AsteroidManager::triggerShowerWave() {
     if constexpr (Config::enableAsteroidLog) // trace log untuk testing dan debugging
         TraceLog(LOG_INFO, "[%.1f] triggerShowerWave (%d nodes)", difficultyManager.counter, count);
     asteroidShower.resetCursor();
-    timerShowerInterval.start(0.2f);
+    timerShowerInterval.start(Config::showerWaveInterval);
     showerWaveActive = true;
 }
 
@@ -101,7 +101,7 @@ void AsteroidManager::updateShowerWave(float deltaTime) {
         if constexpr (Config::enableAsteroidLog) // trace log untuk testing dan debugging
             TraceLog(LOG_INFO, "[%.1f] updateShowerWave activate tier %d", difficultyManager.counter, tier);
         asteroidShower.next();
-        timerShowerInterval.start(0.2f);
+        timerShowerInterval.start(Config::showerWaveInterval);
     // jika nullptr, maka event asteroid shower telah berakhir
     } else {
         if constexpr (Config::enableAsteroidLog) // trace log untuk testing dan debugging
@@ -158,28 +158,28 @@ void AsteroidManager::update(float deltaTime) {
     timerNormal.update(deltaTime);
     if (timerNormal.isDone()) {
         eventQueue.push(NORMAL);
-        timerNormal.start(2.0f);
+        timerNormal.start(Config::normalSpawnInterval);
     }
 
     // tambahkan event asteroid shower ke queue setiap 30 detik
     timerShower.update(deltaTime);
     if (timerShower.isDone()) {
         eventQueue.push(ASTEROID_SHOWER);
-        timerShower.start(30.0f);
+        timerShower.start(Config::showerEventInterval);
     }
 
     // tambahkan node asteroid baru di saat event asteroid shower setiap 1 menit
     timerAddNode.update(deltaTime);
     if (timerAddNode.isDone()) {
         addShowerNode();
-        timerAddNode.start(60.0f);
+        timerAddNode.start(Config::addShowerNodeInterval);
     }
 
-    // eksekuis event setiap 2 detik
+    // eksekusi event setiap 1 detik
     timerExecute.update(deltaTime);
     if (timerExecute.isDone()) {
         executeEvent();
-        timerExecute.start(2.0f);
+        timerExecute.start(Config::executeEventInterval);
     }
 }
 
