@@ -321,5 +321,6 @@ void AsteroidManager::draw() {
         temp = temp->next;
     }
 
+    // tester counter (debugging)
     DrawText(std::to_string(difficultyManager.counter).c_str(), 50, 50, 20, WHITE);
 }

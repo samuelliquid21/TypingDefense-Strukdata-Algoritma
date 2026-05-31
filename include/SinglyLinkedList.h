@@ -24,9 +24,7 @@ private:
 public:
     SinglyLinkedList() : head(nullptr), current(nullptr), size(0) {}
 
-    ~SinglyLinkedList() {
-        clear();
-    }
+    ~SinglyLinkedList() { clear(); }
 
     // ==== SINGLY LINKED LIST METHOD ====
 
@@ -146,12 +144,15 @@ public:
     }
 
     // current ke posisi awal (head)
-    void resetCursor() {current = head}
+    void resetCursor() { current = head; }
+
+    // mendapatkan pointer ke head node (untuk iterasi eksternal)
+    Node<T>* getHead() const { return head; }
 
     // melihat data head
     T *peekFront() const {
         if (isEmpty()) return nullptr;
-        return &(head->data) 
+        return &(head->data);
     }
 
     // mendapatkan size dari list

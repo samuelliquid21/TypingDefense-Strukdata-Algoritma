@@ -31,7 +31,7 @@ Asteroid::~Asteroid() { counter--; }
 
 // ==== FUNGSI YANG DIBUTUHKAN DI MODUL LAIN ====
 
-int Asteroid::typingAsteroid(char characterTyped) {     // Update properti asteroid sesuai tier (1-6). Dengan  DEFAULT ARGUMENT: tier = 1 (EASY)
+int Asteroid::typingAsteroid(char characterTyped) { // Handle input untuk kata asteroid
     if (!active || word.empty()) return 0;
     if (characterTyped != word[0]) return 0;
 
@@ -45,7 +45,7 @@ int Asteroid::typingAsteroid(char characterTyped) {     // Update properti aster
     return 1;
 }
 
-void Asteroid::asteroidType(const int tier) {           // Handle input untuk kata asteroid
+void Asteroid::asteroidType(const int tier) { // Update properti asteroid sesuai tier (1-6). Dengan  DEFAULT ARGUMENT: tier = 1 (EASY)
     switch (tier) {
     case 1:
         word = WordSystem::getRandomWord(Difficulty::EASY);

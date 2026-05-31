@@ -23,10 +23,8 @@ struct Asteroid {
 
     // ==== FUNGSI YANG DIBUTUHKAN MODUL LAIN ====
 
-    void asteroidType(const int tier = 1);      // Update properti asteroid sesuai tier (1-6). Dengan  DEFAULT ARGUMENT: tier = 1 (EASY)
+    void asteroidType(const int tier = 1);      // Update properti asteroid sesuai tier (1-6). Dengan  DEFAULT ARGUMENT: tier = 1 (EASY), mengaktifkan asteroid sehingga langsung jalan
     int typingAsteroid(char characterTyped);    // Handle input untuk kata asteroid
-
-    // ==== GAME LOGIC ====
     
     void update(float deltaTime);  // Update posisi berdasarkan velocity
     void draw();                   // Render asteroid normal
