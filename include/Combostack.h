@@ -1,17 +1,16 @@
 #pragma once
 
-// Node untuk singly linked list stack
-struct Node {
-    int multiplier;  
-    Node* next;      
-};
-
 // Callback type: dipanggil saat combo berubah
 using ComboChangedCallback = void(*)(int newComboLevel, int newMultiplier);
 
 // Class untuk Combo Stack menggunakan singly linked list
 class ComboStack {
 private:
+    struct Node {
+        int multiplier;
+        Node* next;
+    };
+
     Node* topNode;       // Pointer ke top stack
     int currentCombo;    // Level combo saat ini (0-6)
     

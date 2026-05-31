@@ -11,4 +11,5 @@ namespace Config {
     constexpr float asteroidShowerInterval{0.1f};
     constexpr float showerEventInterval{30};
     constexpr float asteroidEventInterval{30};
+    constexpr bool enableAsteroidLog{false};
 }

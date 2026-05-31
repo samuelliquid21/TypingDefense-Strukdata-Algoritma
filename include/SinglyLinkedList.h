@@ -28,8 +28,7 @@ public:
 
     // ==== SINGLY LINKED LIST METHOD ====
 
-    // menambahkan data ke depan linked list
-    // @param value = data yang ingin ditambahkan
+    // UNUSED: menambahkan data ke depan linked list
     void push_front(const T &value) { 
         Node<T>* newNode = new Node<T>(value);
         newNode->next = head;
@@ -55,7 +54,7 @@ public:
         size++;
     }
 
-    // menghapus 1 data yang ada di depan
+    // UNUSED: menghapus 1 data yang ada di depan
     void pop_front() {
         if (isEmpty()) return;
         if (current == head) current = head->next;
@@ -65,7 +64,7 @@ public:
         size--;
     }
 
-    // menghapus 1 data yang ada di belakang
+    // UNUSED: menghapus 1 data yang ada di belakang
     void pop_back() {
         if (isEmpty()) return;
         if (head->next == nullptr) {
@@ -84,8 +83,7 @@ public:
         size--;
     }
 
-    // menghapus data sesuai dengan value
-    // @param value = data yang ingin dihapus
+    // UNUSED: menghapus data sesuai dengan value
     bool remove(const T &value) {
         if (isEmpty()) return false;
         if (head->data == value) {
@@ -133,7 +131,7 @@ public:
         size = 0;
     }
 
-    // menampilkan data di linked list
+    // UNUSED: menampilkan data di linked list
     void display() const {
         Node<T>* temp = head;
         while (temp != nullptr) {
@@ -149,13 +147,13 @@ public:
     // mendapatkan pointer ke head node (untuk iterasi eksternal)
     Node<T>* getHead() const { return head; }
 
-    // melihat data head
+    // UNUSED: melihat data head
     T *peekFront() const {
         if (isEmpty()) return nullptr;
         return &(head->data);
     }
 
-    // mendapatkan size dari list
+    // UNUSED: mendapatkan size dari list
     int getSize() const {
         return size;
     }

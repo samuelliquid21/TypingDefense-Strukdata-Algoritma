@@ -9,11 +9,12 @@ GameplayManager::~GameplayManager() {
 }
 
 bool GameplayManager::isHit() {
-    if (asteroidManager.collisionWithPlayer()) {
-        // Cek supaya suara gameover tidak dipicu berulang kali dalam satu frame
-        if (!IsSoundPlaying(gameover)) { 
-            PlaySound(gameover);
-        }
+    auto hits = asteroidManager.scanAllAsteroids([](const Asteroid& ast) {
+        return ast.active && CheckCollisionCircles(
+            ast.position, ast.radius, Config::playerStartPos, Config::playerHitbox);
+    });
+    if (!hits.empty()) {
+        if (!IsSoundPlaying(gameover)) PlaySound(gameover);
         return true;
     }
     return false;
@@ -59,7 +60,15 @@ void GameplayManager::update(float deltaTime) {
     char c = (char)key;
 
     if (state == SEARCH_FOR_TARGET) {
-        currentTarget = asteroidManager.getTarget(c);
+        auto targets = asteroidManager.scanAllAsteroids([c](const Asteroid& ast) {
+            return ast.active && !ast.word.empty() && ast.word[0] == c;
+        });
+        currentTarget = nullptr;
+        for (auto* t : targets) {
+            if (currentTarget == nullptr || t->position.x > currentTarget->position.x) {
+                currentTarget = t;
+            }
+        }
         if (currentTarget != nullptr) {
             currentTarget->targeted = true;
             spaceship.activateLaser(currentTarget->position);
@@ -139,7 +148,6 @@ void GameplayManager::reset() {
     state = typingState::SEARCH_FOR_TARGET;
     currentTarget = nullptr;
     spaceship = SpaceShip();
-    asteroidManager.clear();
     comboStack.Reset();
     wordsCompleted = 0;
     wasPreviousKeyWrong = false;
