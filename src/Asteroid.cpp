@@ -3,45 +3,57 @@
 #include "GameConfig.h"
 #include "raymath.h"
 
+int Asteroid::counter = 0;
+
+// ==== FUNGSI PEMBANTU ====
+
+// menggunakan fungsi anonim agar fungsi ini tidak bisa digunakan di modul lain
 namespace {
-    // Menghitung kecepatan Y agar asteroid menuju pemain
-    float velocityYToPlayer(const Asteroid& asteroid) {
+
+    float velocityYToPlayer(const Asteroid& asteroid) { // Menghitung kecepatan Y agar asteroid menuju pemain
         Vector2 direction = Vector2Subtract(Config::playerStartPos, asteroid.position);
         direction = Vector2Normalize(direction);
         return direction.y * fabsf(asteroid.velocity.x);
     }
 
-    // Menghasilkan kecepatan Y acak untuk asteroid yang tidak langsung menuju pemain
-    float randomVelocityY(const Asteroid& asteroid) {
+    float randomVelocityY(const Asteroid& asteroid) {   // Menghitung kecepatan Y agar asteroid menuju pemain
         if (asteroid.position.y < Config::screenHeight / 2) {
             return GetRandomValue(5, 50); 
         } else {
             return GetRandomValue(-50, -5); 
         }
     }
+
 }
 
-int Asteroid::counter = 0;
-
-// CONSTRUCTOR DAN DESTRUCTOR
 Asteroid::Asteroid() { counter++; }
 Asteroid::~Asteroid() { counter--; }
 
-// METHOD
-// Fungsi asteroidType menggunakan DEFAULT ARGUMENT (tier = 1)
-// Bisa dipanggil sebagai asteroidType() atau asteroidType(3)
-void Asteroid::asteroidType(const int tier) {
+// ==== FUNGSI YANG DIBUTUHKAN DI MODUL LAIN ====
 
-    // Set properti asteroid berdasarkan tier (1-6)
-    // Tier 1-2: EASY, 3-4: MEDIUM, 5-6: HARD
+int Asteroid::typingAsteroid(char characterTyped) { // Handle input untuk kata asteroid
+    if (!active || word.empty()) return 0;
+    if (characterTyped != word[0]) return 0;
+
+    targeted = true;
+    word.erase(0, 1);
+
+    if (word.empty()) {
+        active = false;
+    }
+
+    return 1;
+}
+
+void Asteroid::asteroidType(const int tier) { // Update properti asteroid sesuai tier (1-6). Dengan  DEFAULT ARGUMENT: tier = 1 (EASY)
     switch (tier) {
     case 1:
         word = WordSystem::getRandomWord(Difficulty::EASY);
-        velocity.x = 50;  // Kecepatan rendah
+        velocity.x = 50;  
         break;
     case 2:
         word = WordSystem::getRandomWord(Difficulty::EASY);
-        velocity.x = 80;  // Kecepatan tinggi
+        velocity.x = 80;  
         break;
     case 3:
         word = WordSystem::getRandomWord(Difficulty::MEDIUM);
@@ -60,18 +72,16 @@ void Asteroid::asteroidType(const int tier) {
         velocity.x = 80;
         break;
     default:
-        break;  // Default tier tidak valid
+        break;  
     }
 
-    // Set properti lain yang tidak bergantung pada tier
-    position.x = -radius;  // Start dari kiri layar
+    position.x = -radius; 
     position.y = GetRandomValue(0, Config::screenHeight);
-    radius = 20 + (word.length() * 2);  // Radius berdasarkan panjang kata
-    textureId = GetRandomValue(0, 3);   // Random texture
-    active = true;    // Aktifkan asteroid
-    targeted = false; // Belum ditarget
+    radius = 20 + (word.length() * 2);  
+    textureId = GetRandomValue(0, 3);  
+    active = true;    
+    targeted = false; 
     
-    // Tentukan apakah asteroid akan langsung menuju pemain atau tidak
     int toPlayer = GetRandomValue(0, 1); 
     if (toPlayer) {
         velocity.y = velocityYToPlayer(*this);
@@ -80,8 +90,9 @@ void Asteroid::asteroidType(const int tier) {
     }
 }
 
-// GAME LOGIC
-void Asteroid::update(float deltaTime) {
+// ==== UPDATE LOGIC ====
+
+void Asteroid::update(float deltaTime) { // Update posisi berdasarkan velocity
     if (this->active) {
         position.x += velocity.x * deltaTime;
         position.y += velocity.y * deltaTime;
@@ -101,7 +112,9 @@ void Asteroid::update(float deltaTime) {
     }
 }
 
-void Asteroid::draw() {
+// ==== DRAW LOGIC ====
+
+void Asteroid::draw() {         // Render asteroid normal
     DrawCircleV(position, radius, GRAY);
 
     int textWidth = MeasureText(word.c_str(), 20);
@@ -113,7 +126,7 @@ void Asteroid::draw() {
     }
 }
 
-void Asteroid::drawTargeted() {
+void Asteroid::drawTargeted() { // Render asteroid yang sedang ditarget (highlight)
     float size = radius * 2.2f;
 
     DrawRectangle(
@@ -134,19 +147,4 @@ void Asteroid::drawTargeted() {
         RED
     );
 }
-
-int Asteroid::typingAsteroid(char characterTyped) {
-    if (!active || word.empty()) return 0;
-    if (characterTyped != word[0]) return 0;
-
-    targeted = true;
-    word.erase(0, 1);
-
-    if (word.empty()) {
-        active = false;
-    }
-
-return 1;
-}
-
 
