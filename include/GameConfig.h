@@ -14,6 +14,14 @@ namespace Config {
     constexpr float executeEventInterval{1.0f};     // interval eksekusi event
     constexpr float addShowerNodeInterval{60.0f};   // interval menambah node asteroid baru di asteroid shower list
     constexpr float showerWaveInterval{0.2f};       // interval spawn antar asteroid saat event shower
-    constexpr int initialShowerNodes{5};            // banyak asteroid pada event asteroid shower pertama
+    constexpr int initialShowerNodes{5};           // banyak asteroid pada event asteroid shower pertama
     constexpr bool enableAsteroidLog{true};         // memunculkan trace log asteroid
+
+    // Shield Skill Config
+    constexpr float shieldCooldown{30.0f};           // cooldown shield (detik)
+
+    // Bomb Skill Config
+    constexpr float bombCooldown{30.0f};             // cooldown bomb (detik)
+    constexpr float bombShockwaveDuration{0.5f};     // durasi animasi shockwave (detik)
+    constexpr float bombShockwaveMaxRadius{1100.0f};  // radius maksimal shockwave
 }

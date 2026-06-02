@@ -1,0 +1,11 @@
+{
+    "data": [
+        {
+            "username": "hyperion",
+            "highest_score": 10000,
+            "research_point": 300,
+            "unlocked_word_id": [],
+            "unlcoked_skill_id": []
+        }
+    ]
+}

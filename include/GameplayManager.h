@@ -3,6 +3,8 @@
 #include "SpaceShip.h"
 #include "AsteroidManager.h"
 #include "Combostack.h"
+#include "ShieldSkill.h"
+#include "BombSkill.h"
 #include "raylib.h"
 
 enum typingState {
@@ -21,6 +23,8 @@ private:
     SpaceShip spaceship;                                    // Player spaceship
     AsteroidManager asteroidManager;                        // Manajer asteroid
     ComboStack comboStack;                                  // Stack untuk combo multiplier
+    ShieldSkill shieldSkill;                                 // Skill shield player
+    BombSkill bombSkill;                                     // Skill bomb shockwave
     typingState state = typingState::SEARCH_FOR_TARGET;     // State typing saat ini
     Asteroid* currentTarget = nullptr;                      // Pointer ke asteroid yang sedang ditarget
     int wordsCompleted = 0;                                 // Counter kata yang telah diselesaikan
