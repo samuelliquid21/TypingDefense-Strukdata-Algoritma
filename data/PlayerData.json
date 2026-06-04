@@ -6,6 +6,48 @@
             "research_point": 300,
             "unlocked_word_id": [],
             "unlcoked_skill_id": []
+        },
+        {
+            "username": "nova",
+            "highest_score": 8500,
+            "research_point": 200,
+            "unlocked_word_id": [],
+            "unlcoked_skill_id": []
+        },
+        {
+            "username": "orion",
+            "highest_score": 7200,
+            "research_point": 150,
+            "unlocked_word_id": [],
+            "unlcoked_skill_id": []
+        },
+        {
+            "username": "vega",
+            "highest_score": 6300,
+            "research_point": 180,
+            "unlocked_word_id": [],
+            "unlcoked_skill_id": []
+        },
+        {
+            "username": "pulsar",
+            "highest_score": 5400,
+            "research_point": 120,
+            "unlocked_word_id": [],
+            "unlcoked_skill_id": []
+        },
+        {
+            "username": "nebula",
+            "highest_score": 4100,
+            "research_point": 90,
+            "unlocked_word_id": [],
+            "unlcoked_skill_id": []
+        },
+        {
+            "username": "comet",
+            "highest_score": 3200,
+            "research_point": 60,
+            "unlocked_word_id": [],
+            "unlcoked_skill_id": []
         }
     ]
 }
