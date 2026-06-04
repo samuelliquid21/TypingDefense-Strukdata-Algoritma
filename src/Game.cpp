@@ -104,8 +104,10 @@ void Game::Update() {
         case GameState::GAMEPLAY:     UpdateGameplay(); break;
         case GameState::PAUSE:        UpdatePause(); break;
         case GameState::GAME_OVER:    UpdateGameOver(); break;
-        case GameState::LEADERBOARD:  UpdateLeaderboard(); break;
-        case GameState::CREDIT:       UpdateCredit(); break;
+        case GameState::LEADERBOARD:       UpdateLeaderboard(); break;
+        case GameState::CREDIT:            UpdateCredit(); break;
+        case GameState::LOGIN_AND_REGISTER: UpdateLoginRegister(); break;
+        case GameState::LOGOUT:            UpdateLogout(); break;
         default: break;
     }
 }
@@ -143,8 +145,10 @@ void Game::Draw() {
             case GameState::GAMEPLAY:     DrawGameplay(); break;
             case GameState::PAUSE:        DrawPause(); break;
             case GameState::GAME_OVER:    DrawGameOver(); break;
-            case GameState::LEADERBOARD:  DrawLeaderboard(); break;
-            case GameState::CREDIT:       DrawCredit(); break;
+            case GameState::LEADERBOARD:       DrawLeaderboard(); break;
+            case GameState::CREDIT:            DrawCredit(); break;
+            case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
+            case GameState::LOGOUT:            DrawLogout(); break;
             default: break;
         }
     }
@@ -293,3 +297,11 @@ void Game::UpdateCredit() {
 void Game::DrawCredit() {
     creditScreen.Draw();
 }
+
+void Game::UpdateLoginRegister() {}
+
+void Game::DrawLoginRegister() {}
+
+void Game::UpdateLogout() {}
+
+void Game::DrawLogout() {}

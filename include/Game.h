@@ -56,6 +56,8 @@ private:
     void UpdateGameOver();
     void UpdateLeaderboard();
     void UpdateCredit();
+    void UpdateLoginRegister();
+    void UpdateLogout();
 
     void DrawMenu();
     void DrawGameplay();
@@ -63,4 +65,6 @@ private:
     void DrawGameOver();
     void DrawLeaderboard();
     void DrawCredit();
+    void DrawLoginRegister();
+    void DrawLogout();
 };
