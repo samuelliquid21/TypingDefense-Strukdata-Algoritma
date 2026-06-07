@@ -103,7 +103,34 @@ void TechTreeUI::DrawNode(const SkillData& skill, bool isHovered) {
 
 void TechTreeUI::DrawTooltip(const SkillData& skill) {
     float panelW = 260;
-    float panelH = 130;
+    int maxTextW = (int)panelW - 20;
+    int fontSize = 14;
+
+    std::vector<std::string> descLines;
+    std::string remaining = skill.desc;
+    while (!remaining.empty()) {
+        if (MeasureText(remaining.c_str(), fontSize) <= maxTextW) {
+            descLines.push_back(remaining);
+            break;
+        }
+        size_t lastSpace = std::string::npos;
+        for (size_t i = 0; i < remaining.size(); ++i) {
+            if (remaining[i] == ' ') {
+                std::string testLine = remaining.substr(0, i);
+                if (MeasureText(testLine.c_str(), fontSize) > maxTextW)
+                    break;
+                lastSpace = i;
+            }
+        }
+        if (lastSpace == std::string::npos) {
+            descLines.push_back(remaining);
+            break;
+        }
+        descLines.push_back(remaining.substr(0, lastSpace));
+        remaining = remaining.substr(lastSpace + 1);
+    }
+
+    float panelH = 20 + 22 + (descLines.size() * 18) + 22 + 22 + 18 + 10;
     float panelX, panelY;
 
     if (skill.position.x > Config::screenWidth / 2) {
@@ -133,11 +160,13 @@ void TechTreeUI::DrawTooltip(const SkillData& skill) {
     DrawText(nameText.c_str(), panelX + 10, curY, 16, Color{0, 200, 255, 255});
     curY += 22;
 
-    DrawText(skill.desc.c_str(), panelX + 10, curY, 14, WHITE);
-    curY += 22;
+    for (auto it = descLines.begin(); it != descLines.end(); ++it) {
+        DrawText(it->c_str(), panelX + 10, curY, fontSize, WHITE);
+        curY += 18;
+    }
 
     std::string costText = TextFormat("RP Cost: %d", skill.rpCost);
-    DrawText(costText.c_str(), panelX + 10, curY, 14, YELLOW);
+    DrawText(costText.c_str(), panelX + 10, curY, fontSize, YELLOW);
     curY += 22;
 
     const char* stateText = "";
@@ -147,7 +176,7 @@ void TechTreeUI::DrawTooltip(const SkillData& skill) {
         case AVAILABLE: stateText = "Status: AVAILABLE"; stateColor = YELLOW; break;
         case UNLOCKED:  stateText = "Status: UNLOCKED";  stateColor = GREEN; break;
     }
-    DrawText(stateText, panelX + 10, curY, 14, stateColor);
+    DrawText(stateText, panelX + 10, curY, fontSize, stateColor);
     curY += 22;
 
     DrawText("Klik kiri untuk unlock", panelX + 10, curY, 12, Color{0, 200, 255, 200});
@@ -172,7 +201,7 @@ void TechTreeUI::DrawHelpText() {
 }
 
 void TechTreeUI::DrawTitle() {
-    const char* title = "SKILL UNLOCK";
+    const char* title = "SKILL LAB";
     int titleW = MeasureText(title, 30);
     DrawText(title, (Config::screenWidth - titleW) / 2, 20, 30, WHITE);
 }

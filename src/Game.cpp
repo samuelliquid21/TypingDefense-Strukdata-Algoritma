@@ -217,17 +217,17 @@ void Game::UpdateMenu() {
             state = GameState::GAMEPLAY;
         } 
         else if (choice == 1) { 
-            m_unlockedWords.BuildFromPlayer(m_currentPlayer);
-            state = GameState::UNLOCKED_WORDS;
-        } 
-        else if (choice == 2) { 
             StopMusicStream(musicLobby);
             LeaderboardSystem::Init(); 
             state = GameState::LEADERBOARD;
         } 
-        else if (choice == 3) {
+        else if (choice == 2) {
             state = GameState::UNLOCK_SKILL;
         }
+        else if (choice == 3) { 
+            m_unlockedWords.BuildFromPlayer(m_currentPlayer);
+            state = GameState::UNLOCKED_WORDS;
+        } 
         else if (choice == 4) { 
             StopMusicStream(musicLobby);
             if (!IsSoundPlaying(glitchMasuk)) PlaySound(glitchMasuk);

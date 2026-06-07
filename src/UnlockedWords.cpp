@@ -32,7 +32,8 @@ void UnlockedWords::Reset() {
     m_scrollOffset = 0;
     m_showDefinition = false;
     m_requestBack = false;
-    if (m_head) m_current = m_head;
+    m_searchQuery.clear();
+    RebuildFilter();
 }
 
 bool UnlockedWords::WantsToGoBack() {
@@ -90,6 +91,27 @@ void UnlockedWords::BuildFromPlayer(const PlayerProfile& profile) {
     m_scrollOffset = 0;
     m_showDefinition = false;
     m_requestBack = false;
+    m_searchQuery.clear();
+    RebuildFilter();
+}
+
+void UnlockedWords::RebuildFilter() {
+    m_filteredNodes.clear();
+    if (m_head == nullptr) return;
+
+    WordNode* trav = m_head;
+    do {
+        if (m_searchQuery.empty() ||
+            trav->word.find(m_searchQuery) != std::string::npos) {
+            m_filteredNodes.push_back(trav);
+        }
+        trav = trav->next;
+    } while (trav != m_head);
+
+    if (m_selectedIndex >= (int)m_filteredNodes.size())
+        m_selectedIndex = m_filteredNodes.empty() ? 0 : (int)m_filteredNodes.size() - 1;
+    m_scrollOffset = 0;
+    m_current = m_filteredNodes.empty() ? nullptr : m_filteredNodes[m_selectedIndex];
 }
 
 void UnlockedWords::Update() {
@@ -106,11 +128,36 @@ void UnlockedWords::Update() {
         return;
     }
 
+    int c = GetCharPressed();
+    while (c > 0) {
+        if (c >= 32 && c <= 126) {
+            m_searchQuery.push_back((char)c);
+            RebuildFilter();
+            m_selectedIndex = 0;
+        }
+        c = GetCharPressed();
+    }
+
+    if (IsKeyPressed(KEY_BACKSPACE)) {
+        if (!m_searchQuery.empty()) {
+            m_searchQuery.pop_back();
+            RebuildFilter();
+            m_selectedIndex = 0;
+        }
+    }
+
+    if (m_filteredNodes.empty()) {
+        if (IsKeyPressed(KEY_ESCAPE))
+            m_requestBack = true;
+        return;
+    }
+
     int visibleRows = (Config::screenHeight - 120 - 60) / 30;
+    int fc = (int)m_filteredNodes.size();
 
     if (IsKeyPressed(KEY_DOWN)) {
-        m_current = m_current->next;
-        m_selectedIndex = (m_selectedIndex + 1) % m_nodeCount;
+        m_selectedIndex = (m_selectedIndex + 1) % fc;
+        m_current = m_filteredNodes[m_selectedIndex];
         if (m_selectedIndex == 0)
             m_scrollOffset = 0;
         else if (m_selectedIndex >= m_scrollOffset + visibleRows)
@@ -118,10 +165,10 @@ void UnlockedWords::Update() {
     }
 
     if (IsKeyPressed(KEY_UP)) {
-        m_current = m_current->prev;
-        m_selectedIndex = (m_selectedIndex - 1 + m_nodeCount) % m_nodeCount;
-        if (m_selectedIndex >= m_nodeCount - 1) {
-            int maxOff = m_nodeCount - visibleRows;
+        m_selectedIndex = (m_selectedIndex - 1 + fc) % fc;
+        m_current = m_filteredNodes[m_selectedIndex];
+        if (m_selectedIndex >= fc - 1) {
+            int maxOff = fc - visibleRows;
             if (maxOff < 0) maxOff = 0;
             m_scrollOffset = maxOff;
         } else if (m_selectedIndex < m_scrollOffset)
@@ -147,13 +194,18 @@ void UnlockedWords::DrawWordList() {
     int rowHeight = 30;
     int startY = 100;
 
-    DrawText("KATA TERUNLOCK", (Config::screenWidth - MeasureText("KATA TERUNLOCK", 30)) / 2, 20, 30, WHITE);
+    DrawText("WORD BANK", (Config::screenWidth - MeasureText("WORD BANK", 30)) / 2, 20, 30, WHITE);
 
     std::string info = TextFormat("Total: %d kata", m_nodeCount);
     DrawText(info.c_str(), (Config::screenWidth - MeasureText(info.c_str(), 14)) / 2, 55, 14, Color{200, 200, 200, 180});
 
     const char* instr = "ESC: Kembali";
     DrawText(instr, Config::screenWidth - MeasureText(instr, 14) - 20, 25, 14, Color{200, 200, 200, 180});
+
+    std::string searchLabel = "Cari: " + m_searchQuery;
+    bool cursorOn = ((int)(GetTime() * 2) % 2 == 0);
+    searchLabel += cursorOn ? "|" : " ";
+    DrawText(searchLabel.c_str(), 120, 75, 18, Color{0, 255, 200, 220});
 
     if (m_nodeCount == 0) {
         const char* emptyMsg = "Belum ada kata yang di-unlock";
@@ -165,37 +217,48 @@ void UnlockedWords::DrawWordList() {
         return;
     }
 
+    std::string resultInfo;
+    if (m_searchQuery.empty()) {
+        resultInfo = TextFormat("Menampilkan semua (%zu kata)", m_filteredNodes.size());
+    } else {
+        resultInfo = TextFormat("Ditemukan: %zu kata", m_filteredNodes.size());
+    }
+    DrawText(resultInfo.c_str(), 120, 95, 14, Color{200, 200, 200, 180});
+
+    if (m_filteredNodes.empty()) {
+        const char* notFound = "Kata tidak ditemukan";
+        DrawText(notFound, (Config::screenWidth - MeasureText(notFound, 18)) / 2,
+                 Config::screenHeight / 2, 18, Color{200, 200, 200, 150});
+        return;
+    }
+
     int visibleRows = (Config::screenHeight - 120 - 60) / rowHeight;
     int endIdx = m_scrollOffset + visibleRows;
-    if (endIdx > m_nodeCount)
-        endIdx = m_nodeCount;
+    if (endIdx > (int)m_filteredNodes.size())
+        endIdx = (int)m_filteredNodes.size();
 
     int y = startY + 30;
-    int idx = 0;
-    WordNode* trav = m_head;
-    for (int i = 0; i < m_scrollOffset; ++i)
-        trav = trav->next;
+    for (int idx = m_scrollOffset; idx < endIdx; ++idx) {
+        WordNode* node = m_filteredNodes[idx];
 
-    for (idx = m_scrollOffset; idx < endIdx; ++idx) {
         if (idx == m_selectedIndex) {
             DrawRectangle(100, y, Config::screenWidth - 200, rowHeight, Color{255, 255, 255, 30});
         }
 
         Color diffColor;
-        if (trav->difficulty == "Easy")   diffColor = Color{100, 255, 100, 255};
-        else if (trav->difficulty == "Medium") diffColor = Color{255, 255, 100, 255};
+        if (node->difficulty == "Easy")   diffColor = Color{100, 255, 100, 255};
+        else if (node->difficulty == "Medium") diffColor = Color{255, 255, 100, 255};
         else                             diffColor = Color{255, 100, 100, 255};
 
-        DrawText(trav->word.c_str(), 120, y + (rowHeight - 20) / 2, 20,
+        DrawText(node->word.c_str(), 120, y + (rowHeight - 20) / 2, 20,
                  idx == m_selectedIndex ? YELLOW : WHITE);
 
-        std::string tag = "[" + trav->difficulty + "]";
+        std::string tag = "[" + node->difficulty + "]";
         DrawText(tag.c_str(),
                  Config::screenWidth - 120 - MeasureText(tag.c_str(), 16),
                  y + (rowHeight - 16) / 2, 16, diffColor);
 
         y += rowHeight;
-        trav = trav->next;
     }
 }
 

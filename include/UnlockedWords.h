@@ -29,8 +29,11 @@ private:
     int m_scrollOffset;
     bool m_showDefinition;
     bool m_requestBack;
+    std::string m_searchQuery;
+    std::vector<WordNode*> m_filteredNodes;
 
     void ClearList();
+    void RebuildFilter();
     void DrawWordList();
     void DrawDefinitionPopup();
 };
