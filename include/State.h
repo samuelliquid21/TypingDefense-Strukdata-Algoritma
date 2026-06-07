@@ -8,5 +8,7 @@ enum class GameState {
     PAUSE,
     GAME_OVER,
     LEADERBOARD,
-    CREDIT
+    CREDIT,
+    LOGIN_AND_REGISTER,
+    LOGOUT
 };

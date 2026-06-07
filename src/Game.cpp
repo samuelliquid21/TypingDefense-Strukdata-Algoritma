@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Leaderboard.h"
 #include "Credit.h"
+#include "GameConfig.h"
 #include "raylib.h"
 #include "rlgl.h"
 
@@ -43,9 +44,12 @@ Game::Game() : gameplayManager(new GameplayManager()) {
     state = GameState::MENU;
     score = 0;
     statusMenuQuit = false;
-    isSaved = false;
-    highestScore = 0;
-    playerName = "Player";
+
+    DataManager::getInstance().load();
+
+    // TODO: Hapus saat login/register sudah ada
+    DataManager::getInstance().FindPlayer("hyperion", m_currentPlayer);
+    m_isLoggedIn = true;
 
     bg.Load("./assets/img/Space_Background.png", 20.0f);
     gameplayManager->textureInit();
@@ -104,8 +108,10 @@ void Game::Update() {
         case GameState::GAMEPLAY:     UpdateGameplay(); break;
         case GameState::PAUSE:        UpdatePause(); break;
         case GameState::GAME_OVER:    UpdateGameOver(); break;
-        case GameState::LEADERBOARD:  UpdateLeaderboard(); break;
-        case GameState::CREDIT:       UpdateCredit(); break;
+        case GameState::LEADERBOARD:       UpdateLeaderboard(); break;
+        case GameState::CREDIT:            UpdateCredit(); break;
+        case GameState::LOGIN_AND_REGISTER: UpdateLoginRegister(); break;
+        case GameState::LOGOUT:            UpdateLogout(); break;
         default: break;
     }
 }
@@ -143,8 +149,10 @@ void Game::Draw() {
             case GameState::GAMEPLAY:     DrawGameplay(); break;
             case GameState::PAUSE:        DrawPause(); break;
             case GameState::GAME_OVER:    DrawGameOver(); break;
-            case GameState::LEADERBOARD:  DrawLeaderboard(); break;
-            case GameState::CREDIT:       DrawCredit(); break;
+            case GameState::LEADERBOARD:       DrawLeaderboard(); break;
+            case GameState::CREDIT:            DrawCredit(); break;
+            case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
+            case GameState::LOGOUT:            DrawLogout(); break;
             default: break;
         }
     }
@@ -194,10 +202,11 @@ void Game::UpdateMenu() {
     }
 }
 
-// MENU STATE
-
 void Game::DrawMenu() {
     mainMenu.Draw();
+    if (m_isLoggedIn && Config::enableDebugPlayerInfo) {
+        DrawPlayerInfo();
+    }
 }
 
 void Game::UpdateGameplay() {
@@ -247,6 +256,11 @@ void Game::DrawPause() {
 }
 
 void Game::UpdateGameOver() {
+    if (m_isLoggedIn && score > m_currentPlayer.highest_score) {
+        m_currentPlayer.highest_score = score;
+        DataManager::getInstance().SavePlayer(m_currentPlayer);
+    }
+
     gameOver.Update();
     if (gameOver.ShouldReturnToMenu()) {
         state = GameState::MENU;
@@ -292,4 +306,37 @@ void Game::UpdateCredit() {
 
 void Game::DrawCredit() {
     creditScreen.Draw();
+}
+
+void Game::UpdateLoginRegister() {}
+
+void Game::DrawLoginRegister() {}
+
+void Game::UpdateLogout() {}
+
+void Game::DrawLogout() {}
+
+void Game::DrawPlayerInfo() {
+    int panelWidth = 320;
+    int panelHeight = 150;
+    int padding = 15;
+    int x = Config::screenWidth - panelWidth - 20;
+    int y = Config::screenHeight - panelHeight - 20;
+
+    DrawRectangle(x - 10, y - 10, panelWidth + 20, panelHeight + 20, Color{0, 0, 0, 180});
+    DrawRectangleLines(x - 10, y - 10, panelWidth + 20, panelHeight + 20, Color{0, 255, 200, 200});
+
+    int fontSize = 16;
+    int lineHeight = 24;
+    int curY = y + 5;
+
+    DrawText(TextFormat("Username: %s", m_currentPlayer.username.c_str()), x, curY, fontSize, WHITE);
+    curY += lineHeight;
+    DrawText(TextFormat("Highest Score: %d", m_currentPlayer.highest_score), x, curY, fontSize, WHITE);
+    curY += lineHeight;
+    DrawText(TextFormat("Research Points: %d", m_currentPlayer.research_point), x, curY, fontSize, WHITE);
+    curY += lineHeight;
+    DrawText(TextFormat("Unlocked Words: %zu", m_currentPlayer.unlocked_words.size()), x, curY, fontSize, WHITE);
+    curY += lineHeight;
+    DrawText(TextFormat("Unlocked Skills: %zu", m_currentPlayer.unlocked_skills.size()), x, curY, fontSize, WHITE);
 }
