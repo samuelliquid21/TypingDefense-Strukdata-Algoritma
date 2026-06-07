@@ -10,6 +10,7 @@
 #include "DataManager.h"
 #include "TechTree.h"
 #include "TechTreeUI.h"
+#include "Dictionary.h"
 #include <vector>
 #include <string>
 
@@ -34,6 +35,7 @@ private:
 
     TechTree techTree;
     TechTreeUI techTreeUI;
+    Dictionary m_dictionary;
 
     PlayerProfile m_currentPlayer;
     bool m_isLoggedIn = false;
@@ -64,6 +66,7 @@ private:
     void UpdateLoginRegister();
     void UpdateLogout();
     void UpdateTechTree();
+    void UpdateDictionary();
 
     void DrawMenu();
     void DrawGameplay();
@@ -74,6 +77,7 @@ private:
     void DrawLoginRegister();
     void DrawLogout();
     void DrawTechTree();
+    void DrawDictionary();
 
     void DrawPlayerInfo();
 };

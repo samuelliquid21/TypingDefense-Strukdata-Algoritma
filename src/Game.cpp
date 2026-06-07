@@ -115,6 +115,7 @@ void Game::Update() {
         case GameState::LOGIN_AND_REGISTER: UpdateLoginRegister(); break;
         case GameState::LOGOUT:            UpdateLogout(); break;
         case GameState::UNLOCK_SKILL:      UpdateTechTree(); break;
+        case GameState::WORD_DICTIONARY:   UpdateDictionary(); break;
         default: break;
     }
 }
@@ -157,6 +158,7 @@ void Game::Draw() {
             case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
             case GameState::LOGOUT:            DrawLogout(); break;
             case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
+            case GameState::WORD_DICTIONARY:   DrawDictionary(); break;
             default: break;
         }
     }
@@ -177,6 +179,11 @@ void Game::UpdateMenu() {
     }
 
     mainMenu.Update();
+
+    if (IsKeyPressed(KEY_F1)) {
+        m_dictionary.Reset();
+        state = GameState::WORD_DICTIONARY;
+    }
 
     if (mainMenu.IsOptionChosen()) {
         int choice = mainMenu.GetSelectedIndex();
@@ -340,6 +347,17 @@ void Game::UpdateTechTree() {
 
 void Game::DrawTechTree() {
     techTreeUI.Draw(m_currentPlayer);
+}
+
+void Game::UpdateDictionary() {
+    m_dictionary.Update();
+    if (m_dictionary.WantsToGoBack()) {
+        state = GameState::MENU;
+    }
+}
+
+void Game::DrawDictionary() {
+    m_dictionary.Draw();
 }
 
 void Game::DrawPlayerInfo() {
