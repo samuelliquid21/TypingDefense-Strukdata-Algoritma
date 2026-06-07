@@ -10,5 +10,8 @@ enum class GameState {
     LEADERBOARD,
     CREDIT,
     LOGIN_AND_REGISTER,
-    LOGOUT
+    LOGOUT,
+    UNLOCK_SKILL,
+    WORD_DICTIONARY,
+    UNLOCKED_WORDS
 };

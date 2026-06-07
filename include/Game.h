@@ -8,6 +8,10 @@
 #include "GameplayManager.h"
 #include "Pause.h"
 #include "DataManager.h"
+#include "TechTree.h"
+#include "TechTreeUI.h"
+#include "Dictionary.h"
+#include "UnlockedWords.h"
 #include <vector>
 #include <string>
 
@@ -29,6 +33,11 @@ private:
     Credit creditScreen;
 
     GameplayManager* gameplayManager;
+
+    TechTree techTree;
+    TechTreeUI techTreeUI;
+    Dictionary m_dictionary;
+    UnlockedWords m_unlockedWords;
 
     PlayerProfile m_currentPlayer;
     bool m_isLoggedIn = false;
@@ -58,6 +67,9 @@ private:
     void UpdateCredit();
     void UpdateLoginRegister();
     void UpdateLogout();
+    void UpdateTechTree();
+    void UpdateDictionary();
+    void UpdateUnlockedWords();
 
     void DrawMenu();
     void DrawGameplay();
@@ -67,6 +79,9 @@ private:
     void DrawCredit();
     void DrawLoginRegister();
     void DrawLogout();
+    void DrawTechTree();
+    void DrawDictionary();
+    void DrawUnlockedWords();
 
     void DrawPlayerInfo();
 };

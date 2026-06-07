@@ -133,7 +133,7 @@ void GameplayManager::update(float deltaTime) {
             wasPreviousKeyWrong = false; // Reset status salah karena sudah benar
             
             if (currentTarget->word.empty()) {
-                if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed("");
+                if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
                 wordsCompleted++;
                 if (wordsCompleted >= 5) {
                     comboStack.Push();

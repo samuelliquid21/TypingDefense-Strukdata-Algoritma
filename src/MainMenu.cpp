@@ -15,6 +15,8 @@ MainMenu::MainMenu() {
     // Tambah options ke Circular Doubly Linked List
     AddOption("Play");
     AddOption("Leaderboard");
+    AddOption("Skills");
+    AddOption("Word Bank");
     AddOption("Credit");
     AddOption("Quit");
 }
@@ -101,7 +103,7 @@ void MainMenu::Draw() {
         int textWidth = MeasureText(text.c_str(), menuFontSize);
 
         int x = (1080 - textWidth) / 2;
-        int y = 450 + index * 60;
+        int y = 370 + index * 55;
 
         if (index == selectedIndex)
             DrawText(text.c_str(), x, y, menuFontSize, YELLOW);

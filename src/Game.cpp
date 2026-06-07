@@ -29,7 +29,7 @@ void Game::Run() {
 // 🌍 GLOBAL INITIALIZATION
 // ===============================
 
-Game::Game() : gameplayManager(new GameplayManager()) {
+Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
     InitWindow(1080, 720, "Cosmic Keypad - Kelompok 4");
     InitAudioDevice();
     SetTargetFPS(60);
@@ -51,8 +51,20 @@ Game::Game() : gameplayManager(new GameplayManager()) {
     DataManager::getInstance().FindPlayer("hyperion", m_currentPlayer);
     m_isLoggedIn = true;
 
+    techTree.loadFromProfile(m_currentPlayer);
+
     bg.Load("./assets/img/Space_Background.png", 20.0f);
     gameplayManager->textureInit();
+
+    gameplayManager->SetAsteroidDestroyedCallback(
+        [this](const std::string& word) {
+            for (const auto& w : m_currentPlayer.unlocked_words)
+                if (w == word) return;
+            m_currentPlayer.unlocked_words.push_back(word);
+            m_currentPlayer.research_point += 10;
+            DataManager::getInstance().SavePlayer(m_currentPlayer);
+        }
+    );
     
     LeaderboardSystem::Init();
 
@@ -78,6 +90,16 @@ void Game::restartGame() {
     delete gameplayManager;
     gameplayManager = new GameplayManager();
     gameplayManager->textureInit();
+
+    gameplayManager->SetAsteroidDestroyedCallback(
+        [this](const std::string& word) {
+            for (const auto& w : m_currentPlayer.unlocked_words)
+                if (w == word) return;
+            m_currentPlayer.unlocked_words.push_back(word);
+            m_currentPlayer.research_point += 10;
+            DataManager::getInstance().SavePlayer(m_currentPlayer);
+        }
+    );
 }
 
 // ===============================
@@ -112,6 +134,9 @@ void Game::Update() {
         case GameState::CREDIT:            UpdateCredit(); break;
         case GameState::LOGIN_AND_REGISTER: UpdateLoginRegister(); break;
         case GameState::LOGOUT:            UpdateLogout(); break;
+        case GameState::UNLOCK_SKILL:      UpdateTechTree(); break;
+        case GameState::WORD_DICTIONARY:   UpdateDictionary(); break;
+        case GameState::UNLOCKED_WORDS:    UpdateUnlockedWords(); break;
         default: break;
     }
 }
@@ -153,6 +178,9 @@ void Game::Draw() {
             case GameState::CREDIT:            DrawCredit(); break;
             case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
             case GameState::LOGOUT:            DrawLogout(); break;
+            case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
+            case GameState::WORD_DICTIONARY:   DrawDictionary(); break;
+            case GameState::UNLOCKED_WORDS:    DrawUnlockedWords(); break;
             default: break;
         }
     }
@@ -174,6 +202,11 @@ void Game::UpdateMenu() {
 
     mainMenu.Update();
 
+    if (IsKeyPressed(KEY_F1)) {
+        m_dictionary.Reset();
+        state = GameState::WORD_DICTIONARY;
+    }
+
     if (mainMenu.IsOptionChosen()) {
         int choice = mainMenu.GetSelectedIndex();
         
@@ -188,14 +221,21 @@ void Game::UpdateMenu() {
             LeaderboardSystem::Init(); 
             state = GameState::LEADERBOARD;
         } 
-        else if (choice == 2) { 
+        else if (choice == 2) {
+            state = GameState::UNLOCK_SKILL;
+        }
+        else if (choice == 3) { 
+            m_unlockedWords.BuildFromPlayer(m_currentPlayer);
+            state = GameState::UNLOCKED_WORDS;
+        } 
+        else if (choice == 4) { 
             StopMusicStream(musicLobby);
             if (!IsSoundPlaying(glitchMasuk)) PlaySound(glitchMasuk);
             isTransitioning = true;
             transitionTimer = 0.6f; 
             targetState = GameState::CREDIT;
         } 
-        else if (choice == 3) { 
+        else if (choice == 5) { 
             statusMenuQuit = true;
         }
         mainMenu.ResetChoice();
@@ -315,6 +355,47 @@ void Game::DrawLoginRegister() {}
 void Game::UpdateLogout() {}
 
 void Game::DrawLogout() {}
+
+void Game::UpdateTechTree() {
+    techTreeUI.Update();
+
+    Vector2 mousePos = GetMousePosition();
+    bool clicked = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
+
+    if (techTree.handleInput(mousePos, clicked, m_currentPlayer)) {
+        DataManager::getInstance().SavePlayer(m_currentPlayer);
+    }
+
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        state = GameState::MENU;
+    }
+}
+
+void Game::DrawTechTree() {
+    techTreeUI.Draw(m_currentPlayer);
+}
+
+void Game::UpdateDictionary() {
+    m_dictionary.Update();
+    if (m_dictionary.WantsToGoBack()) {
+        state = GameState::MENU;
+    }
+}
+
+void Game::DrawDictionary() {
+    m_dictionary.Draw();
+}
+
+void Game::UpdateUnlockedWords() {
+    m_unlockedWords.Update();
+    if (m_unlockedWords.WantsToGoBack()) {
+        state = GameState::MENU;
+    }
+}
+
+void Game::DrawUnlockedWords() {
+    m_unlockedWords.Draw();
+}
 
 void Game::DrawPlayerInfo() {
     int panelWidth = 320;
