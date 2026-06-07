@@ -26,5 +26,5 @@ namespace Config {
     constexpr float bombShockwaveMaxRadius{1100.0f};  // radius maksimal shockwave
 
     // Debug Config
-    constexpr bool enableDebugPlayerInfo{true};      // tampilkan info player di menu utama
+    constexpr bool enableDebugPlayerInfo{false};      // tampilkan info player di menu utama
 }
