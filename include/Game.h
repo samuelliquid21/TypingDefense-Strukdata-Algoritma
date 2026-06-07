@@ -8,6 +8,8 @@
 #include "GameplayManager.h"
 #include "Pause.h"
 #include "DataManager.h"
+#include "TechTree.h"
+#include "TechTreeUI.h"
 #include <vector>
 #include <string>
 
@@ -29,6 +31,9 @@ private:
     Credit creditScreen;
 
     GameplayManager* gameplayManager;
+
+    TechTree techTree;
+    TechTreeUI techTreeUI;
 
     PlayerProfile m_currentPlayer;
     bool m_isLoggedIn = false;
@@ -58,6 +63,7 @@ private:
     void UpdateCredit();
     void UpdateLoginRegister();
     void UpdateLogout();
+    void UpdateTechTree();
 
     void DrawMenu();
     void DrawGameplay();
@@ -67,6 +73,7 @@ private:
     void DrawCredit();
     void DrawLoginRegister();
     void DrawLogout();
+    void DrawTechTree();
 
     void DrawPlayerInfo();
 };

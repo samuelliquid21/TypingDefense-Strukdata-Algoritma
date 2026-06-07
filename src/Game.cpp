@@ -29,7 +29,7 @@ void Game::Run() {
 // 🌍 GLOBAL INITIALIZATION
 // ===============================
 
-Game::Game() : gameplayManager(new GameplayManager()) {
+Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
     InitWindow(1080, 720, "Cosmic Keypad - Kelompok 4");
     InitAudioDevice();
     SetTargetFPS(60);
@@ -50,6 +50,8 @@ Game::Game() : gameplayManager(new GameplayManager()) {
     // TODO: Hapus saat login/register sudah ada
     DataManager::getInstance().FindPlayer("hyperion", m_currentPlayer);
     m_isLoggedIn = true;
+
+    techTree.loadFromProfile(m_currentPlayer);
 
     bg.Load("./assets/img/Space_Background.png", 20.0f);
     gameplayManager->textureInit();
@@ -112,6 +114,7 @@ void Game::Update() {
         case GameState::CREDIT:            UpdateCredit(); break;
         case GameState::LOGIN_AND_REGISTER: UpdateLoginRegister(); break;
         case GameState::LOGOUT:            UpdateLogout(); break;
+        case GameState::UNLOCK_SKILL:      UpdateTechTree(); break;
         default: break;
     }
 }
@@ -153,6 +156,7 @@ void Game::Draw() {
             case GameState::CREDIT:            DrawCredit(); break;
             case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
             case GameState::LOGOUT:            DrawLogout(); break;
+            case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
             default: break;
         }
     }
@@ -188,14 +192,17 @@ void Game::UpdateMenu() {
             LeaderboardSystem::Init(); 
             state = GameState::LEADERBOARD;
         } 
-        else if (choice == 2) { 
+        else if (choice == 2) {
+            state = GameState::UNLOCK_SKILL;
+        }
+        else if (choice == 3) { 
             StopMusicStream(musicLobby);
             if (!IsSoundPlaying(glitchMasuk)) PlaySound(glitchMasuk);
             isTransitioning = true;
             transitionTimer = 0.6f; 
             targetState = GameState::CREDIT;
         } 
-        else if (choice == 3) { 
+        else if (choice == 4) { 
             statusMenuQuit = true;
         }
         mainMenu.ResetChoice();
@@ -315,6 +322,25 @@ void Game::DrawLoginRegister() {}
 void Game::UpdateLogout() {}
 
 void Game::DrawLogout() {}
+
+void Game::UpdateTechTree() {
+    techTreeUI.Update();
+
+    Vector2 mousePos = GetMousePosition();
+    bool clicked = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
+
+    if (techTree.handleInput(mousePos, clicked, m_currentPlayer)) {
+        DataManager::getInstance().SavePlayer(m_currentPlayer);
+    }
+
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        state = GameState::MENU;
+    }
+}
+
+void Game::DrawTechTree() {
+    techTreeUI.Draw(m_currentPlayer);
+}
 
 void Game::DrawPlayerInfo() {
     int panelWidth = 320;
