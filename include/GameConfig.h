@@ -24,4 +24,7 @@ namespace Config {
     constexpr float bombCooldown{30.0f};             // cooldown bomb (detik)
     constexpr float bombShockwaveDuration{0.5f};     // durasi animasi shockwave (detik)
     constexpr float bombShockwaveMaxRadius{1100.0f};  // radius maksimal shockwave
+
+    // Debug Config
+    constexpr bool enableDebugPlayerInfo{true};      // tampilkan info player di menu utama
 }

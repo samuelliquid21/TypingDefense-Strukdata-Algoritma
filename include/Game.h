@@ -5,9 +5,9 @@
 #include "MainMenu.h"
 #include "GameOver.h"
 #include "Credit.h"
-#include "ScoreManager.h"
 #include "GameplayManager.h"
 #include "Pause.h"
+#include "DataManager.h"
 #include <vector>
 #include <string>
 
@@ -29,9 +29,9 @@ private:
     Credit creditScreen;
 
     GameplayManager* gameplayManager;
-    bool isSaved;
-    int highestScore;
-    std::string playerName;
+
+    PlayerProfile m_currentPlayer;
+    bool m_isLoggedIn = false;
 
     // AUDIO - DAFTARKAN SEMUA DI SINI
     Music musicCredit; 
@@ -67,4 +67,6 @@ private:
     void DrawCredit();
     void DrawLoginRegister();
     void DrawLogout();
+
+    void DrawPlayerInfo();
 };
