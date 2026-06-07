@@ -6,6 +6,7 @@
 #include "ShieldSkill.h"
 #include "BombSkill.h"
 #include "raylib.h"
+#include <functional>
 
 enum typingState {
     SEARCH_FOR_TARGET,  
@@ -14,7 +15,7 @@ enum typingState {
 
 // Type alias untuk function pointer callbacks
 using ScoreCallback = void(*)(int score, int multiplier);  
-using AsteroidDestroyedCallback = void(*)(const char* word);  
+using AsteroidDestroyedCallback = std::function<void(const std::string& word)>;  
 
 // Kelas utama untuk manajemen gameplay (score, combo, asteroid, spaceship)
 class GameplayManager

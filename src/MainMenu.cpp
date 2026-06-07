@@ -14,6 +14,7 @@ MainMenu::MainMenu() {
 
     // Tambah options ke Circular Doubly Linked List
     AddOption("Play");
+    AddOption("Unlocked Words");
     AddOption("Leaderboard");
     AddOption("Unlock Skill");
     AddOption("Credit");

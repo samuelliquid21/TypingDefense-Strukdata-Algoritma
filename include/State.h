@@ -12,5 +12,6 @@ enum class GameState {
     LOGIN_AND_REGISTER,
     LOGOUT,
     UNLOCK_SKILL,
-    WORD_DICTIONARY
+    WORD_DICTIONARY,
+    UNLOCKED_WORDS
 };

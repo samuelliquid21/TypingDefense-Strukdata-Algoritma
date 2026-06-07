@@ -11,6 +11,7 @@
 #include "TechTree.h"
 #include "TechTreeUI.h"
 #include "Dictionary.h"
+#include "UnlockedWords.h"
 #include <vector>
 #include <string>
 
@@ -36,6 +37,7 @@ private:
     TechTree techTree;
     TechTreeUI techTreeUI;
     Dictionary m_dictionary;
+    UnlockedWords m_unlockedWords;
 
     PlayerProfile m_currentPlayer;
     bool m_isLoggedIn = false;
@@ -67,6 +69,7 @@ private:
     void UpdateLogout();
     void UpdateTechTree();
     void UpdateDictionary();
+    void UpdateUnlockedWords();
 
     void DrawMenu();
     void DrawGameplay();
@@ -78,6 +81,7 @@ private:
     void DrawLogout();
     void DrawTechTree();
     void DrawDictionary();
+    void DrawUnlockedWords();
 
     void DrawPlayerInfo();
 };

@@ -9,6 +9,7 @@ struct Asteroid {
     Vector2 position{0, 0};     
     Vector2 velocity{0, 0};     
     std::string word{};         
+    std::string originalWord{};
     int radius{0};              
     int textureId{0};           
     bool active{false};         

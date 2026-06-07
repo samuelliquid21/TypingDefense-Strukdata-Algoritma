@@ -55,6 +55,16 @@ Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
 
     bg.Load("./assets/img/Space_Background.png", 20.0f);
     gameplayManager->textureInit();
+
+    gameplayManager->SetAsteroidDestroyedCallback(
+        [this](const std::string& word) {
+            for (const auto& w : m_currentPlayer.unlocked_words)
+                if (w == word) return;
+            m_currentPlayer.unlocked_words.push_back(word);
+            m_currentPlayer.research_point += 10;
+            DataManager::getInstance().SavePlayer(m_currentPlayer);
+        }
+    );
     
     LeaderboardSystem::Init();
 
@@ -80,6 +90,16 @@ void Game::restartGame() {
     delete gameplayManager;
     gameplayManager = new GameplayManager();
     gameplayManager->textureInit();
+
+    gameplayManager->SetAsteroidDestroyedCallback(
+        [this](const std::string& word) {
+            for (const auto& w : m_currentPlayer.unlocked_words)
+                if (w == word) return;
+            m_currentPlayer.unlocked_words.push_back(word);
+            m_currentPlayer.research_point += 10;
+            DataManager::getInstance().SavePlayer(m_currentPlayer);
+        }
+    );
 }
 
 // ===============================
@@ -116,6 +136,7 @@ void Game::Update() {
         case GameState::LOGOUT:            UpdateLogout(); break;
         case GameState::UNLOCK_SKILL:      UpdateTechTree(); break;
         case GameState::WORD_DICTIONARY:   UpdateDictionary(); break;
+        case GameState::UNLOCKED_WORDS:    UpdateUnlockedWords(); break;
         default: break;
     }
 }
@@ -159,6 +180,7 @@ void Game::Draw() {
             case GameState::LOGOUT:            DrawLogout(); break;
             case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
             case GameState::WORD_DICTIONARY:   DrawDictionary(); break;
+            case GameState::UNLOCKED_WORDS:    DrawUnlockedWords(); break;
             default: break;
         }
     }
@@ -195,21 +217,25 @@ void Game::UpdateMenu() {
             state = GameState::GAMEPLAY;
         } 
         else if (choice == 1) { 
+            m_unlockedWords.BuildFromPlayer(m_currentPlayer);
+            state = GameState::UNLOCKED_WORDS;
+        } 
+        else if (choice == 2) { 
             StopMusicStream(musicLobby);
             LeaderboardSystem::Init(); 
             state = GameState::LEADERBOARD;
         } 
-        else if (choice == 2) {
+        else if (choice == 3) {
             state = GameState::UNLOCK_SKILL;
         }
-        else if (choice == 3) { 
+        else if (choice == 4) { 
             StopMusicStream(musicLobby);
             if (!IsSoundPlaying(glitchMasuk)) PlaySound(glitchMasuk);
             isTransitioning = true;
             transitionTimer = 0.6f; 
             targetState = GameState::CREDIT;
         } 
-        else if (choice == 4) { 
+        else if (choice == 5) { 
             statusMenuQuit = true;
         }
         mainMenu.ResetChoice();
@@ -358,6 +384,17 @@ void Game::UpdateDictionary() {
 
 void Game::DrawDictionary() {
     m_dictionary.Draw();
+}
+
+void Game::UpdateUnlockedWords() {
+    m_unlockedWords.Update();
+    if (m_unlockedWords.WantsToGoBack()) {
+        state = GameState::MENU;
+    }
+}
+
+void Game::DrawUnlockedWords() {
+    m_unlockedWords.Draw();
 }
 
 void Game::DrawPlayerInfo() {

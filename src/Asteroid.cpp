@@ -75,6 +75,8 @@ void Asteroid::asteroidType(const int tier) { // Update properti asteroid sesuai
         break;  
     }
 
+    originalWord = word;
+
     position.x = -radius; 
     position.y = GetRandomValue(0, Config::screenHeight);
     radius = 20 + (word.length() * 2);  
