@@ -42,25 +42,31 @@ void TechTreeUI::Draw(const PlayerProfile& profile) {
     DrawEdges();
 
     for (const auto& [key, skill] : m_tree.getSkills()) {
+        if (skill.uiState == LOCKED) continue;
         bool isHovered = (key == m_hoveredSkill);
         DrawNode(skill, isHovered);
     }
 
     if (m_isTooltipActive) {
         const auto& skills = m_tree.getSkills();
-        if (skills.count(m_tooltipSkill)) {
+        if (skills.count(m_tooltipSkill) && skills.at(m_tooltipSkill).uiState != LOCKED) {
             DrawTooltip(skills.at(m_tooltipSkill));
         }
     }
+
+    DrawHelpText();
 }
 
 void TechTreeUI::DrawEdges() {
     for (const auto& [parent, children] : m_tree.getAdjList()) {
         if (!m_tree.getSkills().count(parent)) continue;
+        if (m_tree.getSkills().at(parent).uiState == LOCKED) continue;
+
         Vector2 start = m_tree.getSkills().at(parent).position;
 
         for (SkillName child : children) {
             if (!m_tree.getSkills().count(child)) continue;
+            if (m_tree.getSkills().at(child).uiState == LOCKED) continue;
             Vector2 end = m_tree.getSkills().at(child).position;
             DrawLineEx(start, end, 2.0f, Color{255, 255, 255, 60});
         }
@@ -151,6 +157,18 @@ void TechTreeUI::DrawResearchPoints(int rp) {
     std::string text = TextFormat("Research Points: %d", rp);
     int textW = MeasureText(text.c_str(), 20);
     DrawText(text.c_str(), Config::screenWidth - textW - 20, 20, 20, Color{0, 255, 200, 255});
+}
+
+void TechTreeUI::DrawHelpText() {
+    int y = Config::screenHeight - 60;
+    int r = 12;
+    const char* line1 = "Klik kiri pada skill AVAILABLE untuk unlock";
+    const char* line2 = "Klik kanan untuk melihat informasi skill";
+    const char* line3 = "ESC untuk kembali";
+
+    DrawText(line1, (Config::screenWidth - MeasureText(line1, r)) / 2, y, r, Color{200, 200, 200, 180});
+    DrawText(line2, (Config::screenWidth - MeasureText(line2, r)) / 2, y + 16, r, Color{200, 200, 200, 180});
+    DrawText(line3, (Config::screenWidth - MeasureText(line3, r)) / 2, y + 32, r, Color{200, 200, 200, 180});
 }
 
 void TechTreeUI::DrawTitle() {

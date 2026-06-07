@@ -20,6 +20,7 @@ private:
     void DrawTooltip(const SkillData& skill);
     void DrawResearchPoints(int rp);
     void DrawTitle();
+    void DrawHelpText();
 
     static Color GetStateColor(SkillState state);
 };
