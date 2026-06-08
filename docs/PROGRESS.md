@@ -150,6 +150,64 @@ Berdasarkan daftar implementasi yang harus ada di projek UAS:
 - ✅ = sudah diimplementasikan dan berfungsi
 - ❌ = belum diimplementasikan
 
+---
+
+## Rencana Implementasi
+
+Berdasarkan item yang masih ❌ dan fitur yang 🔶 Sebagian, direncanakan sebagai berikut:
+
+### Prioritas 1 — Melengkapi Item Wajib
+
+#### 1. Exception Handling — `DataManager`
+**Masalah:** `DataManager::load()` dan `save()` tidak punya proteksi. File corrupt/crash diam-diam.
+**Rencana:**
+- `load()`: try-catch `std::ifstream` gagal → buka → buat data default. JSON parse error → reset ke array kosong.
+- `save()`: try-catch `std::ofstream` gagal → fallback console error.
+- `TechTree::SkillNameFromString()`: return default atau throw exception untuk string tidak dikenal.
+- File: `src/DataManager.cpp`, `src/TechTree.cpp`
+
+#### 2. AVL Tree — Leaderboard
+**Masalah:** Leaderboard sorted pakai array + `std::sort` setiap kali, bukan struktur data murni.
+**Rencana:**
+- Class `AVLTree` baru: key = score, value = username.
+- Insert otomatis balance dengan rotasi kiri/kanan.
+- In-order traversal untuk ranking descending.
+- Integrasi ke `LeaderboardSystem` untuk menyimpan & mengambil data terurut.
+- File baru: `include/AVLTree.h`, `src/AVLTree.cpp`
+
+#### 3. Sorting Manual — Word Bank
+**Masalah:** Sorting Dictionary pake `std::sort`, belum ada implementasi sorting algoritma manual.
+**Rencana:**
+- Di **Word Bank**, tambahkan opsi sort manual (Selection Sort atau Bubble Sort).
+- Tekan tombol `S` untuk sort A-Z, `D` untuk sort Z-A.
+- Buat method `SortManual()` yang mengubah urutan node di Circular Doubly Linked List tanpa STL.
+- File: `src/UnlockedWords.cpp`, `include/UnlockedWords.h`
+
+### Prioritas 2 — Integrasi Skill ke Gameplay
+
+| Skill | Rencana Implementasi |
+|---|---|
+| **Instant Crit** | Di `Asteroid::typingAsteroid()`, jika player punya skill ini dan kata masih penuh (first huruf cocok) → langsung `active = false` tanpa perlu ketik sisa huruf. |
+| **Chrono Stasis** | Saat skill aktif, kurangi `velocity.x` dan `velocity.y` semua asteroid aktif menjadi 50% untuk durasi tertentu. Timer di `GameplayManager` atau `SkillManager` baru. |
+| **Score Booster** | Di `AddScore()`, kalikan base score dengan multiplier tambahan jika skill aktif. Tidak stack dengan combo. |
+
+### Prioritas 3 — Login / Register Flow
+
+- Implementasi `UpdateLoginRegister()` dan `DrawLoginRegister()` dengan form input username.
+- `CreatePlayer()` sudah ada di DataManager — tinggal panggil dari flow register.
+- `FindPlayer()` sudah ada — panggil dari flow login.
+- Ganti hardcoded `"hyperion"` dengan player hasil login.
+
+### Prioritas 4 — Word Gating di Gameplay
+
+- `WordSystem::getRandomWord()` saat ini ambil dari pool besar tanpa filter.
+- Rencana: tambah parameter `const std::vector<std::string>& unlockedWords`, filter pool berdasarkan kata yang sudah di-unlock.
+- Atau: jika `unlocked_words` kosong, fallback ke beberapa kata default agar pemain baru tetap bisa main.
+
+---
+
+## Konstanta Penting (`GameConfig.h`)
+
 | Konstanta | Value | Keterangan |
 |---|---|---|
 | `screenWidth` | 1080 | Lebar window |
