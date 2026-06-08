@@ -16,7 +16,7 @@ namespace Config {
     constexpr float executeEventInterval{2.0f};     // interval eksekusi event
     constexpr float addShowerNodeInterval{60.0f};   // interval menambah node asteroid baru di asteroid shower list
     constexpr float showerWaveInterval{0.2f};       // interval spawn antar asteroid saat event shower
-    constexpr int initialShowerNodes{5};           // banyak asteroid pada event asteroid shower pertama
+    constexpr int initialShowerNodes{5};            // banyak asteroid pada event asteroid shower pertama
     constexpr bool enableAsteroidLog{true};         // memunculkan trace log asteroid
 
     // === Konfigurasi Shield Skill ===
