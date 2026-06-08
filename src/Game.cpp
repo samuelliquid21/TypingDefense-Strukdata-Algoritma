@@ -49,11 +49,6 @@ Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
 
     DataManager::getInstance().load();
 
-    // TODO: Hapus saat login/register sudah ada
-    // Sementara auto-login sebagai "hyperion"
-    DataManager::getInstance().FindPlayer("hyperion", m_currentPlayer);
-    m_isLoggedIn = true;
-
     techTree.loadFromProfile(m_currentPlayer);
 
     bg.Load("./assets/img/Space_Background.png", 20.0f);
@@ -144,6 +139,7 @@ void Game::Update() {
         case GameState::LEADERBOARD:       UpdateLeaderboard(); break;
         case GameState::CREDIT:            UpdateCredit(); break;
         case GameState::LOGIN_AND_REGISTER: UpdateLoginRegister(); break;
+        case GameState::REGISTER:          UpdateRegister(); break;
         case GameState::LOGOUT:            UpdateLogout(); break;
         case GameState::UNLOCK_SKILL:      UpdateTechTree(); break;
         case GameState::WORD_DICTIONARY:   UpdateDictionary(); break;
@@ -192,6 +188,7 @@ void Game::Draw() {
             case GameState::LEADERBOARD:       DrawLeaderboard(); break;
             case GameState::CREDIT:            DrawCredit(); break;
             case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
+            case GameState::REGISTER:          DrawRegister(); break;
             case GameState::LOGOUT:            DrawLogout(); break;
             case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
             case GameState::WORD_DICTIONARY:   DrawDictionary(); break;
@@ -208,6 +205,11 @@ void Game::Draw() {
 // ===============================
 
 void Game::UpdateMenu() {
+    if (!m_isLoggedIn) {
+        state = GameState::LOGIN_AND_REGISTER;
+        return;
+    }
+
     UpdateMusicStream(musicLobby);
 
     // Pastikan musik lobby selalu terputar; jika berhenti (looping), mainkan ulang
@@ -259,6 +261,11 @@ void Game::UpdateMenu() {
             targetState = GameState::CREDIT;
         }
         else if (choice == 5) {
+            // Logout dan kembali ke login screen
+            logoutScreen.Reset();
+            state = GameState::LOGOUT;
+        }
+        else if (choice == 6) {
             // Keluar dari game
             statusMenuQuit = true;
         }
@@ -268,6 +275,17 @@ void Game::UpdateMenu() {
 
 void Game::DrawMenu() {
     mainMenu.Draw();
+
+    if (m_isLoggedIn) {
+        std::string greeting = "Hello, " + m_currentPlayer.username + "!";
+        int fontSize = 24;
+        int textWidth = MeasureText(greeting.c_str(), fontSize);
+
+        int posX = GetScreenWidth() / 2 - textWidth / 2;
+        int posY = 220;
+        DrawText(greeting.c_str(), posX, posY, fontSize, WHITE);
+    }
+
     // Tampilkan info player (debug) jika diaktifkan
     if (m_isLoggedIn && Config::enableDebugPlayerInfo) {
         DrawPlayerInfo();
@@ -332,6 +350,17 @@ void Game::UpdateGameOver() {
     if (gameOver.ShouldReturnToMenu()) {
         state = GameState::MENU;
     }
+    
+    if (m_isLoggedIn) {
+    int earnedRP = score / 100; // 1 RP per 100 score
+    if (earnedRP > 0) {
+        m_currentPlayer.research_point += earnedRP;
+    }
+    if (score > m_currentPlayer.highest_score) {
+        m_currentPlayer.highest_score = score;
+    }
+    DataManager::getInstance().SavePlayer(m_currentPlayer);
+}
 }
 
 void Game::DrawGameOver() {
@@ -384,13 +413,78 @@ void Game::DrawCredit() {
 // LOGIN / LOGOUT (BELUM IMPLEMENTASI)
 // ===============================
 
-void Game::UpdateLoginRegister() {}
+void Game::UpdateLoginRegister() {
+    UpdateMusicStream(musicLobby);
+    if (!IsMusicStreamPlaying(musicLobby)) {
+        PlayMusicStream(musicLobby);
+    }
 
-void Game::DrawLoginRegister() {}
+    loginScreen.Update();
+    if (loginScreen.ShouldLogin()) {
+        m_currentPlayer = loginScreen.GetProfile();
+        m_isLoggedIn = true;
+        loginScreen.Reset();
+        state = GameState::MENU;
+    } else if (loginScreen.ShouldGoToRegister()) {
+        registerScreen.Reset();
+        state = GameState::REGISTER;
+    } else if (loginScreen.ShouldGoBack()) {
+        loginScreen.Reset();
+        statusMenuQuit = true;
+    }
+}
 
-void Game::UpdateLogout() {}
+void Game::DrawLoginRegister() {
+    bg.Draw();
+    loginScreen.Draw();
+}
 
-void Game::DrawLogout() {}
+void Game::UpdateRegister() {
+    UpdateMusicStream(musicLobby);
+    if (!IsMusicStreamPlaying(musicLobby)) {
+        PlayMusicStream(musicLobby);
+    }
+
+    registerScreen.Update();
+
+    if (registerScreen.IsRegisterSuccess()) {
+        DataManager::getInstance().FindPlayer(registerScreen.GetRegisteredUsername(), m_currentPlayer);
+        techTree.loadFromProfile(m_currentPlayer);
+        m_isLoggedIn = true;
+        registerScreen.Reset();
+        state = GameState::MENU;
+    } 
+    else if (registerScreen.ShouldGoToLogin()) {
+        loginScreen.Reset();
+        state = GameState::LOGIN_AND_REGISTER;
+    }
+}
+
+void Game::DrawRegister() {
+    bg.Draw();
+    registerScreen.Draw();
+}
+
+void Game::UpdateLogout() {
+    logoutScreen.Update();
+
+    m_currentPlayer = PlayerProfile{};
+    m_isLoggedIn = false;
+    state = GameState::MENU;
+
+    if (logoutScreen.IsFinished()) {
+        m_currentPlayer = PlayerProfile{};
+        m_isLoggedIn = false;
+        logoutScreen.Reset();
+        state = GameState::LOGIN_AND_REGISTER;
+    }
+}
+
+void Game::DrawLogout() {
+    bg.Draw();
+    DrawText("Logout berhasil!", 400, 300, 30, WHITE);
+    DrawText("Kembali ke menu...", 380, 350, 20, LIGHTGRAY);
+}
 
 // ===============================
 // TECH TREE / UNLOCK SKILL

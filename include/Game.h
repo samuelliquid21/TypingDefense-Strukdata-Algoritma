@@ -14,6 +14,9 @@
 #include "UnlockedWords.h"
 #include <vector>
 #include <string>
+#include "LoginScreen.h"
+#include "RegisterScreen.h"
+#include "LogoutScreen.h"
 
 // Kelas utama game — mengelola state machine, game loop, dan seluruh subsistem.
 // Menggunakan pola Game::Run() -> Update() / Draw() yang dipanggil tiap frame.
@@ -37,6 +40,11 @@ private:
 
     // === Subsistem Gameplay ===
     GameplayManager* gameplayManager;
+
+    // === Subsistem Akun ===
+    LoginScreen loginScreen;
+    RegisterScreen registerScreen;
+    LogoutScreen logoutScreen;
 
     // === Tech Tree & Dictionary ===
     TechTree techTree;
@@ -73,6 +81,7 @@ private:
     void UpdateLeaderboard();
     void UpdateCredit();
     void UpdateLoginRegister();
+    void UpdateRegister();
     void UpdateLogout();
     void UpdateTechTree();
     void UpdateDictionary();
@@ -85,6 +94,7 @@ private:
     void DrawLeaderboard();
     void DrawCredit();
     void DrawLoginRegister();
+    void DrawRegister();
     void DrawLogout();
     void DrawTechTree();
     void DrawDictionary();
