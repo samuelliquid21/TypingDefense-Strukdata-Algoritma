@@ -9,7 +9,8 @@ WordNode::WordNode(const std::string& w, const std::string& d, const std::string
 
 UnlockedWords::UnlockedWords()
     : m_head(nullptr), m_current(nullptr), m_selectedIndex(0),
-      m_nodeCount(0), m_scrollOffset(0), m_showDefinition(false), m_requestBack(false) {}
+      m_nodeCount(0), m_scrollOffset(0), m_showDefinition(false), m_requestBack(false),
+      m_isSorted(false), m_sortAscending(true) {}
 
 UnlockedWords::~UnlockedWords() {
     ClearList();
@@ -35,6 +36,8 @@ void UnlockedWords::Reset() {
     m_showDefinition = false;
     m_requestBack = false;
     m_searchQuery.clear();
+    m_isSorted = false;
+    m_sortAscending = true;
     RebuildFilter();
 }
 
@@ -100,6 +103,8 @@ void UnlockedWords::BuildFromPlayer(const PlayerProfile& profile) {
     m_showDefinition = false;
     m_requestBack = false;
     m_searchQuery.clear();
+    m_isSorted = false;
+    m_sortAscending = true;
     RebuildFilter();
 }
 
@@ -117,10 +122,36 @@ void UnlockedWords::RebuildFilter() {
         trav = trav->next;
     } while (trav != m_head);
 
+    if (m_isSorted) {
+        SortManual();
+    }
+
     if (m_selectedIndex >= (int)m_filteredNodes.size())
         m_selectedIndex = m_filteredNodes.empty() ? 0 : (int)m_filteredNodes.size() - 1;
     m_scrollOffset = 0;
     m_current = m_filteredNodes.empty() ? nullptr : m_filteredNodes[m_selectedIndex];
+}
+
+// Selection Sort manual pada m_filteredNodes (tidak pakai std::sort)
+void UnlockedWords::SortManual() {
+    int n = (int)m_filteredNodes.size();
+    for (int i = 0; i < n - 1; i++) {
+        int best = i;
+        for (int j = i + 1; j < n; j++) {
+            if (m_sortAscending) {
+                if (m_filteredNodes[j]->word < m_filteredNodes[best]->word)
+                    best = j;
+            } else {
+                if (m_filteredNodes[j]->word > m_filteredNodes[best]->word)
+                    best = j;
+            }
+        }
+        if (best != i) {
+            WordNode* temp = m_filteredNodes[i];
+            m_filteredNodes[i] = m_filteredNodes[best];
+            m_filteredNodes[best] = temp;
+        }
+    }
 }
 
 void UnlockedWords::Update() {
@@ -163,6 +194,26 @@ void UnlockedWords::Update() {
         if (IsKeyPressed(KEY_ESCAPE))
             m_requestBack = true;
         return;
+    }
+
+    // SORT: S = A-Z, D = Z-A (hanya saat search kosong agar tidak bentrok input)
+    if (m_searchQuery.empty()) {
+        if (IsKeyPressed(KEY_S)) {
+            m_isSorted = true;
+            m_sortAscending = true;
+            SortManual();
+            m_selectedIndex = 0;
+            m_current = m_filteredNodes.empty() ? nullptr : m_filteredNodes[0];
+            m_scrollOffset = 0;
+        }
+        if (IsKeyPressed(KEY_D)) {
+            m_isSorted = true;
+            m_sortAscending = false;
+            SortManual();
+            m_selectedIndex = 0;
+            m_current = m_filteredNodes.empty() ? nullptr : m_filteredNodes[0];
+            m_scrollOffset = 0;
+        }
     }
 
     int visibleRows = (Config::screenHeight - 120 - 60) / 30;
@@ -244,6 +295,14 @@ void UnlockedWords::DrawWordList() {
         resultInfo = TextFormat("Ditemukan: %zu kata", m_filteredNodes.size());
     }
     DrawText(resultInfo.c_str(), 120, 95, 14, Color{200, 200, 200, 180});
+
+    // Petunjuk sort (hanya saat search kosong — tombol S/D bebas)
+    if (m_searchQuery.empty()) {
+        const char* sortHint = m_isSorted
+            ? (m_sortAscending ? "S:A-Z | D:Z-A (sorted A-Z)" : "S:A-Z | D:Z-A (sorted Z-A)")
+            : "S:Sort A-Z | D:Sort Z-A";
+        DrawText(sortHint, Config::screenWidth - 120 - MeasureText(sortHint, 14), 75, 14, Color{0, 255, 200, 200});
+    }
 
     // Pesan jika pencarian tidak menemukan apa pun
     if (m_filteredNodes.empty()) {
