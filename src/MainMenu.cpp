@@ -18,6 +18,7 @@ MainMenu::MainMenu() {
     AddOption("Skills");
     AddOption("Word Bank");
     AddOption("Credit");
+    AddOption("Logout");
     AddOption("Quit");
 }
 
@@ -109,7 +110,7 @@ void MainMenu::Draw() {
         int textWidth = MeasureText(text.c_str(), menuFontSize);
 
         int x = (1080 - textWidth) / 2;
-        int y = 370 + index * 55;
+        int y = 280 + index * 55;
 
         // Option yang terpilih diberi warna YELLOW, sisanya WHITE
         if (index == selectedIndex)
