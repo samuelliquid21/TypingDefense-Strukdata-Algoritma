@@ -299,6 +299,14 @@ void Game::UpdateGameplay() {
     if (gameplayManager->isHit()) {
         score = gameplayManager->score;
         gameOver.SetScore(score);
+        if (m_isLoggedIn) {
+            int earnedRP = score / 100;
+            if (earnedRP > 0)
+                m_currentPlayer.research_point += earnedRP;
+            if (score > m_currentPlayer.highest_score)
+                m_currentPlayer.highest_score = score;
+            DataManager::getInstance().SavePlayer(m_currentPlayer);
+        }
         restartGame();          // Reset gameplay untuk sesi berikutnya
         state = GameState::GAME_OVER;
     }
@@ -340,27 +348,10 @@ void Game::DrawPause() {
 }
 
 void Game::UpdateGameOver() {
-    // Update high score jika pemain login
-    if (m_isLoggedIn && score > m_currentPlayer.highest_score) {
-        m_currentPlayer.highest_score = score;
-        DataManager::getInstance().SavePlayer(m_currentPlayer);
-    }
-
     gameOver.Update();
     if (gameOver.ShouldReturnToMenu()) {
         state = GameState::MENU;
     }
-    
-    if (m_isLoggedIn) {
-    int earnedRP = score / 100; // 1 RP per 100 score
-    if (earnedRP > 0) {
-        m_currentPlayer.research_point += earnedRP;
-    }
-    if (score > m_currentPlayer.highest_score) {
-        m_currentPlayer.highest_score = score;
-    }
-    DataManager::getInstance().SavePlayer(m_currentPlayer);
-}
 }
 
 void Game::DrawGameOver() {
@@ -422,6 +413,7 @@ void Game::UpdateLoginRegister() {
     loginScreen.Update();
     if (loginScreen.ShouldLogin()) {
         m_currentPlayer = loginScreen.GetProfile();
+        techTree.loadFromProfile(m_currentPlayer);
         m_isLoggedIn = true;
         loginScreen.Reset();
         state = GameState::MENU;
@@ -468,13 +460,10 @@ void Game::DrawRegister() {
 void Game::UpdateLogout() {
     logoutScreen.Update();
 
-    m_currentPlayer = PlayerProfile{};
-    m_isLoggedIn = false;
-    state = GameState::MENU;
-
     if (logoutScreen.IsFinished()) {
         m_currentPlayer = PlayerProfile{};
         m_isLoggedIn = false;
+        techTree.loadFromProfile(m_currentPlayer);
         logoutScreen.Reset();
         state = GameState::LOGIN_AND_REGISTER;
     }
