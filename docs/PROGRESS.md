@@ -58,6 +58,8 @@ Game (state machine)
 | **Player Info Debug** | Panel overlay (username, score, RP, unlocked words/skills) |
 | **Background** | Scrolling dual-texture seamless |
 | **Audio** | Musik lobby looping, musik credit, SFX laser/error/glitch |
+| **Exception Handling** | Try-catch di `DataManager` (parse error, file write, type error) + `TechTree` (throw invalid_argument) |
+| **Sorting Manual** | Word Bank — Selection Sort O(n²) manual, tombol S (A-Z) / D (Z-A) |
 
 ### 🔶 Sebagian
 
@@ -124,7 +126,7 @@ Berdasarkan daftar implementasi yang harus ada di projek UAS:
 | 5 | **callback function** | ✅ | `GameplayManager.h:33-34` (ScoreCallback, AsteroidDestroyedCallback), dipasang di `Game.cpp:58-67` via `std::function` + lambda |
 | 6 | **default argument** | ✅ | `Asteroid.h:26` — `asteroidType(const int tier = 1)` |
 | 7 | **function overloading / template** | ✅ | `GameplayManager.h:48-49` — `AddScore(int)` dan `AddScore(int, int)` overload; `SinglyLinkedList.h` — template class |
-| 8 | **exception handling** | ❌ | Belum ada try-catch di seluruh codebase |
+| 8 | **exception handling** | ✅ | `DataManager.cpp` — try-catch untuk parse_error, file write, type_error; `TechTree.cpp` — throw std::invalid_argument + catch di loadFromProfile |
 | 9 | **STL — vector / list** | ✅ | `std::vector` — `DataManager.h:12-13`, `Dictionary.h:18-19`, `AsteroidManager.h:62` (priority_queue), dll |
 | 10 | **STL — iterator** | ✅ | `Dictionary.cpp:37-38` (loop with begin/end), `Dictionary.cpp:130-131` (iterator di draw loop) |
 | 11 | **STL — sort** | ✅ | `Dictionary.cpp:32-35` (std::sort pada m_entries) |
@@ -144,7 +146,7 @@ Berdasarkan daftar implementasi yang harus ada di projek UAS:
 | 20 | **binary tree / avl tree** | ❌ | Belum diimplementasikan |
 | 21 | **graph dengan BFS / DFS** | ✅ | `TechTree.cpp:111-128` — BFS dari BARRIER untuk menentukan `uiState` (LOCKED/AVAILABLE/UNLOCKED) tiap skill |
 | 22 | **hashing & hash table** | ✅ | `word_module.h` — `std::unordered_map` untuk definisi kata (easy/medium/hard_definitions); `TechTree.h:39` — `std::unordered_map<SkillName, SkillData>` |
-| 23 | **sorting manual** | ❌ | Belum ada implementasi sorting manual (Leaderboard masih pakai `std::sort` atau mekanisme bawaan) |
+| 23 | **sorting manual** | ✅ | `UnlockedWords.cpp` — Selection Sort O(n²) manual (tidak pakai `std::sort`), tekan S/D untuk A-Z / Z-A |
 
 ### Keterangan Status
 - ✅ = sudah diimplementasikan dan berfungsi
@@ -158,12 +160,8 @@ Berdasarkan item yang masih ❌ dan fitur yang 🔶 Sebagian, direncanakan sebag
 
 ### Prioritas 1 — Melengkapi Item Wajib
 
-#### 1. Exception Handling — `DataManager`
-**Masalah:** `DataManager::load()` dan `save()` tidak punya proteksi. File corrupt/crash diam-diam.
-**Rencana:**
-- `load()`: try-catch `std::ifstream` gagal → buka → buat data default. JSON parse error → reset ke array kosong.
-- `save()`: try-catch `std::ofstream` gagal → fallback console error.
-- `TechTree::SkillNameFromString()`: return default atau throw exception untuk string tidak dikenal.
+#### 1. Exception Handling — `DataManager` ✅
+**Status:** Selesai. Try-catch di `DataManager::load()` (parse_error), `save()` (file write), `FindPlayer()` (type_error per-entry), `SavePlayer()` & `CreatePlayer()` (std::exception). `TechTree::SkillNameFromString()` throw `std::invalid_argument`, di-catch di `loadFromProfile()`.
 - File: `src/DataManager.cpp`, `src/TechTree.cpp`
 
 #### 2. AVL Tree — Leaderboard
@@ -175,12 +173,8 @@ Berdasarkan item yang masih ❌ dan fitur yang 🔶 Sebagian, direncanakan sebag
 - Integrasi ke `LeaderboardSystem` untuk menyimpan & mengambil data terurut.
 - File baru: `include/AVLTree.h`, `src/AVLTree.cpp`
 
-#### 3. Sorting Manual — Word Bank
-**Masalah:** Sorting Dictionary pake `std::sort`, belum ada implementasi sorting algoritma manual.
-**Rencana:**
-- Di **Word Bank**, tambahkan opsi sort manual (Selection Sort atau Bubble Sort).
-- Tekan tombol `S` untuk sort A-Z, `D` untuk sort Z-A.
-- Buat method `SortManual()` yang mengubah urutan node di Circular Doubly Linked List tanpa STL.
+#### 3. Sorting Manual — Word Bank ✅
+**Status:** Selesai. Selection Sort O(n²) manual pada `m_filteredNodes` (vector of WordNode pointers). Tombol `S` → A-Z, `D` → Z-A. Sort state persist antar search.
 - File: `src/UnlockedWords.cpp`, `include/UnlockedWords.h`
 
 ### Prioritas 2 — Integrasi Skill ke Gameplay
