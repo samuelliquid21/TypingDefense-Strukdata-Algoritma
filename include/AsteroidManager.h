@@ -7,62 +7,56 @@
 #include <queue>
 #include <vector>
 
+// Jenis event yang dimasukkan ke priority queue
 enum EventType {
-    NORMAL = 1,
-    ASTEROID_SHOWER = 2
+    NORMAL = 1,          // Spawn asteroid normal (prioritas lebih rendah)
+    ASTEROID_SHOWER = 2  // Event hujan asteroid (prioritas lebih tinggi)
 };
 
+// Kelas pengelola seluruh asteroid: pool, shower event, dan priority queue eksekusi
 class AsteroidManager
 {
 public:
-
-    // ==== CONSTRUCTOR DAN DESTRUCTOR ====
-
     AsteroidManager();
     ~AsteroidManager();
 
-    // ==== FUNGSI YANG DIPAKAI MODUL LAIN ====
+    // Scan semua asteroid (pool + shower) dengan predicate, kumpulkan yang cocok
+    std::vector<Asteroid*> scanAllAsteroids(std::function<bool(const Asteroid&)> predicate);
+    // Scan dan ambil satu asteroid pertama yang cocok dengan predicate
+    Asteroid *scanAsteroid(std::function<bool(const Asteroid&)> predicate);
 
-    std::vector<Asteroid*> scanAllAsteroids(std::function<bool(const Asteroid&)> predicate); // mengambil kumpulan alamat memori asteroid yang di scan sesuai dengan lamda function
-    Asteroid *scanAsteroid(std::function<bool(const Asteroid&)> predicate); // mengambil satu alamat memori asteorid yang memenuhi kondisi lambda function
-
-    void update(float deltaTime);   // handle logika game
-    void draw();                    // handle visual game   
-
-    // ==== DATA DAN FUNGSI HELPER ====
+    void update(float deltaTime);   // Update logika: timer, queue, pergerakan asteroid
+    void draw();                    // Render semua asteroid aktif
 
 private:
+    DifficultyManager difficultyManager; // Pengelola tingkat kesulitan berdasarkan waktu
 
-    DifficultyManager difficultyManager;
-
-    // - ASTEROID POOL
-
+    // -- ASTEROID POOL --
+    // Array tetap 50 asteroid yang di-reuse (object pooling)
     Asteroid poolAsteroid[50];
-    int asteroidCurrent = 0;            // dipakai sebagai index poolAsteroid untuk pergantian spawn asteroid yang ada di pool
-    void spawnPoolAsteroid(int diff);   // digunakan untuk mengaktifkan asteroid yang ada di pool (ketika diaktifkan asteroid langsung berjalan di modul asteroid)
+    int asteroidCurrent = 0;            // Index untuk spawn asteroid berikutnya (round-robin)
+    void spawnPoolAsteroid(int diff);   // Aktifkan asteroid dari pool dengan tier tertentu
 
-    // - EVENT ASTEROID SHOWER
-
+    // -- EVENT ASTEROID SHOWER --
+    // Linked list untuk node asteroid shower (tidak terbatas)
     SinglyLinkedList<Asteroid> asteroidShower;
-    void addShowerNode();       // menambahkan node 
-    void triggerShowerWave();   // mulai wave shower (reset cursor + start timer)
-    void updateShowerWave(float deltaTime); // proses wave per-frame, aktifkan asteroid satu per satu
+    void addShowerNode();       // Tambah node baru ke linked list shower
+    void triggerShowerWave();   // Mulai wave shower: reset cursor + start timer
+    void updateShowerWave(float deltaTime); // Proses wave: aktifkan asteroid satu per satu per interval
 
-    // - TIMER TIMING EKSEKUSI
+    // -- TIMER --
+    Timer timerNormal;          // Interval spawn asteroid normal
+    Timer timerShower;          // Interval trigger event shower
+    Timer timerShowerInterval;  // Interval antar asteroid dalam satu wave shower
+    Timer timerExecute;         // Interval eksekusi event dari queue
+    Timer timerAddNode;         // Interval penambahan node shower baru (60 detik)
+    bool showerWaveActive = false; // Flag: apakah wave shower sedang berlangsung
 
-    Timer timerNormal;          // untuk spawn (mengaktifkan) asteroid normal di pool
-    Timer timerShower;          // untuk eksekusi 
-    Timer timerShowerInterval;  // untuk eksekusi interval tiap node asteroid
-    Timer timerExecute;         // untuk interval eksekusi per node event
-    Timer timerAddNode;         // untuk interval penambahan node shower (60 detik)
-    bool showerWaveActive = false; // apakah wave shower sedang berjalan
+    // -- PRIORITY QUEUE --
+    // Event diproses berdasarkan prioritas: ASTEROID_SHOWER (2) > NORMAL (1)
+    std::priority_queue<EventType> eventQueue;
+    void executeEvent(); // Ambil dan eksekusi event dengan prioritas tertinggi
 
-    // - QUEUE EKSEKUSI EVENT
-
-    std::priority_queue<EventType> eventQueue;  
-    void executeEvent();    // eksekusi event sesuai prioritas
-
-    // - TRACELOG DRAW
-
-    int getActiveAsteroidCount() const; // jumlah asteroid aktif (pool + shower)
+    // -- DEBUG --
+    int getActiveAsteroidCount() const; // Hitung total asteroid aktif (pool + shower)
 };

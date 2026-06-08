@@ -2,32 +2,33 @@
 #include <string>
 #include "raylib.h"
 
+// Struktur data asteroid: menyimpan properti posisi, kata, dan status
 struct Asteroid {
 
     // ==== PROPERTI ASTEROID ====
 
-    Vector2 position{0, 0};     
-    Vector2 velocity{0, 0};     
-    std::string word{};         
-    std::string originalWord{};
-    int radius{0};              
-    int textureId{0};           
-    bool active{false};         
-    bool targeted{false};       
-    
-    static int counter; 
+    Vector2 position{0, 0};     // Posisi asteroid di layar
+    Vector2 velocity{0, 0};     // Kecepatan gerak asteroid (x horizontal, y vertikal)
+    std::string word{};         // Sisa kata yang belum diketik (berkurang saat diketik)
+    std::string originalWord{}; // Kata asli sebelum diketik (untuk callback)
+    int radius{0};              // Radius lingkaran asteroid (berdasar panjang kata)
+    int textureId{0};           // ID tekstur untuk variasi visual (0-3)
+    bool active{false};         // Status aktif: true = tampil dan bisa di-interaksi
+    bool targeted{false};       // Status sedang ditarget oleh pemain
+
+    static int counter; // Counter global jumlah objek Asteroid yang hidup
 
     // ==== CONSTRUCTOR DAN DESTRUCTOR ====
 
-    Asteroid();   // Constructor: increment counter
-    ~Asteroid();  // Destructor: decrement counter
+    Asteroid();   // Constructor: increment static counter
+    ~Asteroid();  // Destructor: decrement static counter
 
-    // ==== FUNGSI YANG DIBUTUHKAN MODUL LAIN ====
+    // ==== FUNGSI UTAMA ====
 
-    void asteroidType(const int tier = 1);      // Update properti asteroid sesuai tier (1-6). Dengan  DEFAULT ARGUMENT: tier = 1 (EASY), mengaktifkan asteroid sehingga langsung jalan
-    int typingAsteroid(char characterTyped);    // Handle input untuk kata asteroid
-    
+    void asteroidType(const int tier = 1);      // Set properti berdasarkan tier (1-6), aktifkan asteroid
+    int typingAsteroid(char characterTyped);    // Proses input karakter untuk mengetik kata asteroid
+
     void update(float deltaTime);  // Update posisi berdasarkan velocity
-    void draw();                   // Render asteroid normal
-    void drawTargeted();           // Render asteroid yang sedang ditarget (highlight)
+    void draw();                   // Render asteroid normal (+ highlight jika ditarget)
+    void drawTargeted();           // Render highlight kotak merah untuk asteroid yang ditarget
 };

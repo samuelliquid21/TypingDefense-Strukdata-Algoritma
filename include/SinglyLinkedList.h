@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-// menyimpan node dengan tipe data T
+// Node generic untuk Singly Linked List
 template <typename T>
 struct Node
 {
@@ -12,23 +12,24 @@ struct Node
     Node(const T& value) : data(value), next(nullptr) {}
 };
 
-// class singly linked list yang bisa digunakan untuk semua tipe data
+// Class template Singly Linked List — struktur data wajib (akademik)
+// Digunakan di AsteroidManager untuk mengelola node event asteroid shower
 template <typename T>
 class SinglyLinkedList
 {
 private:
-    Node<T> *head;
-    Node<T> *current;
-    int size;
+    Node<T> *head;    // Pointer ke node pertama
+    Node<T> *current; // Pointer untuk kursor iterasi internal
+    int size;         // Jumlah node dalam list
 
 public:
     SinglyLinkedList() : head(nullptr), current(nullptr), size(0) {}
 
     ~SinglyLinkedList() { clear(); }
 
-    // ==== SINGLY LINKED LIST METHOD ====
+    // ==== METODE SINGLY LINKED LIST ====
 
-    // UNUSED: menambahkan data ke depan linked list
+    // Menambahkan node baru di awal list (sebelum head)
     void push_front(const T &value) { 
         Node<T>* newNode = new Node<T>(value);
         newNode->next = head;
@@ -37,8 +38,7 @@ public:
         size++;
     }
 
-    // menambahkan data ke belakang linked list
-    // @param value = data yang ingin ditambahkan
+    // Menambahkan node baru di akhir list (setelah tail)
     void push_back(const T &value) {
         Node<T>* newNode = new Node<T>(value);
         if (isEmpty()) {
@@ -54,7 +54,7 @@ public:
         size++;
     }
 
-    // UNUSED: menghapus 1 data yang ada di depan
+    // Hapus node pertama (head), geser head ke node berikutnya
     void pop_front() {
         if (isEmpty()) return;
         if (current == head) current = head->next;
@@ -64,7 +64,7 @@ public:
         size--;
     }
 
-    // UNUSED: menghapus 1 data yang ada di belakang
+    // Hapus node terakhir, cari node sebelum tail lalu hapus tail
     void pop_back() {
         if (isEmpty()) return;
         if (head->next == nullptr) {
@@ -83,7 +83,7 @@ public:
         size--;
     }
 
-    // UNUSED: menghapus data sesuai dengan value
+    // Cari dan hapus node pertama yang datanya sama dengan value
     bool remove(const T &value) {
         if (isEmpty()) return false;
         if (head->data == value) {
@@ -105,20 +105,20 @@ public:
         return false;
     }
 
-    // memindahkan current node ke node selanjutnya
+    // Pindahkan kursor current ke node berikutnya
     void next() {
         if (current != nullptr) {
             current = current->next;
         }
     }
 
-    // mengambil alamat memori current node
+    // Ambil pointer ke data di node yang sedang ditunjuk current
     T *getCurrent() {
         if (current == nullptr) return nullptr;
         return &(current->data);
     }
 
-    // membersihkan memori
+    // Hapus seluruh node dan reset list ke kosong
     void clear() {
         Node<T>* temp = head;
         while (temp != nullptr) {
@@ -131,7 +131,7 @@ public:
         size = 0;
     }
 
-    // UNUSED: menampilkan data di linked list
+    // Tampilkan seluruh isi list ke console (untuk debugging)
     void display() const {
         Node<T>* temp = head;
         while (temp != nullptr) {
@@ -141,24 +141,24 @@ public:
         std::cout << "nullptr" << std::endl;
     }
 
-    // current ke posisi awal (head)
+    // Kembalikan current ke posisi head
     void resetCursor() { current = head; }
 
-    // mendapatkan pointer ke head node (untuk iterasi eksternal)
+    // Dapatkan pointer head untuk iterasi manual dari luar kelas
     Node<T>* getHead() const { return head; }
 
-    // UNUSED: melihat data head
+    // Lihat data di node pertama tanpa menghapus
     T *peekFront() const {
         if (isEmpty()) return nullptr;
         return &(head->data);
     }
 
-    // UNUSED: mendapatkan size dari list
+    // Dapatkan jumlah node saat ini
     int getSize() const {
         return size;
     }
 
-    // mengecek apakah list kosoong atau tidak
+    // Cek apakah list kosong (head == nullptr)
     bool isEmpty() const {
         return head == nullptr;
     }

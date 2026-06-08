@@ -17,17 +17,19 @@ void Background::Unload() {
 }
 
 void Background::Update() {
+    // Geser posisi scroll ke kiri berdasarkan kecepatan dan delta time
     scrollingBack += scrollSpeed * GetFrameTime();
-    
+
+    // Reset posisi jika sudah melebihi lebar tekstur (loop seamless)
     if (scrollingBack >= background.width) {
         scrollingBack = 0;
     }
 }
 
 void Background::Draw() {
-    // Gambar utama
+    // Gambar utama pada posisi scroll saat ini
     DrawTextureEx(background, { scrollingBack, 0 }, 0.0f, 1.0f, WHITE);
-    
-    // Gambar pendukung di sebelah KIRI (mengisi kekosongan dari arah kiri)
+
+    // Gambar pendukung di sebelah KIRI untuk mengisi celah saat scrolling
     DrawTextureEx(background, { scrollingBack - (float)background.width, 0 }, 0.0f, 1.0f, WHITE);
 }

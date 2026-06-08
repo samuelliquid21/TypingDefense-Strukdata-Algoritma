@@ -9,15 +9,17 @@ PauseMenu::PauseMenu() {
     titleFontSize = 80;
     menuFontSize = 30;
 
-    isCountingDown = false;
+    isCountingDown = false;   // Awalnya tidak dalam countdown
     countdownTimer = 0.0f;
 }
 
 void PauseMenu::Update() {
     if (isCountingDown) {
+        // Kurangi timer countdown setiap frame
         countdownTimer -= GetFrameTime(); 
     } 
     else {
+        // Navigasi opsi dengan UP/DOWN, wrap-around
         if (IsKeyPressed(KEY_DOWN)) {
             selectedIndex++;
             if (selectedIndex >= options.size()) selectedIndex = 0;
@@ -28,6 +30,7 @@ void PauseMenu::Update() {
             if (selectedIndex < 0) selectedIndex = options.size() - 1;
         }
 
+        // ENTER untuk memilih opsi
         if (IsKeyPressed(KEY_ENTER)) {
             optionChosen = true;
         }
@@ -35,19 +38,21 @@ void PauseMenu::Update() {
 }
 
 void PauseMenu::Draw() {
-    // Black fade background
+    // Overlay hitam transparan di belakang untuk efek "pause"
     DrawRectangle(0, 0, 1080, 720, Fade(BLACK, 0.6f));
 
     if (isCountingDown) {
-        // Tampilan countdown
+        // Tampilkan angka countdown besar di tengah layar
         int currentNumber = (int)countdownTimer; 
         
         if (currentNumber > 0) {
+            // Tampilkan angka 3, 2, 1
             std::string countText = std::to_string(currentNumber);
             int textWidth = MeasureText(countText.c_str(), 120);
             
             DrawText(countText.c_str(), (1080 - textWidth) / 2, (720 - 120) / 2, 120, WHITE);
         } else if (currentNumber == 0) {
+            // Setelah angka habis, tampilkan "GO!" warna hijau
             std::string countText = "GO!";
             int textWidth = MeasureText(countText.c_str(), 120);
             
@@ -55,7 +60,7 @@ void PauseMenu::Draw() {
         }
     } 
     else {
-        // Tampilan menu pause
+        // Tampilan menu pause dengan daftar opsi
         int titleWidth = MeasureText(title.c_str(), titleFontSize);
         DrawText(title.c_str(), (1080 - titleWidth) / 2, 200, titleFontSize, WHITE);
 
@@ -65,6 +70,7 @@ void PauseMenu::Draw() {
             int x = (1080 - textWidth) / 2;
             int y = 350 + (i * 60);
 
+            // Option yang terpilih warna YELLOW, sisanya WHITE
             Color color = (i == selectedIndex) ? YELLOW : WHITE;
 
             if (i == selectedIndex) {

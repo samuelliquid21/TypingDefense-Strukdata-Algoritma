@@ -15,46 +15,53 @@
 #include <vector>
 #include <string>
 
+// Kelas utama game — mengelola state machine, game loop, dan seluruh subsistem.
+// Menggunakan pola Game::Run() -> Update() / Draw() yang dipanggil tiap frame.
 class Game {
 public:
     Game();
     ~Game();
-    void Run();
+    void Run();         // Loop utama hingga window ditutup atau player keluar
 
 private:
     bool statusMenuQuit;
     int score;
     GameState state;
 
+    // === Subsistem Tampilan ===
     Background bg;        // Background scrolling
     MainMenu mainMenu;    // Menu utama
     GameOver gameOver;    // Game over screen
     PauseMenu pauseMenu;
     Credit creditScreen;
 
+    // === Subsistem Gameplay ===
     GameplayManager* gameplayManager;
 
+    // === Tech Tree & Dictionary ===
     TechTree techTree;
     TechTreeUI techTreeUI;
     Dictionary m_dictionary;
     UnlockedWords m_unlockedWords;
 
+    // === Data Pemain ===
     PlayerProfile m_currentPlayer;
     bool m_isLoggedIn = false;
 
-    // AUDIO - DAFTARKAN SEMUA DI SINI
-    Music musicCredit; 
-    Music musicLobby;  
+    // === Audio ===
+    Music musicCredit;
+    Music musicLobby;
 
-    // Variabel Transisi & Glitch (LOGIKA DARI LEADERBOARD)
+    // === Transisi & Efek Glitch (dari Leaderboard) ===
     float transitionTimer;
     bool isTransitioning;
-    float glitchIntensity; 
+    float glitchIntensity;
     GameState targetState;
 
     Sound glitchMasuk;
     Sound glitchKeluar;
 
+    // === Metode Update per State ===
     void Update();
     void Draw();
     void restartGame();
