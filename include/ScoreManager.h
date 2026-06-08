@@ -5,9 +5,11 @@
 
 using json = nlohmann::json;
 
-// namespace score manager
+// LEGACY — seharusnya digantikan oleh DataManager
+// Namespace fungsional untuk membaca/menulis data skor ke file JSON (data.json)
 namespace ScoreManager {
 
+    // Baca file JSON dari path dan parse ke objek json
     inline json Load(const std::string& path) {
         std::ifstream file(path);
         json j;
@@ -15,11 +17,15 @@ namespace ScoreManager {
         return j;
     }
 
+    // Tulis objek json ke file dengan indentasi 4 spasi
     inline void Save(const std::string& path, const json& j) {
         std::ofstream file(path);
         file << j.dump(4);
     }
 
+    // Masukkan atau update skor pemain:
+    // - Jika username sudah ada, update skor hanya jika skor baru lebih besar
+    // - Jika username belum ada, tambahkan entry baru
     inline void InsertOrUpdate(json& j, const std::string& username, int score) {
         bool found = false;
 
@@ -41,6 +47,7 @@ namespace ScoreManager {
         }
     }
 
+    // Dapatkan skor tertinggi dari seluruh data
     inline int GetHighest(const json& j) {
         int maxScore = 0;
         for (auto& p : j["data"]) {

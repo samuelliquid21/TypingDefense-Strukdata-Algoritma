@@ -1,14 +1,15 @@
 #pragma once
 #include <string>
 
-// enum untuk menentukan pilihan kesulitan kata
+// Tingkat kesulitan kata berdasarkan panjang huruf
 enum class Difficulty {
-    EASY,
-    MEDIUM,
-    HARD
+    EASY,   // 1-5 huruf
+    MEDIUM, // 6-10 huruf
+    HARD    // 11+ huruf
 };
 
+// Namespace untuk sistem pemilihan kata random
 namespace WordSystem {
-    // fungsi untuk mengambil kata random sesuai dengan tingak kesulitan
+    // Ambil satu kata secara random sesuai tingkat kesulitan yang diminta
     const std::string& getRandomWord(Difficulty diff);
 }

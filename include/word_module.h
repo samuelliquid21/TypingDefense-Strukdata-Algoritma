@@ -15,6 +15,7 @@
 
 // ------------------------------------------------------------
 //  EASY  -  1 sampai 5 huruf  (50 kata)
+//  Pool kata mudah: kosakata pendek, umum, mudah diketik
 // ------------------------------------------------------------
 const std::vector<std::string> easy = {
     // 1 huruf
@@ -34,6 +35,7 @@ const std::vector<std::string> easy = {
     "blend", "coral"
 };
 
+// Definisi bahasa Indonesia untuk setiap kata Easy
 const std::unordered_map<std::string, std::string> easy_definitions = {
     {"a",     "Artikel tak tentu dalam bahasa Inggris"},
     {"ox",    "Sapi jantan besar yang sering digunakan sebagai hewan penarik beban"},
@@ -90,6 +92,7 @@ const std::unordered_map<std::string, std::string> easy_definitions = {
 
 // ------------------------------------------------------------
 //  MEDIUM  -  6 sampai 10 huruf  (50 kata)
+//  Pool kata sedang: panjang kata sedang, tantangan mengetik menengah
 // ------------------------------------------------------------
 const std::vector<std::string> medium = {
     // 6 huruf
@@ -108,6 +111,7 @@ const std::vector<std::string> medium = {
     "formation", "germinate", "herbivore", "implement", "jellyfish"
 };
 
+// Definisi bahasa Indonesia untuk setiap kata Medium
 const std::unordered_map<std::string, std::string> medium_definitions = {
     {"arctic",     "Wilayah kutub utara Bumi yang tertutup es dan sangat dingin"},
     {"bottle",     "Wadah silindris bermulut sempit untuk menyimpan cairan"},
@@ -164,6 +168,7 @@ const std::unordered_map<std::string, std::string> medium_definitions = {
 
 // ------------------------------------------------------------
 //  HARD  -  11 huruf ke atas  (50 kata)
+//  Pool kata sulit: kata panjang, tantangan mengetik tingkat tinggi
 // ------------------------------------------------------------
 const std::vector<std::string> hard = {
     // 11 huruf
@@ -193,6 +198,7 @@ const std::vector<std::string> hard = {
     "biostratigraphically"
 };
 
+// Definisi bahasa Indonesia untuk setiap kata Hard
 const std::unordered_map<std::string, std::string> hard_definitions = {
     {"archipelago",           "Gugusan pulau-pulau yang tersebar di lautan dalam satu kawasan"},
     {"biodiversity",          "Keanekaragaman seluruh makhluk hidup yang ada di suatu ekosistem atau wilayah"},

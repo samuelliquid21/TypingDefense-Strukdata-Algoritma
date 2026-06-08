@@ -1,12 +1,14 @@
 #include "Timer.h"
 
-void Timer::start (float dur) { // memulai waktu
+// Mulai timer: set durasi baru, reset waktu berjalan, aktifkan
+void Timer::start (float dur) {
     duration = dur;
     lifeTime = 0.0f;
     active = true;
 }
 
-void Timer::update(float deltaTime) { // update waktu (taruh di game logic bagian update)
+// Update timer dengan delta time: tambahkan ke lifeTime, nonaktifkan jika sudah mencapai durasi
+void Timer::update(float deltaTime) {
     if (active) {
         lifeTime += deltaTime;
         if (lifeTime >= duration) {
@@ -15,11 +17,13 @@ void Timer::update(float deltaTime) { // update waktu (taruh di game logic bagia
     }
 }
 
-bool Timer::isDone() const { // cek apakah timer sudah selesai
+// Cek apakah timer sudah selesai (inaktif DAN lifetime sudah mencapai durasi)
+bool Timer::isDone() const {
     return !active && lifeTime >= duration;
 }
 
-float Timer::getProgress() const { // cek progress timer (berguna untuk animasi)
+// Dapatkan progress dalam rentang 0.0 - 1.0; return 1.0 jika duration 0 (hindari NaN)
+float Timer::getProgress() const {
     if (duration == 0) return 1.0;
     return (lifeTime / duration);
 }

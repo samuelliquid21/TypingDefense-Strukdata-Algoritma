@@ -1,15 +1,17 @@
 #pragma once
 
+// Fixed-size stack untuk combo multiplier — maksimal 6 level
+// Setiap Push menggandakan multiplier (×2, ×4, ×8, ..., ×64)
 class ComboStack {
 private:
-    static constexpr int MAX_COMBO_LEVEL = 6;   // level maksimal combo (6)
-    int stack[MAX_COMBO_LEVEL]{};               // array stack untuk menyimpan nilai multiplier
-    int top = 0;                                // index top dari stack (0 = kosong)
+    static constexpr int MAX_COMBO_LEVEL = 6;   // Level maksimal combo (6 = ×64)
+    int stack[MAX_COMBO_LEVEL]{};                // Array untuk menyimpan nilai multiplier tiap level
+    int top = 0;                                 // Index top (0 = stack kosong)
 
 public:
     ComboStack() = default;
-    void Push();                                // menambah combo (×2) setelah 5 kata benar
-    void Pop();                                 // mengurangi combo saat salah ketik
-    void Reset();                               // reset combo ke 1×
-    int GetMultiplier() const;                  // mendapatkan multiplier saat ini
+    void Push();                                 // Tambah combo: ×2 dari level sebelumnya
+    void Pop();                                  // Kurangi combo: hapus level teratas
+    void Reset();                                // Reset ke 1× (kosongkan stack)
+    int GetMultiplier() const;                   // Dapatkan multiplier saat ini (1× jika kosong)
 };

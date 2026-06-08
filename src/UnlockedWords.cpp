@@ -15,6 +15,8 @@ UnlockedWords::~UnlockedWords() {
     ClearList();
 }
 
+// Hapus semua node Circular DLL dengan traversal do-while
+// Berhenti saat kembali ke m_head (sifat circular)
 void UnlockedWords::ClearList() {
     if (m_head == nullptr) return;
     WordNode* temp = m_head;
@@ -45,6 +47,8 @@ bool UnlockedWords::WantsToGoBack() {
     return false;
 }
 
+// Bangun Circular Doubly Linked List dari daftar unlocked_words milik player
+// Setiap kata dicari level dan definisinya dari word_module
 void UnlockedWords::BuildFromPlayer(const PlayerProfile& profile) {
     ClearList();
     m_nodeCount = 0;
@@ -53,6 +57,7 @@ void UnlockedWords::BuildFromPlayer(const PlayerProfile& profile) {
         std::string difficulty;
         std::string definition;
 
+        // Cari kata di pool Easy, lalu Medium, lalu Hard
         auto it = std::find(easy.begin(), easy.end(), word);
         if (it != easy.end()) {
             difficulty = "Easy";
@@ -70,14 +75,17 @@ void UnlockedWords::BuildFromPlayer(const PlayerProfile& profile) {
             }
         }
 
+        // Buat node baru, lalu tautkan ke list circular
         WordNode* newNode = new WordNode(word, difficulty, definition);
 
         if (m_head == nullptr) {
+            // Node pertama: circular ke dirinya sendiri
             m_head = newNode;
             newNode->next = m_head;
             newNode->prev = m_head;
             m_current = m_head;
         } else {
+            // Sisipkan di akhir: tail->next = newNode, head->prev = newNode
             WordNode* tail = m_head->prev;
             tail->next = newNode;
             newNode->prev = tail;
@@ -95,6 +103,7 @@ void UnlockedWords::BuildFromPlayer(const PlayerProfile& profile) {
     RebuildFilter();
 }
 
+// Traverse Circular DLL dan kumpulkan node yang namanya mengandung substring m_searchQuery
 void UnlockedWords::RebuildFilter() {
     m_filteredNodes.clear();
     if (m_head == nullptr) return;
@@ -115,6 +124,7 @@ void UnlockedWords::RebuildFilter() {
 }
 
 void UnlockedWords::Update() {
+    // Jika popup definisi aktif, hanya proses ENTER untuk menutup
     if (m_showDefinition) {
         if (IsKeyPressed(KEY_ENTER)) {
             m_showDefinition = false;
@@ -122,12 +132,14 @@ void UnlockedWords::Update() {
         return;
     }
 
+    // Jika tidak ada kata, hanya ESC yang berfungsi
     if (m_nodeCount == 0) {
         if (IsKeyPressed(KEY_ESCAPE))
             m_requestBack = true;
         return;
     }
 
+    // === INPUT PENCARIAN ===
     int c = GetCharPressed();
     while (c > 0) {
         if (c >= 32 && c <= 126) {
@@ -146,6 +158,7 @@ void UnlockedWords::Update() {
         }
     }
 
+    // Jika hasil filter kosong, hanya ESC yang berfungsi
     if (m_filteredNodes.empty()) {
         if (IsKeyPressed(KEY_ESCAPE))
             m_requestBack = true;
@@ -155,6 +168,7 @@ void UnlockedWords::Update() {
     int visibleRows = (Config::screenHeight - 120 - 60) / 30;
     int fc = (int)m_filteredNodes.size();
 
+    // NAVIGASI BAWAH: circular wrap menggunakan modulo
     if (IsKeyPressed(KEY_DOWN)) {
         m_selectedIndex = (m_selectedIndex + 1) % fc;
         m_current = m_filteredNodes[m_selectedIndex];
@@ -164,10 +178,12 @@ void UnlockedWords::Update() {
             m_scrollOffset = m_selectedIndex - visibleRows + 1;
     }
 
+    // NAVIGASI ATAS: circular wrap menggunakan modulo
     if (IsKeyPressed(KEY_UP)) {
         m_selectedIndex = (m_selectedIndex - 1 + fc) % fc;
         m_current = m_filteredNodes[m_selectedIndex];
         if (m_selectedIndex >= fc - 1) {
+            // Jika melingkar ke item terakhir, scroll ke paling bawah
             int maxOff = fc - visibleRows;
             if (maxOff < 0) maxOff = 0;
             m_scrollOffset = maxOff;
@@ -190,6 +206,7 @@ void UnlockedWords::Draw() {
         DrawDefinitionPopup();
 }
 
+// Render daftar kata dari m_filteredNodes dengan virtual scrolling
 void UnlockedWords::DrawWordList() {
     int rowHeight = 30;
     int startY = 100;
@@ -202,11 +219,13 @@ void UnlockedWords::DrawWordList() {
     const char* instr = "ESC: Kembali";
     DrawText(instr, Config::screenWidth - MeasureText(instr, 14) - 20, 25, 14, Color{200, 200, 200, 180});
 
+    // Search bar dengan kursor berkedip
     std::string searchLabel = "Cari: " + m_searchQuery;
     bool cursorOn = ((int)(GetTime() * 2) % 2 == 0);
     searchLabel += cursorOn ? "|" : " ";
     DrawText(searchLabel.c_str(), 120, 75, 18, Color{0, 255, 200, 220});
 
+    // Pesan jika belum ada kata yang di-unlock
     if (m_nodeCount == 0) {
         const char* emptyMsg = "Belum ada kata yang di-unlock";
         const char* subMsg = "Main dulu yuk!";
@@ -217,6 +236,7 @@ void UnlockedWords::DrawWordList() {
         return;
     }
 
+    // Info jumlah hasil
     std::string resultInfo;
     if (m_searchQuery.empty()) {
         resultInfo = TextFormat("Menampilkan semua (%zu kata)", m_filteredNodes.size());
@@ -225,6 +245,7 @@ void UnlockedWords::DrawWordList() {
     }
     DrawText(resultInfo.c_str(), 120, 95, 14, Color{200, 200, 200, 180});
 
+    // Pesan jika pencarian tidak menemukan apa pun
     if (m_filteredNodes.empty()) {
         const char* notFound = "Kata tidak ditemukan";
         DrawText(notFound, (Config::screenWidth - MeasureText(notFound, 18)) / 2,
@@ -232,6 +253,7 @@ void UnlockedWords::DrawWordList() {
         return;
     }
 
+    // Virtual scrolling: render hanya item yang terlihat
     int visibleRows = (Config::screenHeight - 120 - 60) / rowHeight;
     int endIdx = m_scrollOffset + visibleRows;
     if (endIdx > (int)m_filteredNodes.size())
@@ -262,6 +284,8 @@ void UnlockedWords::DrawWordList() {
     }
 }
 
+// Render popup definisi di UnlockedWords (mirip dengan Dictionary::DrawDefinitionPopup)
+// Mengakses definisi dari m_current->definition
 void UnlockedWords::DrawDefinitionPopup() {
     DrawRectangle(0, 0, Config::screenWidth, Config::screenHeight, Color{0, 0, 0, 180});
 
@@ -269,6 +293,7 @@ void UnlockedWords::DrawDefinitionPopup() {
     int maxWidth = 540;
     int fontSize = 16;
 
+    // Word-wrap definisi secara lokal
     std::vector<std::string> lines;
     std::string remaining = m_current->definition;
     while (!remaining.empty()) {
@@ -293,6 +318,7 @@ void UnlockedWords::DrawDefinitionPopup() {
         remaining = remaining.substr(lastSpace + 1);
     }
 
+    // Hitung dimensi kotak popup dinamis berdasarkan jumlah baris definisi
     int defHeight = (int)lines.size() * lineHeight + 20;
     if (defHeight < 40) defHeight = 40;
     int boxW = 600;

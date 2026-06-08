@@ -1,7 +1,7 @@
 #include "Credit.h"
 
 Credit::Credit() {
-    scrollY = 720.0f;
+    scrollY = 720.0f;     // Mulai dari bawah layar (efek rolling credit)
     scrollSpeed = 60.0f;
 
     entries = {
@@ -56,27 +56,27 @@ Credit::Credit() {
     {"", "", false},
 };
 
-    // hitung total tinggi scroll
+    // Hitung total tinggi scroll agar bisa loop dengan benar
     int rowHeight = 45;
-    totalHeight = entries.size() * rowHeight + 720.0f;
+    totalHeight = entries.size() * rowHeight + 720.0f; // +720 agar habis scroll ada jeda
 }
 
 void Credit::Update(bool& backToMenu) {
-    // auto scroll
+    // Auto scroll ke atas dengan kecepatan tetap
     scrollY -= scrollSpeed * GetFrameTime();
 
-    // manual scroll
+    // Manual scroll: tahan DOWN untuk mempercepat, UP untuk mundur
     if (IsKeyDown(KEY_DOWN)) scrollY -= 200.0f * GetFrameTime();
     if (IsKeyDown(KEY_UP))   scrollY += 200.0f * GetFrameTime();
 
-    // loop
+    // Jika scroll melewati batas bawah, loop kembali ke awal
     if (scrollY < -totalHeight + 720.0f) {
         scrollY = 720.0f;
     }
-    // batas atas
+    // Batas atas: tidak bisa scroll melebihi posisi awal
     if (scrollY > 720.0f) scrollY = 720.0f;
 
-    // back ke menu
+    // ESC atau BACKSPACE untuk kembali ke menu utama
     if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressed(KEY_ESCAPE)) {
         backToMenu = true;
     }
@@ -85,43 +85,44 @@ void Credit::Update(bool& backToMenu) {
 void Credit::Draw() {
     int screenW = 1080;
     int rowHeight = 45;
-    int headerSize = 28;
-    int nameSize = 22;
-    int roleSize = 22;
+    int headerSize = 28;  // Font size untuk header section
+    int nameSize = 22;    // Font size untuk nama/sub-text
+    int roleSize = 22;    // Font size untuk role
 
     float y = scrollY;
 
     for (auto& entry : entries) {
+        // Baris kosong hanya memberi jarak vertikal
         if (entry.name.empty() && entry.role.empty()) {
             y += rowHeight;
             continue;
         }
 
         if (entry.isHeader) {
-            // Section header - kuning
+            // Section header: teks besar warna kuning, di tengah
             int w = MeasureText(entry.name.c_str(), headerSize);
             DrawText(entry.name.c_str(), (screenW - w) / 2, (int)y, headerSize, YELLOW);
         } else if (entry.role.empty()) {
-            // Sub-text centered (kayak "A Game By:")
+            // Sub-text tanpa role (seperti "A Game By:"): di tengah, warna terang
             int w = MeasureText(entry.name.c_str(), nameSize);
             DrawText(entry.name.c_str(), (screenW - w) / 2, (int)y, nameSize, LIGHTGRAY);
         } else {
-            // Role (kiri-tengah) + Nama (kanan-tengah)
+            // Entry dengan role: role di kiri-tengah, nama di kanan-tengah
             int col1X = screenW / 2 - 20;
             int col2X = screenW / 2 + 20;
 
-            // nama di kiri
+            // Nama di kolom kiri (rata kanan)
             int nameW = MeasureText(entry.name.c_str(), nameSize);
             DrawText(entry.name.c_str(), col1X - nameW, (int)y, nameSize, WHITE);
 
-            // role di kanan - oranye
+            // Role di kolom kanan (rata kiri) dengan warna oranye
             DrawText(entry.role.c_str(), col2X, (int)y, roleSize, ORANGE);
         }
 
         y += rowHeight;
     }
 
-    // petunjuk
+    // Petunjuk navigasi di bagian bawah layar
     DrawText("ESC / BACKSPACE : Back to Menu", 20, 690, 18, GRAY);
     DrawText("UP / DOWN : Scroll", screenW - 220, 690, 18, GRAY);
 }
