@@ -1,4 +1,6 @@
 #include "TechTree.h"
+#include <stdexcept>
+#include "raylib.h"
 
 // Konstruktor: inisialisasi semua skill dengan posisi, biaya, dan dependensi
 TechTree::TechTree() {
@@ -50,7 +52,7 @@ SkillName TechTree::SkillNameFromString(const std::string& str) {
     if (str == "chrono_stasis") return CHRONO_STASIS;
     if (str == "instant_crit")  return INSTANT_CRIT;
     if (str == "score_booster") return SCORE_BOOSTER;
-    return BARRIER; // fallback default
+    throw std::invalid_argument("TechTree: unknown skill name '" + str + "'");
 }
 
 // Konversi enum SkillName ke string (untuk serialisasi JSON)
@@ -75,8 +77,12 @@ void TechTree::loadFromProfile(const PlayerProfile& profile) {
 
     // Set isUnlocked berdasarkan daftar skill yang tersimpan di profil
     for (const std::string& skillName : profile.unlocked_skills) {
-        SkillName name = SkillNameFromString(skillName);
-        skills[name].isUnlocked = true;
+        try {
+            SkillName name = SkillNameFromString(skillName);
+            skills[name].isUnlocked = true;
+        } catch (const std::invalid_argument& e) {
+            TraceLog(LOG_WARNING, "TechTree: skip unknown skill '%s'", skillName.c_str());
+        }
     }
 
     // Perbarui uiState (AVAILABLE/LOCKED) berdasarkan isUnlocked

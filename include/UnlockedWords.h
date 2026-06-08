@@ -44,8 +44,13 @@ private:
     void ClearList();
     // Traverse Circular DLL dan kumpulkan node yang cocok dengan m_searchQuery ke m_filteredNodes
     void RebuildFilter();
+    // Selection Sort manual pada m_filteredNodes (A-Z atau Z-A tergantung m_sortAscending)
+    void SortManual();
     // Render daftar kata + search bar
     void DrawWordList();
     // Render popup definisi (sama seperti Dictionary)
     void DrawDefinitionPopup();
+
+    bool m_isSorted;         // Apakah sort sedang aktif?
+    bool m_sortAscending;    // true = A-Z, false = Z-A
 };
