@@ -10,8 +10,8 @@ using json = nlohmann::json;
 
 namespace LeaderboardSystem {
 
-    static std::vector<PlayerData> players;          // Data player asli dari JSON
-    static std::vector<PlayerData> sortedPlayers;    // Data setelah di-sort by score descending
+    static AVLTree playerTree;                       // Storage utama pakai AVL
+    static std::vector<PlayerData> sortedPlayers;    // Hasil traversal
     static int selectedIndex = 0;                    // Index player yang terpilih di list
     static const int MAX_DISPLAY = 10;               // Maksimal baris yang ditampilkan
     static bool showingDetail = false;               // Mode detail player (pop-up)
@@ -40,10 +40,84 @@ namespace LeaderboardSystem {
     static bool glitchEnterPlayed = false, glitchExitPlayed = false;
     static const int SW = 1080, SH = 720;            // Resolusi layar
 
+    // ---------- AVL helpers ----------
+    int AVLTree::height(AVLNode* n) const {
+        return n ? n->height : 0;
+    }
+    int AVLTree::balanceFactor(AVLNode* n) const {
+        return n ? height(n->left) - height(n->right) : 0;
+    }
+    void AVLTree::updateHeight(AVLNode* n) {
+        if (n) n->height = 1 + std::max(height(n->left), height(n->right));
+    }
+    AVLNode* AVLTree::rotateRight(AVLNode* y) {
+        AVLNode* x  = y->left;
+        AVLNode* T2 = x->right;
+        x->right = y;
+        y->left  = T2;
+        updateHeight(y);
+        updateHeight(x);
+        return x;
+    }
+    AVLNode* AVLTree::rotateLeft(AVLNode* x) {
+        AVLNode* y  = x->right;
+        AVLNode* T2 = y->left;
+        y->left  = x;
+        x->right = T2;
+        updateHeight(x);
+        updateHeight(y);
+        return y;
+    }
+    AVLNode* AVLTree::balance(AVLNode* n) {
+        updateHeight(n);
+        int bf = balanceFactor(n);
+        // Left heavy
+        if (bf > 1) {
+            if (balanceFactor(n->left) < 0) n->left = rotateLeft(n->left);
+            return rotateRight(n);
+        }
+        // Right heavy
+        if (bf < -1) {
+            if (balanceFactor(n->right) > 0) n->right = rotateRight(n->right);
+            return rotateLeft(n);
+        }
+        return n;
+    }
+    // Insert descending: score lebih besar → kiri
+    AVLNode* AVLTree::insert(AVLNode* n, const PlayerData& d) {
+        if (!n) return new AVLNode(d);
+        if (d.score >= n->data.score) n->left  = insert(n->left,  d);
+        else                          n->right = insert(n->right, d);
+        return balance(n);
+    }
+    void AVLTree::insert(const PlayerData& d) {
+        root = insert(root, d);
+    }
+    // In-order traversal → hasil sudah descending by score
+    void AVLTree::inorderDesc(AVLNode* n, std::vector<PlayerData>& out) const {
+        if (!n) return;
+        inorderDesc(n->left,  out);
+        out.push_back(n->data);
+        inorderDesc(n->right, out);
+    }
+    void AVLTree::toSortedVector(std::vector<PlayerData>& out) const {
+        out.clear();
+        inorderDesc(root, out);
+    }
+    void AVLTree::clear(AVLNode* n) {
+        if (!n) return;
+        clear(n->left);
+        clear(n->right);
+        delete n;
+    }
+    void AVLTree::clear() {
+        clear(root);
+        root = nullptr;
+    }
+
     // Sortir player by score descending, lalu assign rank
     void SortPlayers() {
-        sortedPlayers = players;
-        std::sort(sortedPlayers.begin(), sortedPlayers.end(), [](const PlayerData& a, const PlayerData& b) { return a.score > b.score; });
+        playerTree.toSortedVector(sortedPlayers);  // Traversal AVL → sudah terurut
         for (size_t i = 0; i < sortedPlayers.size(); i++) sortedPlayers[i].rank = (int)i + 1;
     }
 
@@ -97,9 +171,17 @@ namespace LeaderboardSystem {
         while (std::getline(f, l)) { if (l.find("<<<<<<<")==std::string::npos && l.find("=======")==std::string::npos && l.find(">>>>>>>")==std::string::npos) s += l + "\n"; }
         f.close();
         json j; try { j = json::parse(s); } catch (...) { return; } // Abaikan jika JSON tidak valid
-        players.clear();
+        playerTree.clear();
         if (j.contains("data")) for (auto& it : j["data"]) {
-            PlayerData p; p.name = it.value("username","?"); p.score = it.value("score",0); p.accuracy = it.value("accuracy",0.0f); players.push_back(p);
+            PlayerData p;
+            p.name            = it.value("username",           "?");
+            p.score           = it.value("highest_score",      0);
+            p.accuracy        = it.value("accuracy",           0.0f);
+            p.wordsTyped      = it.value("words_typed",        0);
+            p.enemiesDefeated = it.value("enemies_defeated",   0);
+            p.survivalTime    = it.value("survival_time",      0.0f);
+            p.researchPoint   = it.value("research_point",     0);
+            playerTree.insert(p);
         }
         SortPlayers(); // Urutkan berdasarkan score
     }
@@ -158,10 +240,45 @@ namespace LeaderboardSystem {
         DrawText("[ W/S ] NAVIGATE   [ ENTER ] DETAIL   [ ESC ] EXIT",SW-470,SH-30,13,ColorAlpha({120,200,200,255},a*0.55f));
     }
 
-    void Init() { FullReset(); LoadAudio(); LoadFromJSON("data/data.json"); }
-    void AddPlayerData(const PlayerData& d) { players.push_back(d); SortPlayers(); }
-    void ClearData() { players.clear(); sortedPlayers.clear(); }
-    int GetPlayerCount() { return (int)players.size(); }
+    void DrawDetail(const PlayerData& p) {
+    // Overlay gelap
+    DrawRectangle(0, 0, SW, SH, {0, 0, 0, 160});
+
+    // Panel tengah
+    float px = SW/2 - 220, py = SH/2 - 180;
+    DrawRectangle(px, py, 440, 360, {6, 18, 28, 245});
+    DrawRectangleLinesEx({px, py, 440, 360}, 1.5f, {0, 220, 200, 255});
+
+    // Judul panel
+    const char* title = "PLAYER DETAIL";
+    DrawText(title, SW/2 - MeasureText(title, 22)/2, py + 18, 22, {0, 245, 225, 255});
+    DrawLine(px + 20, py + 50, px + 420, py + 50, {0, 180, 160, 100});
+
+    // Rank & Name
+    DrawText(TextFormat("Rank   : #%02d", p.rank),       px+30, py+70,  18, WHITE);
+    DrawText(TextFormat("Name   : %s",   p.name.c_str()),px+30, py+100, 18, WHITE);
+
+    // Score
+    DrawText(TextFormat("Score  : %d",   p.score),       px+30, py+130, 18, {0, 235, 215, 255});
+
+    // Research Point
+    DrawText(TextFormat("RP     : %d",   p.researchPoint), px+30, py+160, 18, {200, 170, 40, 255});
+
+    // Stats (kalau ada datanya)
+    DrawText(TextFormat("Acc    : %.1f%%", p.accuracy),        px+30, py+190, 18, {160, 200, 200, 255});
+    DrawText(TextFormat("Words  : %d",     p.wordsTyped),      px+30, py+220, 18, {160, 200, 200, 255});
+    DrawText(TextFormat("Kills  : %d",     p.enemiesDefeated), px+30, py+250, 18, {160, 200, 200, 255});
+    DrawText(TextFormat("Time   : %.1fs",  p.survivalTime),    px+30, py+280, 18, {160, 200, 200, 255});
+
+    // Petunjuk keluar
+    const char* hint = "[ ENTER / ESC ] CLOSE";
+    DrawText(hint, SW/2 - MeasureText(hint, 13)/2, py + 320, 13, {120, 200, 200, 150});
+    }
+
+    void Init() { FullReset(); LoadAudio(); LoadFromJSON("data/PlayerData.json"); }
+    void AddPlayerData(const PlayerData& d) { playerTree.insert(d); SortPlayers(); }
+    void ClearData() { playerTree.clear(); sortedPlayers.clear(); }
+    int GetPlayerCount() { return (int)sortedPlayers.size(); }
 
     void Update(bool& back) {
         float dt = GetFrameTime();
@@ -190,7 +307,7 @@ namespace LeaderboardSystem {
         // Animasi naik podium (rank 1 naik duluan, 2&3 menyusul)
         if (fadeIn>0.2f) { podiumRise[0]=std::min(podiumRise[0]+dt*2.0f,1.0f); podiumRise[1]=std::min(podiumRise[1]+dt*2.3f,1.0f); podiumRise[2]=std::min(podiumRise[2]+dt*2.3f,1.0f); }
         // Animasi slide-in baris data
-        if (fadeIn>0.5f) { for (int i=0;i<10;i++) if (i<(int)sortedPlayers.size()-3) rowSlideIn[i]=std::min(rowSlideIn[i]+dt*1.8f,1.0f); }
+        if (fadeIn>0.5f) { for (int i=0;i<10;i++) if (i<(int)sortedPlayers.size()) rowSlideIn[i]=std::min(rowSlideIn[i]+dt*1.8f,1.0f); }
         // Mode detail: blocking, tunggu ENTER/ESC untuk keluar
         if (showingDetail) { if (IsKeyPressed(KEY_ENTER)||IsKeyPressed(KEY_ESCAPE)) { showingDetail=false; if (hasClick) PlaySound(sfxClick); } return; }
         // Navigasi W/S atau UP/DOWN dalam list (non-detail mode)
@@ -218,11 +335,16 @@ namespace LeaderboardSystem {
         // Baris data mulai dari index 3 (setelah 3 besar ditampilkan di podium)
         for (int i=3;i<MAX_DISPLAY;i++) { if (i<(int)sortedPlayers.size()) DrawRow(sortedPlayers[i],i-3,sy+26+(i-3)*44,i==selectedIndex); }
         DrawFooter();
+
+        // Tampilkan detail jika showingDetail aktif
+        if (showingDetail && detailIndex >= 0 && detailIndex < (int)sortedPlayers.size()) {
+            DrawDetail(sortedPlayers[detailIndex]);
+        }
     }
 
     // Cleanup semua resources audio
     void Unload() {
-        players.clear(); sortedPlayers.clear(); stars.clear();
+        playerTree.clear(); sortedPlayers.clear(); stars.clear();
         if (hasMusic) { StopMusicStream(bgMusic); UnloadMusicStream(bgMusic); }
         if (hasClick) UnloadSound(sfxClick);
         if (hasGlitchMasuk) UnloadSound(sfxGlitchMasuk);
