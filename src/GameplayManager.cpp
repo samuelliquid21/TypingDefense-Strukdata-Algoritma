@@ -71,6 +71,7 @@ void GameplayManager::SetAsteroidDestroyedCallback(AsteroidDestroyedCallback cal
 
 void GameplayManager::update(float deltaTime) {
     // Update semua subsistem game
+    survivalTime += deltaTime;
     spaceship.update(deltaTime);
     asteroidManager.update(deltaTime);
     shieldSkill.update(deltaTime);
@@ -123,7 +124,9 @@ void GameplayManager::update(float deltaTime) {
             currentTarget->targeted = true;
             spaceship.activateLaser(currentTarget->position);
             int result = currentTarget->typingAsteroid(c);
+            totalKeystrokes++;
             if (result > 0) {
+                correctKeystrokes++;
                 PlaySound(laser);
                 AddScore(result);
                 state = TARGET_LOCKED; // Pindah ke state mengetik
@@ -148,7 +151,9 @@ void GameplayManager::update(float deltaTime) {
 
         // Proses input karakter berikutnya pada asteroid yang sama
         int result = currentTarget->typingAsteroid(c);
+        totalKeystrokes++;
         if (result > 0) {
+            correctKeystrokes++;
             PlaySound(laser);
             AddScore(result);
             wasPreviousKeyWrong = false;
@@ -157,6 +162,7 @@ void GameplayManager::update(float deltaTime) {
             if (currentTarget->word.empty()) {
                 if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
                 wordsCompleted++;
+                enemiesDefeated++;
                 // Naikkan level combo setiap 5 kata berhasil diketik
                 if (wordsCompleted >= 5) {
                     comboStack.Push();
@@ -238,10 +244,19 @@ void GameplayManager::draw() {
 void GameplayManager::reset() {
     // Reset semua state ke kondisi awal permainan
     score = 0;
+    totalKeystrokes = 0;
+    correctKeystrokes = 0;
+    enemiesDefeated = 0;
+    survivalTime = 0.0f;
     state = typingState::SEARCH_FOR_TARGET;
     currentTarget = nullptr;
     spaceship = SpaceShip();
     comboStack.Reset();
     wordsCompleted = 0;
     wasPreviousKeyWrong = false;
+}
+
+float GameplayManager::GetAccuracy() const {
+    if (totalKeystrokes == 0) return 0.0f;
+    return (float)correctKeystrokes / totalKeystrokes * 100.0f;
 }

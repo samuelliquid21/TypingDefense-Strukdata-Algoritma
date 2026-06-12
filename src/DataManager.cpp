@@ -72,6 +72,9 @@ bool DataManager::FindPlayer(const std::string& username, PlayerProfile& outProf
                 outProfile.research_point = entry.value("research_point", 0);
                 outProfile.unlocked_words = entry.value("unlocked_words", std::vector<std::string>{});
                 outProfile.unlocked_skills = entry.value("unlocked_skills", std::vector<std::string>{});
+                outProfile.accuracy         = entry.value("accuracy",         0.0f);
+                outProfile.enemies_defeated = entry.value("enemies_defeated", 0);
+                outProfile.survival_time    = entry.value("survival_time",    0.0f);
                 return true;
             }
         } catch (const nlohmann::detail::type_error& e) {
@@ -95,6 +98,9 @@ void DataManager::SavePlayer(const PlayerProfile& profile) {
                 entry["research_point"] = profile.research_point;
                 entry["unlocked_words"] = profile.unlocked_words;
                 entry["unlocked_skills"] = profile.unlocked_skills;
+                entry["accuracy"]         = profile.accuracy;
+                entry["enemies_defeated"] = profile.enemies_defeated;
+                entry["survival_time"]    = profile.survival_time;
                 save();
                 return;
             }

@@ -177,7 +177,6 @@ namespace LeaderboardSystem {
             p.name            = it.value("username",           "?");
             p.score           = it.value("highest_score",      0);
             p.accuracy        = it.value("accuracy",           0.0f);
-            p.wordsTyped      = it.value("words_typed",        0);
             p.enemiesDefeated = it.value("enemies_defeated",   0);
             p.survivalTime    = it.value("survival_time",      0.0f);
             p.researchPoint   = it.value("research_point",     0);
@@ -266,9 +265,8 @@ namespace LeaderboardSystem {
 
     // Stats (kalau ada datanya)
     DrawText(TextFormat("Acc    : %.1f%%", p.accuracy),        px+30, py+190, 18, {160, 200, 200, 255});
-    DrawText(TextFormat("Words  : %d",     p.wordsTyped),      px+30, py+220, 18, {160, 200, 200, 255});
-    DrawText(TextFormat("Kills  : %d",     p.enemiesDefeated), px+30, py+250, 18, {160, 200, 200, 255});
-    DrawText(TextFormat("Time   : %.1fs",  p.survivalTime),    px+30, py+280, 18, {160, 200, 200, 255});
+    DrawText(TextFormat("Kills  : %d",     p.enemiesDefeated), px+30, py+220, 18, {160, 200, 200, 255});
+    DrawText(TextFormat("Time   : %.1fs",  p.survivalTime),    px+30, py+250, 18, {160, 200, 200, 255});
 
     // Petunjuk keluar
     const char* hint = "[ ENTER / ESC ] CLOSE";
