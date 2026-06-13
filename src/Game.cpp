@@ -305,6 +305,9 @@ void Game::UpdateGameplay() {
                 m_currentPlayer.research_point += earnedRP;
             if (score > m_currentPlayer.highest_score)
                 m_currentPlayer.highest_score = score;
+                m_currentPlayer.accuracy         = gameplayManager->GetAccuracy();
+                m_currentPlayer.enemies_defeated = gameplayManager->enemiesDefeated;
+                m_currentPlayer.survival_time    = gameplayManager->survivalTime;
             DataManager::getInstance().SavePlayer(m_currentPlayer);
         }
         restartGame();          // Reset gameplay untuk sesi berikutnya
