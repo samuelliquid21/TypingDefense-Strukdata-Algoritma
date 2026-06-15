@@ -18,7 +18,7 @@ GachaScreen::GachaScreen() {
     rewardRarity = 0;
     freeSpinUsed = false;
     rewardAlreadyOwned = false;
-    rewardZonkVariant = 0;
+    rewardGranted = false;
     texZonk1 = {0}; texZonk2 = {0}; texZonk3 = {0}; texZonk4 = {0}; texCoin = {0}; texFreeSpin = {0};
     sndSpinWheels = {0}; sndZonk = {0}; sndCoin = {0}; sndFreeSpin = {0};
     sndCommon = {0}; sndRare = {0}; sndEpic = {0}; sndLegendary = {0};
@@ -135,7 +135,7 @@ void GachaScreen::SelectReward() {
     // ZONK: 50%  (1-500)
     if (roll <= 500) {
         rewardType = GachaItemType::ZONK;
-        rewardId = 0;
+        rewardId = GetRandomValue(0, 3);
         rewardRarity = 0;
         return;
     }
@@ -196,10 +196,9 @@ void GachaScreen::StartSpin() {
         if (!mgr.spendRP(100)) return;
     }
 
+    rewardGranted = false;
     SelectReward();
     if (phase == ALL_COLLECTED) return;
-
-    rewardZonkVariant = GetRandomValue(0, 3);
 
     int targetIdx = 0;
     for (size_t i = 0; i < pool.size(); i++) {
@@ -210,7 +209,10 @@ void GachaScreen::StartSpin() {
             if (rewardType == GachaItemType::COIN && pool[i].id == rewardId) {
                 targetIdx = (int)i; break;
             }
-            if (rewardType != GachaItemType::SKIN && rewardType != GachaItemType::COIN && pool[i].type == rewardType) {
+            if (rewardType == GachaItemType::ZONK && pool[i].id == rewardId) {
+                targetIdx = (int)i; break;
+            }
+            if (pool[i].type == rewardType) {
                 targetIdx = (int)i; break;
             }
         }
@@ -402,7 +404,7 @@ void GachaScreen::DrawResultScreen() {
 
     } else if (rewardType == GachaItemType::ZONK) {
         Texture2D* tex = &texZonk1;
-        switch (rewardZonkVariant) {
+        switch (rewardId) {
             case 0: tex = &texZonk1; break;
             case 1: tex = &texZonk2; break;
             case 2: tex = &texZonk3; break;
@@ -490,17 +492,20 @@ void GachaScreen::Update(bool& backToSkinSelect, bool& goToSkinSelect) {
         case LANDED: {
             resultTimer -= dt;
 
-            if (rewardType == GachaItemType::COIN) {
-                SkinManager::getInstance().addRP(rewardId);
-            } else if (rewardType == GachaItemType::FREE_SPIN) {
-                SkinManager::getInstance().addFreeSpin(1);
-            } else if (rewardType == GachaItemType::SKIN) {
-                auto& mgr = SkinManager::getInstance();
-                rewardAlreadyOwned = mgr.isUnlocked(rewardId);
-                mgr.unlockSkin(rewardId);
-                mgr.setActiveSkin(rewardId);
+            if (!rewardGranted) {
+                if (rewardType == GachaItemType::COIN) {
+                    SkinManager::getInstance().addRP(rewardId);
+                } else if (rewardType == GachaItemType::FREE_SPIN) {
+                    SkinManager::getInstance().addFreeSpin(1);
+                } else if (rewardType == GachaItemType::SKIN) {
+                    auto& mgr = SkinManager::getInstance();
+                    rewardAlreadyOwned = mgr.isUnlocked(rewardId);
+                    mgr.unlockSkin(rewardId);
+                    mgr.setActiveSkin(rewardId);
+                }
+                SkinManager::getInstance().save();
+                rewardGranted = true;
             }
-            SkinManager::getInstance().save();
 
             if (resultTimer <= 0 || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ESCAPE)) {
                 phase = RESULT;

@@ -1,18 +1,19 @@
 {
     "data": [
         {
-            "research_point": 300,
+            "active_skin": 6,
             "free_spin": 0,
-            "active_skin": 0,
             "highest_score": 0,
+            "research_point": 6,
+            "unlcoked_skill_id": [],
             "unlocked_skins": [
                 0,
                 5,
-                10
+                10,
+                6
             ],
-            "username": "hyperion",
             "unlocked_word_id": [],
-            "unlcoked_skill_id": []
+            "username": "hyperion"
         }
     ]
 }

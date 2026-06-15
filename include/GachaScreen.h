@@ -50,7 +50,7 @@ private:
     float resultTimer;
     bool freeSpinUsed;
     bool rewardAlreadyOwned;
-    int rewardZonkVariant;
+    bool rewardGranted;
 
     // Textures (lazy loaded)
     Texture2D texZonk1, texZonk2, texZonk3, texZonk4, texCoin, texFreeSpin;
