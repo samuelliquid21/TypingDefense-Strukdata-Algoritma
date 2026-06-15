@@ -1,4 +1,5 @@
 #include "GameplayManager.h"
+#include "SkinManager.h"
 #include "raylib.h"
 #include "GameConfig.h"
 #include "raymath.h"
@@ -7,9 +8,17 @@ GameplayManager::~GameplayManager() {
     UnloadSound(laser);
     UnloadSound(error);
     UnloadSound(gameover);
+    UnloadSound(sfxShimmer);
+    UnloadSound(sfxGlitch);
+    if (sfxWind.stream.buffer != nullptr) {
+        StopSound(sfxWind);
+        UnloadSound(sfxWind);
+    }
 }
 
 bool GameplayManager::isHit() {
+    if (isExploding || isShipDead) return false;
+
     int hitRadius = shieldSkill.isActive()
         ? ShieldSkill::SHIELD_RADIUS
         : Config::playerHitbox;
@@ -22,9 +31,20 @@ bool GameplayManager::isHit() {
         if (shieldSkill.isActive()) {
             shieldSkill.consumeShield();
             for (auto* ast : hits) ast->active = false;
+            if (sfxGlitch.stream.buffer != nullptr) {
+                SetSoundVolume(sfxGlitch, 0.35f);
+                PlaySound(sfxGlitch);
+            }
             return false;
         }
-        if (!IsSoundPlaying(gameover)) PlaySound(gameover);
+        isExploding = true;
+        explosionTimer = 1.2f;
+        explosion.Trigger(Config::playerStartPos);
+        wordsAtExplosionStart = wordsCompleted;
+        if (sfxGlitch.stream.buffer != nullptr) {
+            SetSoundVolume(sfxGlitch, 0.5f);
+            PlaySound(sfxGlitch);
+        }
         return true;
     }
     return false;
@@ -35,14 +55,50 @@ void GameplayManager::textureInit() {
     laser = LoadSound("assets/sound/laser.mp3");
     error = LoadSound("assets/sound/error.mp3");
     gameover = LoadSound("assets/sound/gameover.mp3");
-    
+
     SetSoundVolume(laser, 0.4f);
     SetSoundVolume(error, 0.5f);
     SetSoundVolume(gameover, 0.8f);
+
+    // Load SFX from assets/sfx/
+    sfxShimmer = {0};
+    sfxGlitch = {0};
+    sfxWind = {0};
+    windPlaying = false;
+
+    if (FileExists("assets/sfx/shimmering.mp3")) {
+        sfxShimmer = LoadSound("assets/sfx/shimmering.mp3");
+        SetSoundVolume(sfxShimmer, 0.25f);
+    }
+    if (FileExists("assets/sfx/sounded_glitch.mp3")) {
+        sfxGlitch = LoadSound("assets/sfx/sounded_glitch.mp3");
+        SetSoundVolume(sfxGlitch, 0.3f);
+    }
+    if (FileExists("assets/sfx/wind_milky.mp3")) {
+        sfxWind = LoadSound("assets/sfx/wind_milky.mp3");
+        SetSoundVolume(sfxWind, 0.12f);
+    }
+
+    isExploding = false;
+    isShipDead = false;
+    explosionTimer = 0.0f;
+    wordsAtExplosionStart = 0;
+    sessionRP = 0;
+}
+
+void GameplayManager::setSkinFromManager() {
+    int skinId = SkinManager::getInstance().getActiveSkin();
+    spaceship.setSkin(skinId);
 }
 
 void GameplayManager::AddScore(int points) {
-    score += points * comboStack.GetMultiplier();
+    int mult = comboStack.GetMultiplier();
+    score += points * mult;
+
+    if (mult > 1 && sfxShimmer.stream.buffer != nullptr) {
+        SetSoundVolume(sfxShimmer, 0.25f);
+        PlaySound(sfxShimmer);
+    }
 }
 
 void GameplayManager::AddScore(int basePoints, int multiplier) {
@@ -61,10 +117,36 @@ void GameplayManager::SetAsteroidDestroyedCallback(AsteroidDestroyedCallback cal
 }
 
 void GameplayManager::update(float deltaTime) {
+    // Handle explosion state
+    if (isExploding) {
+        explosionTimer -= deltaTime;
+        explosion.Update(deltaTime);
+        if (explosionTimer <= 0.0f) {
+            isExploding = false;
+            isShipDead = true;
+            if (sfxGlitch.stream.buffer != nullptr) StopSound(sfxGlitch);
+            if (gameover.stream.buffer != nullptr && !IsSoundPlaying(gameover)) {
+                PlaySound(gameover);
+            }
+        }
+        return;
+    }
+
+    if (isShipDead) return;
+
     spaceship.update(deltaTime);
     asteroidManager.update(deltaTime);
     shieldSkill.update(deltaTime);
     bombSkill.update(deltaTime);
+
+    if (sfxWind.stream.buffer != nullptr && !IsSoundPlaying(sfxWind)) {
+        PlaySound(sfxWind);
+    }
+
+    if (IsKeyPressed(KEY_TWO) && bombSkill.isReady() && sfxGlitch.stream.buffer != nullptr) {
+        SetSoundVolume(sfxGlitch, 0.3f);
+        PlaySound(sfxGlitch);
+    }
 
     if (bombSkill.isActive()) {
         float r = bombSkill.getShockwaveRadius();
@@ -80,13 +162,14 @@ void GameplayManager::update(float deltaTime) {
 
     if (IsKeyPressed(KEY_TWO)) {
         bombSkill.activate();
+        sessionRP += 15;
     }
 
     int key = GetCharPressed();
-    if (key == 0) return; // Keluar kalau tidak ada tombol ditekan
+    if (key == 0) return;
 
     char c = (char)key;
-    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) return; // hanya huruf
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) return;
 
     if (state == SEARCH_FOR_TARGET) {
         auto targets = asteroidManager.scanAllAsteroids([c](const Asteroid& ast) {
@@ -108,10 +191,9 @@ void GameplayManager::update(float deltaTime) {
                 PlaySound(laser);
                 AddScore(result);
                 state = TARGET_LOCKED;
-                wasPreviousKeyWrong = false; // Reset status salah
+                wasPreviousKeyWrong = false;
             }
         } else {
-            // Bunyi error hanya jika penekanan sebelumnya BENAR
             if (!wasPreviousKeyWrong) {
                 PlaySound(error);
                 comboStack.Pop();
@@ -125,18 +207,20 @@ void GameplayManager::update(float deltaTime) {
             wasPreviousKeyWrong = false;
             return;
         }
-        
+
         int result = currentTarget->typingAsteroid(c);
         if (result > 0) {
             PlaySound(laser);
             AddScore(result);
-            wasPreviousKeyWrong = false; // Reset status salah karena sudah benar
-            
+            wasPreviousKeyWrong = false;
+
             if (currentTarget->word.empty()) {
                 if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed("");
+                sessionRP += 3;
                 wordsCompleted++;
                 if (wordsCompleted >= 5) {
                     comboStack.Push();
+                    sessionRP += 5;
                     wordsCompleted = 0;
                 }
                 state = SEARCH_FOR_TARGET;
@@ -145,7 +229,6 @@ void GameplayManager::update(float deltaTime) {
                 spaceship.activateLaser(currentTarget->position);
             }
         } else {
-            // Bunyi error jika salah ketik di tengah kata
             if (!wasPreviousKeyWrong) {
                 PlaySound(error);
                 comboStack.Pop();
@@ -156,26 +239,35 @@ void GameplayManager::update(float deltaTime) {
 }
 
 void GameplayManager::draw() {
+    if (isExploding) {
+        explosion.Draw();
+        return;
+    }
+
     spaceship.draw();
     asteroidManager.draw();
     shieldSkill.draw();
     bombSkill.draw();
     int multiplier = comboStack.GetMultiplier();
-    
+
     char scoreText[50];
     snprintf(scoreText, sizeof(scoreText), "Score: %d", score);
     DrawText(scoreText, Config::screenWidth/2 - MeasureText(scoreText, 20)/2, 30, 20, WHITE);
-    
+
+    char rpText[50];
+    int totalRP = SkinManager::getInstance().getRP();
+    snprintf(rpText, sizeof(rpText), "RP: %d (+%d)", totalRP, sessionRP);
+    DrawText(rpText, Config::screenWidth - MeasureText(rpText, 16) - 10, 50, 16, GOLD);
+
     const char* comboText = TextFormat("%dx COMBO", multiplier);
     DrawText(comboText, Config::screenWidth/2 - MeasureText(comboText, 30)/2, 55, 30, (multiplier > 1) ? YELLOW : GRAY);
-    
+
     if (multiplier != 64) {
         char progressText[50];
         snprintf(progressText, sizeof(progressText), "%d/5 words", wordsCompleted);
         DrawText(progressText, Config::screenWidth/2 - MeasureText(progressText, 20)/2, 85, 20, (multiplier > 1) ? GREEN : DARKGRAY);
     }
 
-    // Shield status HUD
     const char* shieldText;
     Color shieldColor;
     if (shieldSkill.isReady()) {
@@ -191,7 +283,6 @@ void GameplayManager::draw() {
     }
     DrawText(shieldText, Config::screenWidth - MeasureText(shieldText, 15) - 10, 10, 15, shieldColor);
 
-    // Bomb status HUD
     const char* bombText;
     Color bombColor;
     if (bombSkill.isReady()) {
@@ -206,6 +297,15 @@ void GameplayManager::draw() {
         bombColor = GRAY;
     }
     DrawText(bombText, Config::screenWidth - MeasureText(bombText, 15) - 10, 28, 15, bombColor);
+
+    // Show warning during explosion
+    if (isExploding) {
+        const char* warn = "SHIP DESTROYED";
+        int warnW = MeasureText(warn, 40);
+        float pulse = 0.6f + 0.4f * sinf(GetTime() * 8.0f);
+        DrawText(warn, Config::screenWidth/2 - warnW/2, Config::screenHeight/2 - 80, 40,
+            { 255, 50, 50, (unsigned char)(pulse * 255) });
+    }
 }
 
 void GameplayManager::reset() {
@@ -216,4 +316,7 @@ void GameplayManager::reset() {
     comboStack.Reset();
     wordsCompleted = 0;
     wasPreviousKeyWrong = false;
+    isExploding = false;
+    isShipDead = false;
+    explosionTimer = 0.0f;
 }

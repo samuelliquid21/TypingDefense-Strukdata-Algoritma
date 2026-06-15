@@ -1,4 +1,5 @@
 #include "SpaceShip.h"
+#include "SkinData.h"
 #include "raylib.h"
 
 SpaceShip::SpaceShip() {}
@@ -10,32 +11,32 @@ SpaceShip::~SpaceShip() {
 void SpaceShip::init() {
     texture = LoadTexture("./assets/img/Spaceships.png");
     
-    // check apakah texture ke load atau tidak
     if (texture.id == 0) {
         TraceLog(LOG_ERROR, "GAMBAR SPACESHIP GAGAL DI-LOAD! Cek path file kamu.");
     } else {
         TraceLog(LOG_INFO, "GAMBAR BERHASIL DI-LOAD! Ukuran: %d x %d", texture.width, texture.height);
     }
 
-    // posisi icon di sprite
-    int columns = 5;
-    int rows = 3;
-    
-    // Jika gagal load (width 0), kita cegah pembagian dengan 0 yang aneh
-    if (texture.width > 0 && texture.height > 0) {
-        float frameWidth = (float)texture.width / columns;
-        float frameHeight = (float)texture.height / rows;
+    currentSkinId = 5;
+    setSkin(currentSkinId);
+}
 
-        int selectedColumn = 2; 
-        int selectedRow = 1;    
+void SpaceShip::setSkin(int skinId) {
+    if (texture.id == 0) return;
+    if (skinId < 0 || skinId >= 15) return;
 
-        frame = { 
-            selectedColumn * frameWidth, 
-            selectedRow * frameHeight, 
-            frameWidth, 
-            frameHeight 
-        };
-    }
+    currentSkinId = skinId;
+    const SkinInfo& info = getSkinInfo(skinId);
+
+    float frameWidth = (float)texture.width / GRID_COLS;
+    float frameHeight = (float)texture.height / GRID_ROWS;
+
+    frame = {
+        info.col * frameWidth,
+        info.row * frameHeight,
+        frameWidth,
+        frameHeight
+    };
 }
 
 // mengaktifkan laser ketika dan mengarahkannya ke target

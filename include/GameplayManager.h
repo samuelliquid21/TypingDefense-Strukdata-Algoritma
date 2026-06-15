@@ -5,59 +5,72 @@
 #include "Combostack.h"
 #include "ShieldSkill.h"
 #include "BombSkill.h"
+#include "ExplosionEffect.h"
 #include "raylib.h"
 
 enum typingState {
-    SEARCH_FOR_TARGET,  
-    TARGET_LOCKED       
+    SEARCH_FOR_TARGET,
+    TARGET_LOCKED
 };
 
-// Type alias untuk function pointer callbacks
-using ScoreCallback = void(*)(int score, int multiplier);  
-using AsteroidDestroyedCallback = void(*)(const char* word);  
+using ScoreCallback = void(*)(int score, int multiplier);
+using AsteroidDestroyedCallback = void(*)(const char* word);
 
-// Kelas utama untuk manajemen gameplay (score, combo, asteroid, spaceship)
 class GameplayManager
 {
 private:
-    SpaceShip spaceship;                                    // Player spaceship
-    AsteroidManager asteroidManager;                        // Manajer asteroid
-    ComboStack comboStack;                                  // Stack untuk combo multiplier
-    ShieldSkill shieldSkill;                                 // Skill shield player
-    BombSkill bombSkill;                                     // Skill bomb shockwave
-    typingState state = typingState::SEARCH_FOR_TARGET;     // State typing saat ini
-    Asteroid* currentTarget = nullptr;                      // Pointer ke asteroid yang sedang ditarget
-    int wordsCompleted = 0;                                 // Counter kata yang telah diselesaikan
-    bool wasPreviousKeyWrong = false;                       // Flag untuk key salah sebelumnya
+    SpaceShip spaceship;
+    AsteroidManager asteroidManager;
+    ComboStack comboStack;
+    ShieldSkill shieldSkill;
+    BombSkill bombSkill;
+    typingState state = typingState::SEARCH_FOR_TARGET;
+    Asteroid* currentTarget = nullptr;
+    int wordsCompleted = 0;
+    bool wasPreviousKeyWrong = false;
 
-    ScoreCallback onScoreChanged = nullptr;                     // Callback pointer (nullable)
-    AsteroidDestroyedCallback onAsteroidDestroyed = nullptr;    // Callback pointer (nullable)
+    ScoreCallback onScoreChanged = nullptr;
+    AsteroidDestroyedCallback onAsteroidDestroyed = nullptr;
 
-    // Sound variables
     Sound laser;
     Sound error;
     Sound gameover;
 
+    // SFX from assets/sfx/
+    Sound sfxShimmer;
+    Sound sfxGlitch;
+    Sound sfxWind;
+    bool windPlaying;
+
+    // Explosion
+    ExplosionEffect explosion;
+    bool isExploding;
+    bool isShipDead;
+    float explosionTimer;
+    int wordsAtExplosionStart;
+
 public:
     int score = 0;
+    int sessionRP = 0;
 
-    GameplayManager() = default; 
-    ~GameplayManager(); // DESTRUCTOR UNTUK UNLOAD AUDIO
+    GameplayManager() = default;
+    ~GameplayManager();
 
-    // Function overloading: AddScore dengan 1 atau 2 parameter
-    void AddScore(int points);                      // Gunakan current combo multiplier
-    void AddScore(int basePoints, int multiplier);  // Gunakan multiplier custom
+    void AddScore(int points);
+    void AddScore(int basePoints, int multiplier);
 
     void SetScoreCallback(ScoreCallback callback);
     void SetAsteroidDestroyedCallback(AsteroidDestroyedCallback callback);
 
     void textureInit();
+    void setSkinFromManager();
 
-    bool isHit();  // Cek collision dengan player
+    bool isHit();
+    bool isShipDestroyed() const { return isShipDead; }
+    bool isExplodingNow() const { return isExploding; }
+    int getSessionRP() const { return sessionRP; }
 
-    // LOGIKA GAME
-
-    void update(float deltaTime);   // Update game logic
-    void draw();                    // Render game objects
-    void reset();                   // Reset ke kondisi awal
+    void update(float deltaTime);
+    void draw();
+    void reset();
 };

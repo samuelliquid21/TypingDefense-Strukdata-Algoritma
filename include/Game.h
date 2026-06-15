@@ -8,6 +8,11 @@
 #include "ScoreManager.h"
 #include "GameplayManager.h"
 #include "Pause.h"
+#include "LoadingScreen.h"
+#include "OpeningScene.h"
+#include "EventNotification.h"
+#include "SkinSelect.h"
+#include "GachaScreen.h"
 #include <vector>
 #include <string>
 
@@ -22,45 +27,76 @@ private:
     int score;
     GameState state;
 
-    Background bg;        // Background scrolling
-    MainMenu mainMenu;    // Menu utama
-    GameOver gameOver;    // Game over screen
+    Background bg;
+    MainMenu mainMenu;
+    GameOver gameOver;
     PauseMenu pauseMenu;
     Credit creditScreen;
 
+    // === NEW: Loading & Opening ===
+    LoadingScreen  loadingScreen;
+    OpeningScene   openingScene;
+    EventNotification eventNotif;
+
     GameplayManager* gameplayManager;
+    SkinSelect skinSelect;
+    GachaScreen gachaScreen;
     bool isSaved;
     int highestScore;
     std::string playerName;
 
-    // AUDIO - DAFTARKAN SEMUA DI SINI
-    Music musicCredit; 
-    Music musicLobby;  
+    // AUDIO
+    Music musicCredit;
+    Music musicLobby;
 
-    // Variabel Transisi & Glitch (LOGIKA DARI LEADERBOARD)
+    // Transisi & Glitch
     float transitionTimer;
-    bool isTransitioning;
-    float glitchIntensity; 
+    bool  isTransitioning;
+    float glitchIntensity;
     GameState targetState;
 
     Sound glitchMasuk;
     Sound glitchKeluar;
 
+    // SFX from assets/sfx/
+    Sound sfxUniverseMoment;
+    Sound sfxCreditAmbient;
+    Sound sfxRadioNoise;
+    bool universeMomentPlayed;
+
+    // === Notif event timers ===
+    float notifMeteorTimer;
+    float notifEnemyTimer;
+    float notifNovaTimer;
+    int   enemyLevel;
+
+    // Explosion delay
+    float explosionDelayTimer;
+    bool  waitingForExplosion;
+
     void Update();
     void Draw();
     void restartGame();
 
+    void UpdateLoading();
+    void UpdateOpening();
     void UpdateMenu();
     void UpdateGameplay();
     void UpdatePause();
     void UpdateGameOver();
     void UpdateLeaderboard();
     void UpdateCredit();
+    void UpdateSkinSelect();
+    void UpdateGacha();
 
+    void DrawLoading();
+    void DrawOpening();
     void DrawMenu();
     void DrawGameplay();
     void DrawPause();
     void DrawGameOver();
     void DrawLeaderboard();
     void DrawCredit();
+    void DrawSkinSelect();
+    void DrawGacha();
 };

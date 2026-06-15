@@ -14,6 +14,11 @@ include_directories(ext/nlohmann)
 file(GLOB SRC_FILES src/*.cpp)
 add_executable(game ${SRC_FILES})
 
+# 2b. Windows Resource File (icon)
+if(WIN32)
+    target_sources(game PRIVATE resources.rc)
+endif()
+
 # 3. Logika Cross-Platform untuk Raylib
 if(WIN32)
     # Konfigurasi Windows (Tetap menggunakan file lokal di folder ext)

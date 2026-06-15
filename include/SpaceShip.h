@@ -18,6 +18,7 @@ private:
 
     Texture2D texture;
     Rectangle frame;
+    int currentSkinId{0};
 
     void drawTexture();
     void deactivateLaser();
@@ -28,6 +29,8 @@ public:
     SpaceShip();
     ~SpaceShip();
     void init();
+    void setSkin(int skinId);
+    int getSkinId() const { return currentSkinId; }
     bool asteroiHitSpaceship(Vector2 &asteroidPosition, int asteroidRadius);
     void activateLaser(Vector2 &target);
     void update(float deltaTime);
