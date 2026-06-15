@@ -23,6 +23,15 @@ public:
 
     int gachaPull();
 
+    int getFreeSpinCount() const { return freeSpinCount; }
+    void addFreeSpin(int amount) { freeSpinCount += amount; }
+    bool useFreeSpin() {
+        if (freeSpinCount <= 0) return false;
+        freeSpinCount--;
+        return true;
+    }
+    void setFreeSpinCount(int count) { freeSpinCount = count; }
+
 private:
     SkinManager() = default;
     SkinManager(const SkinManager&) = delete;
@@ -30,6 +39,7 @@ private:
 
     int researchPoint = 300;
     int activeSkin = 0;
+    int freeSpinCount = 0;
     std::vector<int> unlockedSkins;
     Texture2D spritesheet{0};
 

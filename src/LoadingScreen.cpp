@@ -22,13 +22,21 @@ LoadingScreen::LoadingScreen() {
     quotes = {
         { "Year 2157.",                                       0.0f,   3.5f, 0.0f },
         { "The asteroid belt between Mars and Jupiter",       5.0f,   8.0f, 0.0f },
-        { "has become a graveyard of shattered worlds.",      8.0f,  11.5f, 0.0f },
+        { "has become a graveyard of shattered worlds.",       8.0f,  11.5f, 0.0f },
         { "A signal was intercepted. Unknown origin.",        13.0f, 17.5f, 0.0f },
         { "Then she vanished.",                                18.0f, 19.9f, 0.0f },
         { "Your mission: survive the storm.",                 21.0f, 24.0f, 0.0f },
         { "Find Nova. Uncover the truth.",                    24.0f, 27.2f, 0.0f },
         { "Cosmic Keypad",                                    27.0f, 31.0f, 0.0f },
     };
+
+    currentSlide = 0;
+    nextSlide = -1;
+    transitioning = false;
+    transitionTimer = 0.0f;
+    slidesLoaded = false;
+    bgJpgLoaded = false;
+    texBgJpg = {0};
 }
 
 LoadingScreen::~LoadingScreen() {
@@ -37,49 +45,164 @@ LoadingScreen::~LoadingScreen() {
         UnloadSound(loadingNoise);
         loadingNoiseLoaded = false;
     }
+    UnloadStorySlides();
 }
 
-// ---- DRAW BACKGROUND ----
-void LoadingScreen::DrawBackground() {
-    auto& am = AssetManager::Get();
-    if (!am.HasTex("loading_bg")) {
-        am.LoadTex("loading_bg", "assets/img/loading_bg.png");
+void LoadingScreen::LoadStorySlides() {
+    struct { const char* folder; const char* file; float show; float end; } defs[] = {
+        { "img01", "Pesawat Luar Angkasa Dekat Jupiter.png",  0.0f,  4.5f },
+        { "img05", "Kapal Luna Lepas Landas.png",             4.5f,  9.0f },
+        { "img07", "Gambar Blackhole.jpg",                    9.0f, 12.5f },
+        { "img09", "Cockpit Lost Sinyal.png",                 12.5f, 17.5f },
+        { "img16", "Menemukan Sinyal Pesawat Luna.png",       17.5f, 20.5f },
+        { "img12", "Target Mission.png",                      20.5f, 24.0f },
+        { "img18", "Komunikasi dengan Luna.png",              24.0f, 27.0f },
+        { "img14", "Type Defence FIXED.png",                  27.0f, 31.0f },
+    };
+
+    for (auto& d : defs) {
+        char path[256];
+        snprintf(path, sizeof(path), "assets/story/%s/%s", d.folder, d.file);
+        if (FileExists(path)) {
+            StorySlide slide;
+            slide.texture = LoadTexture(path);
+            slide.showTime = d.show;
+            slide.endTime = d.end;
+            storySlides.push_back(slide);
+        }
     }
-    Texture2D& bg = am.GetTex("loading_bg");
 
-    if (bg.id > 0 && bg.width > 0 && bg.height > 0) {
-        float scaleX = 1080.0f / bg.width;
-        float scaleY = 720.0f  / bg.height;
+    if (!bgJpgLoaded && FileExists("assets/img/background.jpg")) {
+        texBgJpg = LoadTexture("assets/img/background.jpg");
+        bgJpgLoaded = true;
+    }
+}
+
+void LoadingScreen::UnloadStorySlides() {
+    for (auto& slide : storySlides) {
+        if (slide.texture.id > 0)
+            UnloadTexture(slide.texture);
+    }
+    storySlides.clear();
+    if (bgJpgLoaded && texBgJpg.id > 0) {
+        UnloadTexture(texBgJpg);
+        texBgJpg = {0};
+        bgJpgLoaded = false;
+    }
+}
+
+void LoadingScreen::UpdateSlideshow(float dt) {
+    if (storySlides.empty()) return;
+
+    if (transitioning) {
+        transitionTimer += dt;
+        if (transitionTimer >= TRANSITION_DURATION) {
+            transitioning = false;
+            currentSlide = nextSlide;
+            nextSlide = -1;
+        }
+        return;
+    }
+
+    int targetSlide = currentSlide;
+    float t = audioTimer;
+    for (size_t i = 0; i < storySlides.size(); i++) {
+        if (t >= storySlides[i].showTime && t < storySlides[i].endTime) {
+            targetSlide = (int)i;
+            break;
+        }
+    }
+    if (t >= storySlides.back().endTime)
+        targetSlide = (int)storySlides.size() - 1;
+
+    if (targetSlide != currentSlide) {
+        nextSlide = targetSlide;
+        transitioning = true;
+        transitionTimer = 0.0f;
+    }
+}
+
+void LoadingScreen::DrawBackground() {
+    if (!slidesLoaded) {
+        LoadStorySlides();
+        slidesLoaded = true;
+    }
+
+    // Pas LOADING_BAR dan FADE_OUT pake background.jpg
+    if (phase == PHASE_LOADING_BAR || phase == PHASE_FADE_OUT) {
+        if (bgJpgLoaded && texBgJpg.id > 0) {
+            float scaleX = 1080.0f / texBgJpg.width;
+            float scaleY = 720.0f  / texBgJpg.height;
+            float scale  = (scaleX > scaleY) ? scaleX : scaleY;
+            float dw = texBgJpg.width  * scale;
+            float dh = texBgJpg.height * scale;
+            float dx = (1080.0f - dw) / 2.0f;
+            float dy = (720.0f  - dh) / 2.0f;
+            DrawTextureEx(texBgJpg, { dx, dy }, 0.0f, scale, WHITE);
+        } else {
+            DrawRectangle(0, 0, 1080, 720, { 10, 15, 30, 255 });
+        }
+        DrawRectangle(0, 0, 1080, 720, { 0, 0, 0, 160 });
+        return;
+    }
+
+    if (storySlides.empty()) {
+        auto& am = AssetManager::Get();
+        if (!am.HasTex("loading_bg")) {
+            am.LoadTex("loading_bg", "assets/img/loading_bg.png");
+        }
+        Texture2D& bg = am.GetTex("loading_bg");
+        if (bg.id > 0 && bg.width > 0 && bg.height > 0) {
+            float scaleX = 1080.0f / bg.width;
+            float scaleY = 720.0f  / bg.height;
+            float scale  = (scaleX > scaleY) ? scaleX : scaleY;
+            float dw = bg.width  * scale;
+            float dh = bg.height * scale;
+            float dx = (1080.0f - dw) / 2.0f;
+            float dy = (720.0f  - dh) / 2.0f;
+            DrawTextureEx(bg, { dx, dy }, 0.0f, scale, WHITE);
+        } else {
+            DrawRectangle(0, 0, 1080, 720, { 10, 15, 30, 255 });
+        }
+        DrawRectangle(0, 0, 1080, 720, { 0, 0, 0, 160 });
+        return;
+    }
+
+    auto drawSlide = [](const StorySlide& s, float alpha) {
+        if (s.texture.id <= 0) return;
+        float scaleX = 1080.0f / s.texture.width;
+        float scaleY = 720.0f  / s.texture.height;
         float scale  = (scaleX > scaleY) ? scaleX : scaleY;
-
-        float dw = bg.width  * scale;
-        float dh = bg.height * scale;
+        float dw = s.texture.width  * scale;
+        float dh = s.texture.height * scale;
         float dx = (1080.0f - dw) / 2.0f;
         float dy = (720.0f  - dh) / 2.0f;
+        unsigned char a = (unsigned char)(alpha * 255);
+        DrawTextureEx(s.texture, { dx, dy }, 0.0f, scale, { 255, 255, 255, a });
+    };
 
-        DrawTextureEx(bg, { dx, dy }, 0.0f, scale, WHITE);
+    if (transitioning && nextSlide >= 0 && nextSlide < (int)storySlides.size()) {
+        float t = transitionTimer / TRANSITION_DURATION;
+        drawSlide(storySlides[nextSlide], t);
+        drawSlide(storySlides[currentSlide], 1.0f - t);
     } else {
-        DrawRectangle(0, 0, 1080, 720, { 10, 15, 30, 255 });
+        drawSlide(storySlides[currentSlide], 1.0f);
     }
 
-    // Overlay gelap supaya teks terbaca
     DrawRectangle(0, 0, 1080, 720, { 0, 0, 0, 160 });
 }
 
-// ---- UPDATE ----
 void LoadingScreen::Update(bool& doneLoading) {
     float dt = GetFrameTime();
     timer    += dt;
     barPulse += dt * 3.0f;
 
-    // Play opening music
     auto& am = AssetManager::Get();
     if (!am.HasSnd("opening_music")) {
         am.LoadSnd("opening_music", "assets/sound/opening.mp3");
         am.PlaySnd("opening_music");
     }
 
-    // Play grey noise ambient
     if (loadingNoiseLoaded && !IsSoundPlaying(loadingNoise)) {
         PlaySound(loadingNoise);
     }
@@ -96,6 +219,7 @@ void LoadingScreen::Update(bool& doneLoading) {
 
     case PHASE_SHOW_QUOTE: {
         audioTimer += dt;
+        UpdateSlideshow(dt);
         for (auto& q : quotes) {
             if (audioTimer < q.startTime) {
                 q.alpha = 0.0f;
@@ -135,14 +259,12 @@ void LoadingScreen::Update(bool& doneLoading) {
         break;
     }
 
-    // ESC / ENTER skip — langsung ke OpeningScene
     if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
         if (loadingNoiseLoaded) StopSound(loadingNoise);
         doneLoading = true;
     }
 }
 
-// ---- DRAW QUOTES ----
 void LoadingScreen::DrawQuotes() {
     if (phase != PHASE_SHOW_QUOTE) return;
 
@@ -164,20 +286,16 @@ void LoadingScreen::DrawQuotes() {
     }
 }
 
-// ---- DRAW TITLE ----
 void LoadingScreen::DrawTitle() {
     if (phase != PHASE_LOADING_BAR && phase != PHASE_FADE_OUT) return;
     float a = (phase == PHASE_LOADING_BAR)
               ? (float)fmin(timer * 2.0f, 1.0f)
               : 1.0f;
     a *= (1.0f - fadeAlpha);
-    // Tidak tampilkan judul karena sudah ada di background image
-    // Hanya tampilkan garis dekoratif tipis
     DrawRectangle(1080/2 - 180, 390, 360, 1,
         { 0, 200, 255, (unsigned char)(a * 60) });
 }
 
-// ---- DRAW LOADING BAR ----
 void LoadingScreen::DrawLoadingBar() {
     if (phase != PHASE_LOADING_BAR && phase != PHASE_FADE_OUT) return;
     float a = 1.0f - fadeAlpha;
@@ -187,35 +305,29 @@ void LoadingScreen::DrawLoadingBar() {
     int barW = 520;
     int barH = 6;
 
-    // Track bar
     DrawRectangle(barX, barY, barW, barH,
         { 30, 50, 70, (unsigned char)(a * 180) });
 
-    // Fill
     float fillW = barW * loadingProgress;
     float pulse = 0.8f + 0.2f * sinf(barPulse);
     DrawRectangle(barX, barY, (int)fillW, barH,
         { 0, (unsigned char)(200 * pulse), (unsigned char)(255 * pulse),
           (unsigned char)(a * 255) });
 
-    // Glow ujung
     if (fillW > 4)
         DrawRectangle(barX + (int)fillW - 3, barY - 2, 6, barH + 4,
             { 180, 240, 255, (unsigned char)(a * 200) });
 
-    // Persentase
     const char* pct = TextFormat("%.0f%%", loadingProgress * 100.0f);
     int pw = MeasureText(pct, 13);
     DrawText(pct, 1080/2 - pw/2, barY + 12, 13,
         { 120, 180, 220, (unsigned char)(a * 180) });
 
-    // Label
     const char* lbl = "LOADING...";
     int lw = MeasureText(lbl, 13);
     DrawText(lbl, 1080/2 - lw/2, barY - 22, 13,
         { 80, 140, 180, (unsigned char)(a * 160) });
 
-    // Spinning dots
     float dotAngle = barPulse * 60.0f * DEG2RAD;
     for (int i = 0; i < 8; i++) {
         float angle = dotAngle + i * (360.0f / 8.0f) * DEG2RAD;
@@ -226,11 +338,9 @@ void LoadingScreen::DrawLoadingBar() {
             { 0, 200, 255, (unsigned char)(a * da * 200) });
     }
 
-    // Hint skip
     DrawText("[ ESC ] Skip", 10, 700, 13, { 60, 80, 100, 140 });
 }
 
-// ---- DRAW ----
 void LoadingScreen::Draw() {
     ClearBackground(BLACK);
     DrawBackground();
@@ -238,7 +348,6 @@ void LoadingScreen::Draw() {
     DrawTitle();
     DrawLoadingBar();
 
-    // Fade overlay
     if (fadeAlpha > 0.01f)
         DrawRectangle(0, 0, 1080, 720,
             { 0, 0, 0, (unsigned char)(fadeAlpha * 255) });

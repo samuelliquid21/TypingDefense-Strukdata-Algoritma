@@ -20,6 +20,9 @@ void SkinManager::init() {
         if (player.contains("research_point"))
             researchPoint = player["research_point"];
 
+        if (player.contains("free_spin"))
+            freeSpinCount = player["free_spin"];
+
         if (player.contains("active_skin"))
             activeSkin = player["active_skin"];
 
@@ -51,6 +54,7 @@ void SkinManager::save() {
 
     auto& player = data["data"][0];
     player["research_point"] = researchPoint;
+    player["free_spin"] = freeSpinCount;
     player["active_skin"] = activeSkin;
 
     json arr = json::array();

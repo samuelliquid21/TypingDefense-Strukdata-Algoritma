@@ -2,6 +2,22 @@
 #include "raylib.h"
 #include <string>
 
+// Bonus reward types for gacha
+enum class GachaItemType {
+    ZONK,
+    COIN,
+    FREE_SPIN,
+    SKIN
+};
+
+struct GachaPoolItem {
+    GachaItemType type;
+    int id;          // skinId for SKIN, coin amount for COIN, 0 otherwise
+    int rarity;      // 0 for ZONK, 1-5 for others
+    const char* name;
+    Color color;
+};
+
 struct SkinInfo {
     int id;
     std::string name;
@@ -76,6 +92,37 @@ inline Color rarityGlow(int rarity) {
         case 3: return {0, 150, 255, 80};
         case 4: return {180, 0, 255, 80};
         case 5: return {255, 180, 0, 80};
+        default: return {255, 255, 255, 40};
+    }
+}
+
+// Bonus gacha item definitions
+inline const char* gachaLabel(GachaItemType type, int rarity) {
+    if (type == GachaItemType::SKIN) return rarityLabel(rarity);
+    switch (type) {
+        case GachaItemType::ZONK: return "ZONK";
+        case GachaItemType::COIN: return "COIN";
+        case GachaItemType::FREE_SPIN: return "FREE SPIN";
+        default: return "";
+    }
+}
+
+inline Color gachaColor(GachaItemType type, int rarity) {
+    if (type == GachaItemType::SKIN) return rarityColor(rarity);
+    switch (type) {
+        case GachaItemType::ZONK: return {120, 120, 120, 255};
+        case GachaItemType::COIN: return GOLD;
+        case GachaItemType::FREE_SPIN: return {0, 255, 255, 255};
+        default: return WHITE;
+    }
+}
+
+inline Color gachaGlow(GachaItemType type, int rarity) {
+    if (type == GachaItemType::SKIN) return rarityGlow(rarity);
+    switch (type) {
+        case GachaItemType::ZONK: return {80, 80, 80, 60};
+        case GachaItemType::COIN: return {255, 215, 0, 80};
+        case GachaItemType::FREE_SPIN: return {0, 255, 255, 60};
         default: return {255, 255, 255, 40};
     }
 }
