@@ -1,10 +1,11 @@
 #include "Leaderboard.h"
 #include "raylib.h"
+#include "GameConfig.h"
 #include <algorithm>
 #include <cmath>
 #include <vector>
 #include <fstream>
-#include "../ext/nlohmann/json.hpp"
+#include "json.hpp"
 
 using json = nlohmann::json;
 
@@ -38,7 +39,6 @@ namespace LeaderboardSystem {
     static float musicVolume = 0.0f;                 // Volume musik (fade-in/out)
     static const float MAX_VOLUME = 0.5f;            // Volume maksimum
     static bool glitchEnterPlayed = false, glitchExitPlayed = false;
-    static const int SW = 1080, SH = 720;            // Resolusi layar
 
     // ---------- AVL helpers ----------
     int AVLTree::height(AVLNode* n) const {
@@ -125,7 +125,7 @@ namespace LeaderboardSystem {
     void InitStars() {
         stars.clear();
         for (int i = 0; i < 90; i++) {
-            Star s; s.pos = {(float)GetRandomValue(0,SW),(float)GetRandomValue(0,SH)};
+            Star s; s.pos = {(float)GetRandomValue(0,Config::screenWidth),(float)GetRandomValue(0,Config::screenHeight)};
             s.speed = (float)GetRandomValue(5,25)/10.0f; s.size = (float)GetRandomValue(1,3);
             s.alpha = (float)GetRandomValue(20,60)/100.0f; stars.push_back(s);
         }
@@ -142,7 +142,7 @@ namespace LeaderboardSystem {
     }
 
     // Update posisi bintang: gerak ke bawah, loop kembali ke atas
-    void UpdateStars() { for (auto& s : stars) { s.pos.y += s.speed; if (s.pos.y > SH+5) { s.pos.y = -5; s.pos.x = (float)GetRandomValue(0,SW); } } }
+    void UpdateStars() { for (auto& s : stars) { s.pos.y += s.speed; if (s.pos.y > Config::screenHeight+5) { s.pos.y = -5; s.pos.x = (float)GetRandomValue(0,Config::screenWidth); } } }
 
     // Gambar bintang dengan alpha yang disesuaikan state animasi
     void DrawStars() {
@@ -187,23 +187,23 @@ namespace LeaderboardSystem {
 
     // Gambar background: dark overlay, grid dot, bintang, scan line, efek glitch
     void DrawBg() {
-        DrawRectangle(0,0,SW,SH,{0,0,0,170});
+        DrawRectangle(0,0,Config::screenWidth,Config::screenHeight,{0,0,0,170});
         // Grid dot pattern untuk efek retro
-        for (int x=0;x<SW;x+=40) for (int y=0;y<SH;y+=40) DrawRectangle(x,y,1,1,{0,180,200,18});
+        for (int x=0;x<Config::screenWidth;x+=40) for (int y=0;y<Config::screenHeight;y+=40) DrawRectangle(x,y,1,1,{0,180,200,18});
         DrawStars();
         // Scan line horizontal bergerak ke bawah
-        DrawRectangle(0,(int)scanLinePos,SW,2,{0,255,255,5});
+        DrawRectangle(0,(int)scanLinePos,Config::screenWidth,2,{0,255,255,5});
         // Efek glitch saat transisi masuk/keluar: garis horizontal acak
-        if ((isEntering||isExiting) && glitchIntensity>0.01f) { for (int i=0;i<10;i++) { int y=GetRandomValue(0,SH),h=GetRandomValue(2,15); DrawRectangle(0,y,SW,h,(i%2==0)?(Color){0,255,200,(unsigned char)(glitchIntensity*180)}:(Color){255,50,120,(unsigned char)(glitchIntensity*140)}); } }
+        if ((isEntering||isExiting) && glitchIntensity>0.01f) { for (int i=0;i<10;i++) { int y=GetRandomValue(0,Config::screenHeight),h=GetRandomValue(2,15); DrawRectangle(0,y,Config::screenWidth,h,(i%2==0)?(Color){0,255,200,(unsigned char)(glitchIntensity*180)}:(Color){255,50,120,(unsigned char)(glitchIntensity*140)}); } }
     }
 
     // Gambar header "HALL OF CHAMPIONS" dengan border glitch
     void DrawHeader() {
         float a = (isEntering||isExiting) ? 0 : fadeIn;
-        DrawRectangle(SW/2-250,18,500,55,{0,0,0,170});
-        DrawRectangleLinesEx({(float)(SW/2-250),18,500,55},1.5f,ColorAlpha({0,220,200,255},a));
+        DrawRectangle(Config::screenWidth/2-250,18,500,55,{0,0,0,170});
+        DrawRectangleLinesEx({(float)(Config::screenWidth/2-250),18,500,55},1.5f,ColorAlpha({0,220,200,255},a));
         const char* t = "HALL OF CHAMPIONS"; int tw = MeasureText(t,36);
-        DrawText(t,SW/2-tw/2,28,36,ColorAlpha({0,245,225,255},a));
+        DrawText(t,Config::screenWidth/2-tw/2,28,36,ColorAlpha({0,245,225,255},a));
     }
 
     // Gambar podium untuk 3 besar dengan mahkota untuk rank 1
@@ -224,33 +224,33 @@ namespace LeaderboardSystem {
     // Gambar satu baris data player di tabel peringkat
     void DrawRow(const PlayerData& p, int idx, float y, bool sel) {
         float a = (isEntering||isExiting) ? 0 : rowSlideIn[idx] * fadeIn;
-        DrawRectangle(70,y,SW-140,40,ColorAlpha(sel?(Color){18,48,58,200}:(Color){8,15,22,200},a));
+        DrawRectangle(70,y,Config::screenWidth-140,40,ColorAlpha(sel?(Color){18,48,58,200}:(Color){8,15,22,200},a));
         if (sel) { DrawRectangle(70,y,4,40,ColorAlpha({0,245,225,255},a)); DrawText(">",82,y+12,16,ColorAlpha({0,245,225,255},a)); }
         DrawText(TextFormat("#%02d",p.rank),100,y+11,17,ColorAlpha({180,200,210,255},a));
         DrawText(p.name.c_str(),165,y+11,17,ColorAlpha(WHITE,a));
         DrawText(TextFormat("%.1f%%",p.accuracy),510,y+12,15,ColorAlpha({160,200,200,255},a));
-        const char* sc = TextFormat("%d",p.score); DrawText(sc,SW-100-MeasureText(sc,17),y+11,17,ColorAlpha({0,235,215,255},a));
+        const char* sc = TextFormat("%d",p.score); DrawText(sc,Config::screenWidth-100-MeasureText(sc,17),y+11,17,ColorAlpha({0,235,215,255},a));
     }
 
     // Footer: kredit dan petunjuk navigasi
     void DrawFooter() {
         float a = (isEntering||isExiting) ? 0 : fadeIn;
-        DrawText("The Typing Guardians",60,SH-30,13,ColorAlpha({120,200,200,255},a*0.55f));
-        DrawText("[ W/S ] NAVIGATE   [ ENTER ] DETAIL   [ ESC ] EXIT",SW-470,SH-30,13,ColorAlpha({120,200,200,255},a*0.55f));
+        DrawText("The Typing Guardians",60,Config::screenHeight-30,13,ColorAlpha({120,200,200,255},a*0.55f));
+        DrawText("[ W/S ] NAVIGATE   [ ENTER ] DETAIL   [ ESC ] EXIT",Config::screenWidth-470,Config::screenHeight-30,13,ColorAlpha({120,200,200,255},a*0.55f));
     }
 
     void DrawDetail(const PlayerData& p) {
     // Overlay gelap
-    DrawRectangle(0, 0, SW, SH, {0, 0, 0, 160});
+    DrawRectangle(0, 0, Config::screenWidth, Config::screenHeight, {0, 0, 0, 160});
 
     // Panel tengah
-    float px = SW/2 - 220, py = SH/2 - 180;
+    float px = Config::screenWidth/2 - 220, py = Config::screenHeight/2 - 180;
     DrawRectangle(px, py, 440, 360, {6, 18, 28, 245});
     DrawRectangleLinesEx({px, py, 440, 360}, 1.5f, {0, 220, 200, 255});
 
     // Judul panel
     const char* title = "PLAYER DETAIL";
-    DrawText(title, SW/2 - MeasureText(title, 22)/2, py + 18, 22, {0, 245, 225, 255});
+    DrawText(title, Config::screenWidth/2 - MeasureText(title, 22)/2, py + 18, 22, {0, 245, 225, 255});
     DrawLine(px + 20, py + 50, px + 420, py + 50, {0, 180, 160, 100});
 
     // Rank & Name
@@ -270,7 +270,7 @@ namespace LeaderboardSystem {
 
     // Petunjuk keluar
     const char* hint = "[ ENTER / ESC ] CLOSE";
-    DrawText(hint, SW/2 - MeasureText(hint, 13)/2, py + 320, 13, {120, 200, 200, 150});
+    DrawText(hint, Config::screenWidth/2 - MeasureText(hint, 13)/2, py + 320, 13, {120, 200, 200, 150});
     }
 
     void Init() { FullReset(); LoadAudio(); LoadFromJSON("data/PlayerData.json"); }
@@ -286,7 +286,7 @@ namespace LeaderboardSystem {
             if (!isExiting && musicVolume<MAX_VOLUME) { musicVolume+=dt*0.5f; if (musicVolume>MAX_VOLUME) musicVolume=MAX_VOLUME; SetMusicVolume(bgMusic,musicVolume); }
             if (isExiting) { musicVolume-=dt*3.0f; if (musicVolume<0) musicVolume=0; SetMusicVolume(bgMusic,musicVolume); }
         }
-        scanLinePos+=dt*150; if (scanLinePos>SH) scanLinePos=-5;  // Loop scan line
+        scanLinePos+=dt*150; if (scanLinePos>Config::screenHeight) scanLinePos=-5;  // Loop scan line
         UpdateStars();
         // Animasi masuk: glitch semakin pudar, lalu play glitch sound
         if (isEntering) {
@@ -329,7 +329,7 @@ namespace LeaderboardSystem {
         DrawText("RANK",95,sy+10,12,ColorAlpha({200,170,40,255},a));
         DrawText("PLAYER",165,sy+10,12,ColorAlpha({200,170,40,255},a));
         DrawText("ACC",505,sy+10,12,ColorAlpha({200,170,40,255},a));
-        DrawText("SCORE",SW-170,sy+10,12,ColorAlpha({200,170,40,255},a));
+        DrawText("SCORE",Config::screenWidth-170,sy+10,12,ColorAlpha({200,170,40,255},a));
         // Baris data mulai dari index 3 (setelah 3 besar ditampilkan di podium)
         for (int i=3;i<MAX_DISPLAY;i++) { if (i<(int)sortedPlayers.size()) DrawRow(sortedPlayers[i],i-3,sy+26+(i-3)*44,i==selectedIndex); }
         DrawFooter();

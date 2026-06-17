@@ -2,7 +2,7 @@
 
 #include "SpaceShip.h"
 #include "AsteroidManager.h"
-#include "Combostack.h"
+#include "ComboStack.h"
 #include "ShieldSkill.h"
 #include "BombSkill.h"
 #include "raylib.h"

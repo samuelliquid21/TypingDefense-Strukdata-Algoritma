@@ -1,4 +1,5 @@
 #include "GameOver.h"
+#include "GameConfig.h"
 
 GameOver::GameOver() {
     Reset();
@@ -21,7 +22,7 @@ void GameOver::Update() {
 }
 
 void GameOver::Draw() {
-    int centerX = screenWidth / 2;
+    int centerX = Config::screenWidth / 2;
     int yStart = 100;
 
     // Judul "GAME OVER" di bagian atas dengan warna merah

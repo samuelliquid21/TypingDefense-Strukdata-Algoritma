@@ -8,9 +8,6 @@ private:
     int score;           // Skor akhir player yang akan ditampilkan
     bool returnToMenu;   // Flag untuk memberi sinyal ke state machine agar kembali ke menu
 
-    static constexpr int screenWidth = 1080;
-    static constexpr int screenHeight = 720;
-
 public:
     GameOver();           // Constructor: panggil Reset()
     void Reset();         // Reset state ke default

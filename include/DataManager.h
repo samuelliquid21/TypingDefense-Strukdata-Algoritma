@@ -1,5 +1,5 @@
 #pragma once
-#include "../ext/nlohmann/json.hpp"
+#include "json.hpp"
 #include <string>
 #include <vector>
 
