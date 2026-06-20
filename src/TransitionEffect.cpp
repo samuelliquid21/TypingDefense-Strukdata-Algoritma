@@ -1,28 +1,17 @@
 #include "TransitionEffect.h"
 #include "GameConfig.h"
 
-TransitionEffect::TransitionEffect()
-    : m_timer(0.0f)
-    , m_duration(0.6f)
-    , m_active(false)
-    , m_intensity(0.0f)
-    , m_target(GameState::MENU)
-{
-    loadSounds();
-}
-
 TransitionEffect::~TransitionEffect() {
-    unloadSounds();
+    if (m_loaded) {
+        UnloadSound(m_soundIn);
+        UnloadSound(m_soundOut);
+    }
 }
 
-void TransitionEffect::loadSounds() {
+void TransitionEffect::Init() {
     m_soundIn = LoadSound("assets/sound/glitchmasuk.mp3");
     m_soundOut = LoadSound("assets/sound/glitchkeluar.mp3");
-}
-
-void TransitionEffect::unloadSounds() {
-    UnloadSound(m_soundIn);
-    UnloadSound(m_soundOut);
+    m_loaded = true;
 }
 
 void TransitionEffect::Update(float dt) {

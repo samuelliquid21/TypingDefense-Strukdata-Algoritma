@@ -32,6 +32,7 @@ Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
 
     InitAudioDevice();
     m_audio.Init();
+    m_transitionEffect.Init();
     
     SetTargetFPS(60);
 
@@ -179,13 +180,13 @@ void Game::UpdateMenu() {
             state = GameState::LEADERBOARD;
         }
         else if (choice == 2) {
-            // Buka tech tree / unlock skill
-            state = GameState::UNLOCK_SKILL;
+            m_transitionEffect.PlaySoundIn();
+            m_transitionEffect.Start(GameState::UNLOCK_SKILL);
         }
         else if (choice == 3) {
-            // Lihat kata yang sudah di-unlock
             m_unlockedWords.BuildFromPlayer(m_currentPlayer);
-            state = GameState::UNLOCKED_WORDS;
+            m_transitionEffect.PlaySoundIn();
+            m_transitionEffect.Start(GameState::UNLOCKED_WORDS);
         }
         else if (choice == 4) {
             m_audio.StopLobby();
@@ -193,9 +194,9 @@ void Game::UpdateMenu() {
             m_transitionEffect.Start(GameState::CREDIT);
         }
         else if (choice == 5) {
-            // Logout dan kembali ke login screen
             logoutScreen.Reset();
-            state = GameState::LOGOUT;
+            m_transitionEffect.PlaySoundIn();
+            m_transitionEffect.Start(GameState::LOGOUT);
         }
         else if (choice == 6) {
             // Keluar dari game
@@ -299,7 +300,9 @@ void Game::DrawGameOver() {
 void Game::UpdateLeaderboard() {
     bool kembali = false;
     LeaderboardSystem::Update(kembali);
-    if (kembali) state = GameState::MENU;
+    if (kembali) {
+        state = GameState::MENU;
+    }
 }
 
 void Game::DrawLeaderboard() {
@@ -413,7 +416,8 @@ void Game::UpdateTechTree() {
     }
 
     if (IsKeyPressed(KEY_ESCAPE)) {
-        state = GameState::MENU;
+        m_transitionEffect.PlaySoundOut();
+        m_transitionEffect.Start(GameState::MENU);
     }
 }
 
@@ -428,7 +432,8 @@ void Game::DrawTechTree() {
 void Game::UpdateDictionary() {
     m_dictionary.Update();
     if (m_dictionary.WantsToGoBack()) {
-        state = GameState::MENU;
+        m_transitionEffect.PlaySoundOut();
+        m_transitionEffect.Start(GameState::MENU);
     }
 }
 
@@ -443,7 +448,8 @@ void Game::DrawDictionary() {
 void Game::UpdateUnlockedWords() {
     m_unlockedWords.Update();
     if (m_unlockedWords.WantsToGoBack()) {
-        state = GameState::MENU;
+        m_transitionEffect.PlaySoundOut();
+        m_transitionEffect.Start(GameState::MENU);
     }
 }
 
