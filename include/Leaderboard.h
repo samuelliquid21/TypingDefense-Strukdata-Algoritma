@@ -12,9 +12,7 @@ namespace LeaderboardSystem {
     struct PlayerData {
         std::string name;       
         int score;
-        float accuracy;
         int wordsTyped;
-        int enemiesDefeated;
         float survivalTime;
         int rank;               // Peringkat (diisi otomatis setelah sorting)
         int researchPoint;  // dari "research_point" di JSON

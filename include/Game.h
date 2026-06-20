@@ -56,6 +56,7 @@ private:
 
     // === Data Pemain ===
     PlayerProfile m_currentPlayer;
+    PlayerProfile m_sessionBackup;
     bool m_isLoggedIn = false;
 
     // === Transisi & Efek Glitch ===

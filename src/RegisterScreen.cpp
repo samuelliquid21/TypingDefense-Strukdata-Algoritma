@@ -102,4 +102,4 @@ void RegisterScreen::Draw() {
 
 bool RegisterScreen::IsRegisterSuccess() const { return isRegisterSuccess; }
 bool RegisterScreen::ShouldGoToLogin() const { return goToLogin; }
-std::string RegisterScreen::GetRegisteredUsername() const { return registeredUsername; }
+const std::string& RegisterScreen::GetRegisteredUsername() const { return registeredUsername; }

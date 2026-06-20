@@ -97,4 +97,4 @@ void LoginScreen::Draw() {
 bool LoginScreen::ShouldLogin() const { return shouldLogin; }
 bool LoginScreen::ShouldGoToRegister() const { return goToRegister; }
 bool LoginScreen::ShouldGoBack() const { return goBack; }
-PlayerProfile LoginScreen::GetProfile() const { return loggedInProfile; }
+const PlayerProfile& LoginScreen::GetProfile() const { return loggedInProfile; }

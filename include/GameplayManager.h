@@ -37,7 +37,6 @@ public:
     int   score = 0;   // Skor pemain saat ini
     int   totalKeystrokes   = 0;
     int   correctKeystrokes = 0;
-    int   enemiesDefeated   = 0;
     float survivalTime      = 0.0f;
     int wordsCompleted = 0;
     float GetAccuracy() const;

@@ -151,7 +151,6 @@ void GameplayManager::update(float deltaTime) {
             if (currentTarget->word.empty()) {
                 if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
                 wordsCompleted++;
-                enemiesDefeated++;
                 // Naikkan level combo setiap 5 kata berhasil diketik
                 if (wordsCompleted >= 5) {
                     comboStack.Push();
@@ -235,7 +234,6 @@ void GameplayManager::reset() {
     score = 0;
     totalKeystrokes = 0;
     correctKeystrokes = 0;
-    enemiesDefeated = 0;
     survivalTime = 0.0f;
     state = typingState::SEARCH_FOR_TARGET;
     currentTarget = nullptr;
@@ -243,9 +241,4 @@ void GameplayManager::reset() {
     comboStack.Reset();
     wordsCompleted = 0;
     wasPreviousKeyWrong = false;
-}
-
-float GameplayManager::GetAccuracy() const {
-    if (totalKeystrokes == 0) return 0.0f;
-    return (float)correctKeystrokes / totalKeystrokes * 100.0f;
 }

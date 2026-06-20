@@ -167,8 +167,6 @@ namespace LeaderboardSystem {
             PlayerData p;
             p.name            = it.value("username",           "?");
             p.score           = it.value("highest_score",      0);
-            p.accuracy        = it.value("accuracy",           0.0f);
-            p.enemiesDefeated = it.value("enemies_defeated",   0);
             p.survivalTime    = it.value("survival_time",      0.0f);
             p.researchPoint   = it.value("research_point",     0);
             playerTree.insert(p);
@@ -219,7 +217,6 @@ namespace LeaderboardSystem {
         if (sel) { DrawRectangle(70,y,4,40,ColorAlpha({0,245,225,255},a)); DrawText(">",82,y+12,16,ColorAlpha({0,245,225,255},a)); }
         DrawText(TextFormat("#%02d",p.rank),100,y+11,17,ColorAlpha({180,200,210,255},a));
         DrawText(p.name.c_str(),165,y+11,17,ColorAlpha(WHITE,a));
-        DrawText(TextFormat("%.1f%%",p.accuracy),510,y+12,15,ColorAlpha({160,200,200,255},a));
         const char* sc = TextFormat("%d",p.score); DrawText(sc,Config::screenWidth-100-MeasureText(sc,17),y+11,17,ColorAlpha({0,235,215,255},a));
     }
 
@@ -255,9 +252,7 @@ namespace LeaderboardSystem {
     DrawText(TextFormat("RP     : %d",   p.researchPoint), px+30, py+160, 18, {200, 170, 40, 255});
 
     // Stats (kalau ada datanya)
-    DrawText(TextFormat("Acc    : %.1f%%", p.accuracy),        px+30, py+190, 18, {160, 200, 200, 255});
-    DrawText(TextFormat("Kills  : %d",     p.enemiesDefeated), px+30, py+220, 18, {160, 200, 200, 255});
-    DrawText(TextFormat("Time   : %.1fs",  p.survivalTime),    px+30, py+250, 18, {160, 200, 200, 255});
+    DrawText(TextFormat("Time   : %.1fs",  p.survivalTime),    px+30, py+190, 18, {160, 200, 200, 255});
 
     // Petunjuk keluar
     const char* hint = "[ ENTER / ESC ] CLOSE";
@@ -317,7 +312,6 @@ namespace LeaderboardSystem {
         // Header kolom tabel
         DrawText("RANK",95,sy+10,12,ColorAlpha({200,170,40,255},a));
         DrawText("PLAYER",165,sy+10,12,ColorAlpha({200,170,40,255},a));
-        DrawText("ACC",505,sy+10,12,ColorAlpha({200,170,40,255},a));
         DrawText("SCORE",Config::screenWidth-170,sy+10,12,ColorAlpha({200,170,40,255},a));
         // Baris data mulai dari index 3 (setelah 3 besar ditampilkan di podium)
         for (int i=3;i<MAX_DISPLAY;i++) { if (i<(int)sortedPlayers.size()) DrawRow(sortedPlayers[i],i-3,sy+26+(i-3)*44,i==selectedIndex); }

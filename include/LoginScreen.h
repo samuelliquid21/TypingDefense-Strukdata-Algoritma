@@ -12,7 +12,7 @@ public:
     bool ShouldLogin() const;        // return true saat Enter ditekan + valid
     bool ShouldGoToRegister() const; // return true saat klik "Daftar"
     bool ShouldGoBack() const;       // return true saat klik "Kembali"
-    PlayerProfile GetProfile() const; // return profile yang berhasil login
+    const PlayerProfile& GetProfile() const; // return profile yang berhasil login
 
 private:
     char inputBuffer[32];

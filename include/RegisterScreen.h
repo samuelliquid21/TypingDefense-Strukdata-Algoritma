@@ -12,7 +12,7 @@ public:
     
     bool IsRegisterSuccess() const;
     bool ShouldGoToLogin() const;
-    std::string GetRegisteredUsername() const;
+    const std::string& GetRegisteredUsername() const;
 
 private:
     char inputBuffer[32];

@@ -77,7 +77,6 @@ void Game::setupCallbacks() {
                 if (w == word) return;
             m_currentPlayer.unlocked_words.push_back(word);
             m_currentPlayer.research_point += 10;
-            DataManager::getInstance().SavePlayer(m_currentPlayer);
         }
     );
 }
@@ -176,6 +175,7 @@ void Game::UpdateMenu() {
         if (choice == 0) {
             AudioManager::getInstance().StopLobby();
             gameOver.Reset();
+            m_sessionBackup = m_currentPlayer;  // Backup sebelum gameplay
             restartGame();
             state = GameState::GAMEPLAY;
         }
@@ -242,8 +242,6 @@ void Game::UpdateGameplay() {
                 m_currentPlayer.research_point += earnedRP;
             if (score > m_currentPlayer.highest_score) {
                 m_currentPlayer.highest_score = score;
-                m_currentPlayer.accuracy         = gameplayManager->GetAccuracy();
-                m_currentPlayer.enemies_defeated = gameplayManager->enemiesDefeated;
                 m_currentPlayer.survival_time    = gameplayManager->survivalTime;
             }
             DataManager::getInstance().SavePlayer(m_currentPlayer);
@@ -269,8 +267,9 @@ void Game::UpdatePause() {
         if (pauseMenu.GetSelectedIndex() == 0) {
             pauseMenu.StartCountdown(); // Lanjutkan game dengan countdown
         } else if (pauseMenu.GetSelectedIndex() == 1) {
-            // Kembali ke menu — reset gameplay
+            // Kembali ke menu — undo semua perubahan session
             pauseMenu.Reset();
+            m_currentPlayer = m_sessionBackup;
             restartGame();
             state = GameState::MENU;
         }
