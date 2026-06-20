@@ -21,8 +21,6 @@ void Game::Run() {
     LeaderboardSystem::Unload();
     UnloadMusicStream(musicLobby);
     UnloadMusicStream(musicCredit);
-    UnloadSound(glitchMasuk);
-    UnloadSound(glitchKeluar);
     CloseAudioDevice();
     CloseWindow();
 }
@@ -72,13 +70,7 @@ Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
     musicCredit = LoadMusicStream("assets/sound/cosmic.mp3");
     SetMusicVolume(musicCredit, 0.5f);
 
-    glitchMasuk = LoadSound("assets/sound/glitchmasuk.mp3");
-    glitchKeluar = LoadSound("assets/sound/glitchkeluar.mp3");
 
-    // Inisialisasi variabel transisi
-    transitionTimer = 0.0f;
-    isTransitioning = false;
-    glitchIntensity = 0.0f;
 }
 
 Game::~Game() {
@@ -112,17 +104,11 @@ void Game::restartGame() {
 void Game::Update() {
     float dt = GetFrameTime();
 
-    // Jika sedang dalam transisi glitch, hitung mundur timer
-    if (isTransitioning) {
-        transitionTimer -= dt;
-        glitchIntensity = transitionTimer / 0.6f; // Normalisasi intensitas
-
-        if (transitionTimer <= 0) {
-            state = targetState; // Pindah ke state tujuan
-            isTransitioning = false;
-            glitchIntensity = 0.0f;
-        }
-        return; // Skip update state lain selama transisi
+    if (m_transitionEffect.IsActive()) {
+        m_transitionEffect.Update(dt);
+        if (!m_transitionEffect.IsActive())
+            state = m_transitionEffect.GetTargetState();
+        return;
     }
 
     // Background tetap bergerak kecuali saat pause
@@ -151,32 +137,10 @@ void Game::Update() {
 void Game::Draw() {
     BeginDrawing();
 
-    if (isTransitioning) {
-        // Selama transisi, gambar efek glitch di atas background
+    if (m_transitionEffect.IsActive()) {
         ClearBackground(BLACK);
-        float intensity = transitionTimer / 0.6f;
         bg.Draw();
-
-        if (intensity > 0.01f) {
-            // Gambar garis-garis glitch acak cyan/pink
-            for (int i = 0; i < 12; i++) {
-                int y = GetRandomValue(0, 720);
-                int h = GetRandomValue(5, 25);
-
-                // Cyan & Pink/Magenta — warna identik efek dari Leaderboard
-                Color glitchColor = (i % 2 == 0) ?
-                    (Color){ 0, 255, 200, (unsigned char)(intensity * 180) } :
-                    (Color){ 255, 50, 120, (unsigned char)(intensity * 140) };
-
-                DrawRectangle(0, y, 1080, h, glitchColor);
-            }
-
-            // Kadang-kadang tambah garis putih tipis untuk variasi
-            if (GetRandomValue(0, 10) > 7) {
-                DrawRectangle(0, GetRandomValue(0, 720), 1080, GetRandomValue(1, 3), {255, 255, 255, 100});
-            }
-        }
-
+        m_transitionEffect.Draw();
     } else {
         bg.Draw();
         // Delegasikan draw ke method sesuai state aktif
@@ -253,12 +217,9 @@ void Game::UpdateMenu() {
             state = GameState::UNLOCKED_WORDS;
         }
         else if (choice == 4) {
-            // Transisi ke credit dengan efek glitch
             StopMusicStream(musicLobby);
-            if (!IsSoundPlaying(glitchMasuk)) PlaySound(glitchMasuk);
-            isTransitioning = true;
-            transitionTimer = 0.6f;
-            targetState = GameState::CREDIT;
+            m_transitionEffect.PlaySoundIn();
+            m_transitionEffect.Start(GameState::CREDIT);
         }
         else if (choice == 5) {
             // Logout dan kembali ke login screen
@@ -389,13 +350,10 @@ void Game::UpdateCredit() {
     bool backToMenu = false;
     creditScreen.Update(backToMenu);
 
-    // Transisi kembali ke menu dengan efek glitch
-    if (backToMenu && !isTransitioning) {
+    if (backToMenu && !m_transitionEffect.IsActive()) {
         StopMusicStream(musicCredit);
-        if (!IsSoundPlaying(glitchKeluar)) PlaySound(glitchKeluar);
-        isTransitioning = true;
-        transitionTimer = 0.6f;
-        targetState = GameState::MENU;
+        m_transitionEffect.PlaySoundOut();
+        m_transitionEffect.Start(GameState::MENU);
     }
 }
 
