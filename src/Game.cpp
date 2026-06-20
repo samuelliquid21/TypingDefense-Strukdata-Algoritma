@@ -3,7 +3,7 @@
 #include "Credit.h"
 #include "GameConfig.h"
 #include "raylib.h"
-#include "rlgl.h"
+
 
 // ===============================
 // 🎮 GAME ENTRY POINT
@@ -19,8 +19,6 @@ void Game::Run() {
     // Bersihkan resource sebelum keluar
     bg.Unload();
     LeaderboardSystem::Unload();
-    UnloadMusicStream(musicLobby);
-    UnloadMusicStream(musicCredit);
     CloseAudioDevice();
     CloseWindow();
 }
@@ -31,15 +29,13 @@ void Game::Run() {
 
 Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
     InitWindow(1080, 720, "Cosmic Keypad - Kelompok 4");
-    InitAudioDevice();
-    SetTargetFPS(60);
-    SetExitKey(KEY_F12);         // F12 untuk force close (debug)
 
-    // Setup musik lobby (diputar di menu)
-    musicLobby = LoadMusicStream("assets/sound/soundtrack.mp3");
-    SetMusicVolume(musicLobby, 0.5f);
-    PlayMusicStream(musicLobby);
-    SeekMusicStream(musicLobby, 5.0f); // Skip 5 detik awal biar langsung rame
+    InitAudioDevice();
+    m_audio.Init();
+    
+    SetTargetFPS(60);
+
+    SetExitKey(KEY_F12);         // F12 untuk force close (debug)
 
     state = GameState::MENU;
     score = 0;
@@ -52,40 +48,23 @@ Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
     bg.Load("./assets/img/Space_Background.png", 20.0f);
     gameplayManager->textureInit();
 
-    // Callback saat asteroid hancur: unlock word dan beri research point
-    gameplayManager->SetAsteroidDestroyedCallback(
-        [this](const std::string& word) {
-            // Hindari duplikasi kata
-            for (const auto& w : m_currentPlayer.unlocked_words)
-                if (w == word) return;
-            m_currentPlayer.unlocked_words.push_back(word);
-            m_currentPlayer.research_point += 10;
-            DataManager::getInstance().SavePlayer(m_currentPlayer);
-        }
-    );
+    setupCallbacks();
 
     LeaderboardSystem::Init();
-
-    // Setup musik credit
-    musicCredit = LoadMusicStream("assets/sound/cosmic.mp3");
-    SetMusicVolume(musicCredit, 0.5f);
-
-
 }
 
 Game::~Game() {
     delete gameplayManager;
-    UnloadMusicStream(musicLobby);
-    UnloadMusicStream(musicCredit);
 }
 
 void Game::restartGame() {
-    // Buang manager lama dan buat baru untuk mereset seluruh state gameplay
     delete gameplayManager;
     gameplayManager = new GameplayManager();
     gameplayManager->textureInit();
+    setupCallbacks();
+}
 
-    // Pasang ulang callback asteroid destroy
+void Game::setupCallbacks() {
     gameplayManager->SetAsteroidDestroyedCallback(
         [this](const std::string& word) {
             for (const auto& w : m_currentPlayer.unlocked_words)
@@ -174,13 +153,7 @@ void Game::UpdateMenu() {
         return;
     }
 
-    UpdateMusicStream(musicLobby);
-
-    // Pastikan musik lobby selalu terputar; jika berhenti (looping), mainkan ulang
-    if (!IsMusicStreamPlaying(musicLobby)) {
-        PlayMusicStream(musicLobby);
-        SeekMusicStream(musicLobby, 5.0f);
-    }
+    m_audio.UpdateLobby();
 
     mainMenu.Update();
 
@@ -195,15 +168,13 @@ void Game::UpdateMenu() {
         int choice = mainMenu.GetSelectedIndex();
 
         if (choice == 0) {
-            // Mulai game: hentikan musik lobby, reset game over, restart gameplay
-            StopMusicStream(musicLobby);
+            m_audio.StopLobby();
             gameOver.Reset();
             restartGame();
             state = GameState::GAMEPLAY;
         }
         else if (choice == 1) {
-            // Buka leaderboard
-            StopMusicStream(musicLobby);
+            m_audio.StopLobby();
             LeaderboardSystem::Init();
             state = GameState::LEADERBOARD;
         }
@@ -217,7 +188,7 @@ void Game::UpdateMenu() {
             state = GameState::UNLOCKED_WORDS;
         }
         else if (choice == 4) {
-            StopMusicStream(musicLobby);
+            m_audio.StopLobby();
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start(GameState::CREDIT);
         }
@@ -247,9 +218,8 @@ void Game::DrawMenu() {
         DrawText(greeting.c_str(), posX, posY, fontSize, WHITE);
     }
 
-    // Tampilkan info player (debug) jika diaktifkan
     if (m_isLoggedIn && Config::enableDebugPlayerInfo) {
-        DrawPlayerInfo();
+        DrawPlayerInfoPanel(m_currentPlayer);
     }
 }
 
@@ -341,17 +311,13 @@ void Game::DrawLeaderboard() {
 // ===============================
 
 void Game::UpdateCredit() {
-    UpdateMusicStream(musicCredit);
-    if (!IsMusicStreamPlaying(musicCredit)) {
-        PlayMusicStream(musicCredit);
-        SeekMusicStream(musicCredit, 5.0f); // Langsung skip intro credit 5 detik
-    }
+    m_audio.UpdateCredit();
 
     bool backToMenu = false;
     creditScreen.Update(backToMenu);
 
     if (backToMenu && !m_transitionEffect.IsActive()) {
-        StopMusicStream(musicCredit);
+        m_audio.StopCredit();
         m_transitionEffect.PlaySoundOut();
         m_transitionEffect.Start(GameState::MENU);
     }
@@ -366,10 +332,7 @@ void Game::DrawCredit() {
 // ===============================
 
 void Game::UpdateLoginRegister() {
-    UpdateMusicStream(musicLobby);
-    if (!IsMusicStreamPlaying(musicLobby)) {
-        PlayMusicStream(musicLobby);
-    }
+    m_audio.UpdateLobbyNoSeek();
 
     loginScreen.Update();
     if (loginScreen.ShouldLogin()) {
@@ -393,10 +356,7 @@ void Game::DrawLoginRegister() {
 }
 
 void Game::UpdateRegister() {
-    UpdateMusicStream(musicLobby);
-    if (!IsMusicStreamPlaying(musicLobby)) {
-        PlayMusicStream(musicLobby);
-    }
+    m_audio.UpdateLobbyNoSeek();
 
     registerScreen.Update();
 
@@ -491,33 +451,4 @@ void Game::DrawUnlockedWords() {
     m_unlockedWords.Draw();
 }
 
-// ===============================
-// PLAYER INFO PANEL (DEBUG)
-// ===============================
 
-void Game::DrawPlayerInfo() {
-    int panelWidth = 320;
-    int panelHeight = 150;
-    int padding = 15;
-    int x = Config::screenWidth - panelWidth - 20;
-    int y = Config::screenHeight - panelHeight - 20;
-
-    // Background panel semi-transparan dengan border cyan
-    DrawRectangle(x - 10, y - 10, panelWidth + 20, panelHeight + 20, Color{0, 0, 0, 180});
-    DrawRectangleLines(x - 10, y - 10, panelWidth + 20, panelHeight + 20, Color{0, 255, 200, 200});
-
-    int fontSize = 16;
-    int lineHeight = 24;
-    int curY = y + 5;
-
-    // Tampilkan data profil pemain
-    DrawText(TextFormat("Username: %s", m_currentPlayer.username.c_str()), x, curY, fontSize, WHITE);
-    curY += lineHeight;
-    DrawText(TextFormat("Highest Score: %d", m_currentPlayer.highest_score), x, curY, fontSize, WHITE);
-    curY += lineHeight;
-    DrawText(TextFormat("Research Points: %d", m_currentPlayer.research_point), x, curY, fontSize, WHITE);
-    curY += lineHeight;
-    DrawText(TextFormat("Unlocked Words: %zu", m_currentPlayer.unlocked_words.size()), x, curY, fontSize, WHITE);
-    curY += lineHeight;
-    DrawText(TextFormat("Unlocked Skills: %zu", m_currentPlayer.unlocked_skills.size()), x, curY, fontSize, WHITE);
-}
