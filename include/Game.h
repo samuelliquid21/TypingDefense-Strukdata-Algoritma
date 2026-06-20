@@ -18,7 +18,6 @@
 #include "RegisterScreen.h"
 #include "LogoutScreen.h"
 #include "TransitionEffect.h"
-#include "AudioManager.h"
 #include "DebugOverlay.h"
 
 // Kelas utama game — mengelola state machine, game loop, dan seluruh subsistem.
@@ -58,9 +57,6 @@ private:
     // === Data Pemain ===
     PlayerProfile m_currentPlayer;
     bool m_isLoggedIn = false;
-
-    // === Audio ===
-    AudioManager m_audio;
 
     // === Transisi & Efek Glitch ===
     TransitionEffect m_transitionEffect;

@@ -1,43 +1,16 @@
 #include "SpaceShip.h"
+#include "AssetManager.h"
 #include "raylib.h"
 
 SpaceShip::SpaceShip() {}
 
 SpaceShip::~SpaceShip() {
-    // Bebaskan memory texture saat objek dihancurkan
-    UnloadTexture(texture);
+    // no-op: AssetManager handle lifecycle
 }
 
 void SpaceShip::init() {
-    // Load texture spritesheet spaceship
-    texture = LoadTexture("./assets/img/Spaceships.png");
-
-    // Validasi: pastikan texture berhasil di-load
-    if (texture.id == 0) {
-        TraceLog(LOG_ERROR, "GAMBAR SPACESHIP GAGAL DI-LOAD! Cek path file kamu.");
-    } else {
-        TraceLog(LOG_INFO, "GAMBAR BERHASIL DI-LOAD! Ukuran: %d x %d", texture.width, texture.height);
-    }
-
-    // Ambil satu frame dari spritesheet 5x3
-    int columns = 5;
-    int rows = 3;
-
-    if (texture.width > 0 && texture.height > 0) {
-        float frameWidth = (float)texture.width / columns;
-        float frameHeight = (float)texture.height / rows;
-
-        // Pilih sprite kolom 2, baris 1 (sesuai desain)
-        int selectedColumn = 2;
-        int selectedRow = 1;
-
-        frame = {
-            selectedColumn * frameWidth,
-            selectedRow * frameHeight,
-            frameWidth,
-            frameHeight
-        };
-    }
+    texture = AssetManager::getInstance().getTexture("ship");
+    frame = AssetManager::getInstance().getSpriteFrame("ship", 2, 1);
 }
 
 // Aktifkan laser dan arahkan ke target (posisi asteroid)

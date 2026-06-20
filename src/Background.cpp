@@ -1,4 +1,5 @@
 #include "Background.h"
+#include "AssetManager.h"
 
 Background::Background() {
     scrollingBack = 0.0f;
@@ -7,13 +8,12 @@ Background::Background() {
 }
 
 void Background::Load(const char* fileName, float speed) {
-    // PENTING: LoadTexture hanya boleh dipanggil SETELAH InitWindow() di Game.cpp
-    background = LoadTexture(fileName);
+    background = AssetManager::getInstance().loadTexture("bg", fileName);
     scrollSpeed = speed;
 }
 
 void Background::Unload() {
-    UnloadTexture(background);
+    // no-op: AssetManager handle lifecycle
 }
 
 void Background::Update() {

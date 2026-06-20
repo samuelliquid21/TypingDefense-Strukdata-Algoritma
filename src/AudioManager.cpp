@@ -1,52 +1,126 @@
 #include "AudioManager.h"
+#include "AssetManager.h"
+#include "raylib.h"
 
-AudioManager::~AudioManager() {
-    if (m_loaded) {
-        UnloadMusicStream(m_lobby);
-        UnloadMusicStream(m_credit);
-    }
+AudioManager& AudioManager::getInstance() {
+    static AudioManager instance;
+    return instance;
 }
 
 void AudioManager::Init() {
-    m_lobby = LoadMusicStream("assets/sound/soundtrack.mp3");
-    SetMusicVolume(m_lobby, 0.5f);
+    // Music
+    AssetManager::getInstance().loadMusic("lobby", "assets/sound/soundtrack.mp3");
+    AssetManager::getInstance().loadMusic("credit", "assets/sound/cosmic.mp3");
+    AssetManager::getInstance().loadMusic("bgmLeaderboard", "assets/sound/bgm.mp3");
 
-    m_credit = LoadMusicStream("assets/sound/cosmic.mp3");
-    SetMusicVolume(m_credit, 0.5f);
+    // SFX
+    AssetManager::getInstance().loadSound("glitchMasuk", "assets/sound/glitchmasuk.mp3");
+    AssetManager::getInstance().loadSound("glitchKeluar", "assets/sound/glitchkeluar.mp3");
+    AssetManager::getInstance().loadSound("click", "assets/sound/click.mp3");
+    AssetManager::getInstance().loadSound("laser", "assets/sound/laser.mp3");
+    AssetManager::getInstance().loadSound("error", "assets/sound/error.mp3");
+    AssetManager::getInstance().loadSound("gameover", "assets/sound/gameover.mp3");
 
-    PlayMusicStream(m_lobby);
-    SeekMusicStream(m_lobby, 5.0f);
+    // Default volumes
+    setSfxVolume("laser", 0.4f);
+    setSfxVolume("error", 0.5f);
+    setSfxVolume("gameover", 0.8f);
 
-    m_loaded = true;
+    setMusicVolume("lobby", 0.5f);
+    setMusicVolume("credit", 0.5f);
+
+    // Start lobby
+    playMusic("lobby");
+    SeekMusicStream(AssetManager::getInstance().getMusic("lobby"), 5.0f);
 }
 
+// ===============================
+// GENERIC MUSIC
+// ===============================
+
+void AudioManager::playMusic(const std::string& key) {
+    Music mus = AssetManager::getInstance().getMusic(key);
+    if (mus.stream.buffer != nullptr)
+        PlayMusicStream(mus);
+}
+
+void AudioManager::stopMusic(const std::string& key) {
+    Music mus = AssetManager::getInstance().getMusic(key);
+    if (mus.stream.buffer != nullptr)
+        StopMusicStream(mus);
+}
+
+void AudioManager::updateMusic(const std::string& key) {
+    Music mus = AssetManager::getInstance().getMusic(key);
+    if (mus.stream.buffer != nullptr)
+        UpdateMusicStream(mus);
+}
+
+void AudioManager::setMusicVolume(const std::string& key, float vol) {
+    Music mus = AssetManager::getInstance().getMusic(key);
+    if (mus.stream.buffer != nullptr)
+        SetMusicVolume(mus, vol);
+}
+
+// ===============================
+// GENERIC SFX
+// ===============================
+
+void AudioManager::playSfx(const std::string& key) {
+    Sound snd = AssetManager::getInstance().getSound(key);
+    if (snd.stream.buffer != nullptr)
+        PlaySound(snd);
+}
+
+void AudioManager::playSfxOnce(const std::string& key) {
+    Sound snd = AssetManager::getInstance().getSound(key);
+    if (snd.stream.buffer != nullptr && !IsSoundPlaying(snd))
+        PlaySound(snd);
+}
+
+void AudioManager::setSfxVolume(const std::string& key, float vol) {
+    Sound snd = AssetManager::getInstance().getSound(key);
+    if (snd.stream.buffer != nullptr)
+        SetSoundVolume(snd, vol);
+}
+
+// ===============================
+// CONVENIENCE (LOBBY / CREDIT)
+// ===============================
+
 void AudioManager::UpdateLobby() {
-    UpdateMusicStream(m_lobby);
-    if (!IsMusicStreamPlaying(m_lobby)) {
-        PlayMusicStream(m_lobby);
-        SeekMusicStream(m_lobby, 5.0f);
+    Music mus = AssetManager::getInstance().getMusic("lobby");
+    if (mus.stream.buffer == nullptr) return;
+    UpdateMusicStream(mus);
+    if (!IsMusicStreamPlaying(mus)) {
+        PlayMusicStream(mus);
+        SeekMusicStream(mus, 5.0f);
     }
 }
 
 void AudioManager::UpdateLobbyNoSeek() {
-    UpdateMusicStream(m_lobby);
-    if (!IsMusicStreamPlaying(m_lobby)) {
-        PlayMusicStream(m_lobby);
+    Music mus = AssetManager::getInstance().getMusic("lobby");
+    if (mus.stream.buffer == nullptr) return;
+    UpdateMusicStream(mus);
+    if (!IsMusicStreamPlaying(mus)) {
+        PlayMusicStream(mus);
     }
 }
 
 void AudioManager::UpdateCredit() {
-    UpdateMusicStream(m_credit);
-    if (!IsMusicStreamPlaying(m_credit)) {
-        PlayMusicStream(m_credit);
-        SeekMusicStream(m_credit, 5.0f);
+    Music mus = AssetManager::getInstance().getMusic("credit");
+    if (mus.stream.buffer == nullptr) return;
+    UpdateMusicStream(mus);
+    if (!IsMusicStreamPlaying(mus)) {
+        PlayMusicStream(mus);
+        SeekMusicStream(mus, 5.0f);
     }
 }
 
 void AudioManager::StopLobby() {
-    StopMusicStream(m_lobby);
+    stopMusic("lobby");
 }
 
 void AudioManager::StopCredit() {
-    StopMusicStream(m_credit);
+    stopMusic("credit");
 }

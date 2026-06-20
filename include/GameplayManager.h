@@ -5,7 +5,6 @@
 #include "ComboStack.h"
 #include "ShieldSkill.h"
 #include "BombSkill.h"
-#include "raylib.h"
 #include <functional>
 
 // State mesin untuk sistem typing: mencari target vs sedang mengetik target
@@ -34,11 +33,6 @@ private:
     ScoreCallback onScoreChanged = nullptr;                     // Callback saat skor berubah (nullable)
     AsteroidDestroyedCallback onAsteroidDestroyed = nullptr;    // Callback saat asteroid hancur (nullable)
 
-    // Sound effect
-    Sound laser;      // Suara laser saat mengetik benar
-    Sound error;      // Suara error saat salah ketik
-    Sound gameover;   // Suara game over
-
 public:
     int   score = 0;   // Skor pemain saat ini
     int   totalKeystrokes   = 0;
@@ -49,7 +43,7 @@ public:
     float GetAccuracy() const;
 
     GameplayManager() = default; // Constructor default
-    ~GameplayManager();          // Destructor: unload semua sound
+    ~GameplayManager();          // Audio lifecycle via AudioManager
 
     void AddScore(int points);                      // Tambah skor dengan multiplier combo stack
     void AddScore(int basePoints, int multiplier);  // Tambah skor dengan multiplier kustom + callback

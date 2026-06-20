@@ -1,13 +1,11 @@
 #include "GameplayManager.h"
+#include "AudioManager.h"
 #include "raylib.h"
 #include "GameConfig.h"
 #include "raymath.h"
 
 GameplayManager::~GameplayManager() {
-    // Unload semua sound effect yang sudah di-load dari memory
-    UnloadSound(laser);
-    UnloadSound(error);
-    UnloadSound(gameover);
+    // no-op: AssetManager handle lifecycle
 }
 
 bool GameplayManager::isHit() {
@@ -29,7 +27,7 @@ bool GameplayManager::isHit() {
             return false; // Tidak game over karena shield masih aktif
         }
         // Tidak punya shield: game over
-        if (!IsSoundPlaying(gameover)) PlaySound(gameover);
+        AudioManager::getInstance().playSfxOnce("gameover");
         return true;
     }
     return false;
@@ -37,15 +35,6 @@ bool GameplayManager::isHit() {
 
 void GameplayManager::textureInit() {
     spaceship.init();
-    // Load semua sound effect dari direktori assets
-    laser = LoadSound("assets/sound/laser.mp3");
-    error = LoadSound("assets/sound/error.mp3");
-    gameover = LoadSound("assets/sound/gameover.mp3");
-
-    // Set volume masing-masing sound agar tidak terlalu keras
-    SetSoundVolume(laser, 0.4f);
-    SetSoundVolume(error, 0.5f);
-    SetSoundVolume(gameover, 0.8f);
 }
 
 void GameplayManager::AddScore(int points) {
@@ -127,7 +116,7 @@ void GameplayManager::update(float deltaTime) {
             totalKeystrokes++;
             if (result > 0) {
                 correctKeystrokes++;
-                PlaySound(laser);
+                AudioManager::getInstance().playSfx("laser");
                 AddScore(result);
                 state = TARGET_LOCKED; // Pindah ke state mengetik
                 wasPreviousKeyWrong = false;
@@ -135,7 +124,7 @@ void GameplayManager::update(float deltaTime) {
         } else {
             // Tidak ada target yang cocok: bunyi error sekali saja per urutan salah
             if (!wasPreviousKeyWrong) {
-                PlaySound(error);
+                AudioManager::getInstance().playSfx("error");
                 comboStack.Pop(); // Reset combo karena salah ketik
                 wasPreviousKeyWrong = true;
             }
@@ -154,7 +143,7 @@ void GameplayManager::update(float deltaTime) {
         totalKeystrokes++;
         if (result > 0) {
             correctKeystrokes++;
-            PlaySound(laser);
+            AudioManager::getInstance().playSfx("laser");
             AddScore(result);
             wasPreviousKeyWrong = false;
 
@@ -177,7 +166,7 @@ void GameplayManager::update(float deltaTime) {
         } else {
             // Salah ketik di tengah-tengah kata: error sound sekali saja
             if (!wasPreviousKeyWrong) {
-                PlaySound(error);
+                AudioManager::getInstance().playSfx("error");
                 comboStack.Pop();
                 wasPreviousKeyWrong = true;
             }

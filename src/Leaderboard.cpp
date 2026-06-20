@@ -1,4 +1,5 @@
 #include "Leaderboard.h"
+#include "AudioManager.h"
 #include "raylib.h"
 #include "GameConfig.h"
 #include <algorithm>
@@ -31,11 +32,6 @@ namespace LeaderboardSystem {
     static float glitchIntensity = 1.0f;             // Intensitas efek glitch (1=max, 0=hilang)
     struct Star { Vector2 pos; float speed, size, alpha; };  // Bintang latar belakang
     static std::vector<Star> stars;                  // Kumpulan bintang untuk background
-    static Music bgMusic = {0};                      // Background music
-    static Sound sfxClick = {0};                     // SFX navigasi
-    static Sound sfxGlitchMasuk = {0};               // SFX glitch masuk
-    static Sound sfxGlitchKeluar = {0};              // SFX glitch keluar
-    static bool hasMusic = false, hasClick = false, hasGlitchMasuk = false, hasGlitchKeluar = false;
     static float musicVolume = 0.0f;                 // Volume musik (fade-in/out)
     static const float MAX_VOLUME = 0.5f;            // Volume maksimum
     static bool glitchEnterPlayed = false, glitchExitPlayed = false;
@@ -150,17 +146,12 @@ namespace LeaderboardSystem {
         for (auto& s : stars) { float a = s.alpha * da; if (a > 0.01f) DrawCircleV(s.pos, s.size, {255,255,255,(unsigned char)(a*200)}); }
     }
 
-    // Load dan play audio assets; fallback jika file tidak ada
+    // Load audio: play bgm via AudioManager, reset flags
     void LoadAudio() {
-        if (hasMusic) { StopMusicStream(bgMusic); UnloadMusicStream(bgMusic); hasMusic = false; }
-        if (hasClick) { UnloadSound(sfxClick); hasClick = false; }
-        if (hasGlitchMasuk) { UnloadSound(sfxGlitchMasuk); hasGlitchMasuk = false; }
-        if (hasGlitchKeluar) { UnloadSound(sfxGlitchKeluar); hasGlitchKeluar = false; }
-        if (FileExists("assets/sound/bgm.mp3")) { bgMusic = LoadMusicStream("assets/sound/bgm.mp3"); SetMusicVolume(bgMusic,0); PlayMusicStream(bgMusic); hasMusic = true; }
-        if (FileExists("assets/sound/click.mp3")) { sfxClick = LoadSound("assets/sound/click.mp3"); hasClick = true; }
-        if (FileExists("assets/sound/glitchmasuk.mp3")) { sfxGlitchMasuk = LoadSound("assets/sound/glitchmasuk.mp3"); hasGlitchMasuk = true; }
-        if (FileExists("assets/sound/glitchkeluar.mp3")) { sfxGlitchKeluar = LoadSound("assets/sound/glitchkeluar.mp3"); hasGlitchKeluar = true; }
-        glitchEnterPlayed = false; glitchExitPlayed = false; isEntering = true;
+        AudioManager::getInstance().playMusic("bgmLeaderboard");
+        AudioManager::getInstance().setMusicVolume("bgmLeaderboard", 0.0f);
+
+        glitchEnterPlayed = false; glitchExitPlayed = false; isEntering = true; musicVolume = 0.0f;
     }
 
     // Load data leaderboard dari file JSON dengan filter merge conflicts
@@ -280,24 +271,22 @@ namespace LeaderboardSystem {
 
     void Update(bool& back) {
         float dt = GetFrameTime();
-        // Update dan fade-in/out musik
-        if (hasMusic && bgMusic.stream.buffer) {
-            UpdateMusicStream(bgMusic);
-            if (!isExiting && musicVolume<MAX_VOLUME) { musicVolume+=dt*0.5f; if (musicVolume>MAX_VOLUME) musicVolume=MAX_VOLUME; SetMusicVolume(bgMusic,musicVolume); }
-            if (isExiting) { musicVolume-=dt*3.0f; if (musicVolume<0) musicVolume=0; SetMusicVolume(bgMusic,musicVolume); }
-        }
+        // Update dan fade-in/out musik via AudioManager
+        AudioManager::getInstance().updateMusic("bgmLeaderboard");
+        if (!isExiting && musicVolume<MAX_VOLUME) { musicVolume+=dt*0.5f; if (musicVolume>MAX_VOLUME) musicVolume=MAX_VOLUME; AudioManager::getInstance().setMusicVolume("bgmLeaderboard",musicVolume); }
+        if (isExiting) { musicVolume-=dt*3.0f; if (musicVolume<0) musicVolume=0; AudioManager::getInstance().setMusicVolume("bgmLeaderboard",musicVolume); }
         scanLinePos+=dt*150; if (scanLinePos>Config::screenHeight) scanLinePos=-5;  // Loop scan line
         UpdateStars();
         // Animasi masuk: glitch semakin pudar, lalu play glitch sound
         if (isEntering) {
             enterTimer+=dt; glitchIntensity=1-(enterTimer/ENTER_DURATION); if (glitchIntensity<0) glitchIntensity=0;
-            if (!glitchEnterPlayed && enterTimer>0.05f) { if (hasGlitchMasuk) PlaySound(sfxGlitchMasuk); glitchEnterPlayed=true; }
+            if (!glitchEnterPlayed && enterTimer>0.05f) { AudioManager::getInstance().playSfxOnce("glitchMasuk"); glitchEnterPlayed=true; }
             if (enterTimer>=ENTER_DURATION) { isEntering=false; glitchIntensity=0; }
         }
         // Animasi keluar: glitch meningkat, setelah selesai set back=true
         if (isExiting) {
             exitTimer+=dt; glitchIntensity=exitTimer/EXIT_DURATION; if (glitchIntensity>1) glitchIntensity=1;
-            if (!glitchExitPlayed && exitTimer>0.05f) { if (hasGlitchKeluar) PlaySound(sfxGlitchKeluar); glitchExitPlayed=true; }
+            if (!glitchExitPlayed && exitTimer>0.05f) { AudioManager::getInstance().playSfxOnce("glitchKeluar"); glitchExitPlayed=true; }
             if (exitTimer>=EXIT_DURATION) { isExiting=false; back=true; } return;
         }
         // Fade-in konten setelah glitch selesai
@@ -307,12 +296,12 @@ namespace LeaderboardSystem {
         // Animasi slide-in baris data
         if (fadeIn>0.5f) { for (int i=0;i<10;i++) if (i<(int)sortedPlayers.size()) rowSlideIn[i]=std::min(rowSlideIn[i]+dt*1.8f,1.0f); }
         // Mode detail: blocking, tunggu ENTER/ESC untuk keluar
-        if (showingDetail) { if (IsKeyPressed(KEY_ENTER)||IsKeyPressed(KEY_ESCAPE)) { showingDetail=false; if (hasClick) PlaySound(sfxClick); } return; }
+        if (showingDetail) { if (IsKeyPressed(KEY_ENTER)||IsKeyPressed(KEY_ESCAPE)) { showingDetail=false; AudioManager::getInstance().playSfx("click"); } return; }
         // Navigasi W/S atau UP/DOWN dalam list (non-detail mode)
         int total=(int)sortedPlayers.size(), maxIdx=total>0?std::min(total,MAX_DISPLAY)-1:0;
-        if ((IsKeyPressed(KEY_W)||IsKeyPressed(KEY_UP))&&selectedIndex>0) { selectedIndex--; if (hasClick) PlaySound(sfxClick); }
-        if ((IsKeyPressed(KEY_S)||IsKeyPressed(KEY_DOWN))&&selectedIndex<maxIdx) { selectedIndex++; if (hasClick) PlaySound(sfxClick); }
-        if (IsKeyPressed(KEY_ENTER)&&selectedIndex<total) { showingDetail=true; detailIndex=selectedIndex; if (hasClick) PlaySound(sfxClick); }
+        if ((IsKeyPressed(KEY_W)||IsKeyPressed(KEY_UP))&&selectedIndex>0) { selectedIndex--; AudioManager::getInstance().playSfx("click"); }
+        if ((IsKeyPressed(KEY_S)||IsKeyPressed(KEY_DOWN))&&selectedIndex<maxIdx) { selectedIndex++; AudioManager::getInstance().playSfx("click"); }
+        if (IsKeyPressed(KEY_ENTER)&&selectedIndex<total) { showingDetail=true; detailIndex=selectedIndex; AudioManager::getInstance().playSfx("click"); }
         // ESC/BACKSPACE memulai animasi keluar
         if (IsKeyPressed(KEY_ESCAPE)||IsKeyPressed(KEY_BACKSPACE)) { isExiting=true; isEntering=false; exitTimer=0; glitchExitPlayed=false; }
     }
@@ -340,13 +329,9 @@ namespace LeaderboardSystem {
         }
     }
 
-    // Cleanup semua resources audio
+    // Cleanup state (AssetManager handle lifecycle raylib resources)
     void Unload() {
         playerTree.clear(); sortedPlayers.clear(); stars.clear();
-        if (hasMusic) { StopMusicStream(bgMusic); UnloadMusicStream(bgMusic); }
-        if (hasClick) UnloadSound(sfxClick);
-        if (hasGlitchMasuk) UnloadSound(sfxGlitchMasuk);
-        if (hasGlitchKeluar) UnloadSound(sfxGlitchKeluar);
     }
 
 }

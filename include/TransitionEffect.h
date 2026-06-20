@@ -5,9 +5,7 @@
 class TransitionEffect {
 public:
     TransitionEffect() = default;
-    ~TransitionEffect();
-
-    void Init();
+    ~TransitionEffect() = default;
 
     void Update(float dt);
     void Draw() const;
@@ -26,8 +24,4 @@ private:
     bool m_active = false;
     float m_intensity = 0.0f;
     GameState m_target = GameState::MENU;
-    bool m_loaded = false;
-
-    Sound m_soundIn{};
-    Sound m_soundOut{};
 };

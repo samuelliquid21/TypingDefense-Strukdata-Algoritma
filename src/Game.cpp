@@ -1,4 +1,6 @@
 #include "Game.h"
+#include "AudioManager.h"
+#include "AssetManager.h"
 #include "Leaderboard.h"
 #include "Credit.h"
 #include "GameConfig.h"
@@ -19,6 +21,7 @@ void Game::Run() {
     // Bersihkan resource sebelum keluar
     bg.Unload();
     LeaderboardSystem::Unload();
+    AssetManager::getInstance().unloadAll();
     CloseAudioDevice();
     CloseWindow();
 }
@@ -31,8 +34,7 @@ Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
     InitWindow(1080, 720, "Cosmic Keypad - Kelompok 4");
 
     InitAudioDevice();
-    m_audio.Init();
-    m_transitionEffect.Init();
+    AudioManager::getInstance().Init();
     
     SetTargetFPS(60);
 
@@ -45,6 +47,8 @@ Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
     DataManager::getInstance().load();
 
     techTree.loadFromProfile(m_currentPlayer);
+
+    AssetManager::getInstance().registerSpriteSheet("ship", "./assets/img/Spaceships.png", 5, 3);
 
     bg.Load("./assets/img/Space_Background.png", 20.0f);
     gameplayManager->textureInit();
@@ -154,7 +158,7 @@ void Game::UpdateMenu() {
         return;
     }
 
-    m_audio.UpdateLobby();
+    AudioManager::getInstance().UpdateLobby();
 
     mainMenu.Update();
 
@@ -169,13 +173,13 @@ void Game::UpdateMenu() {
         int choice = mainMenu.GetSelectedIndex();
 
         if (choice == 0) {
-            m_audio.StopLobby();
+            AudioManager::getInstance().StopLobby();
             gameOver.Reset();
             restartGame();
             state = GameState::GAMEPLAY;
         }
         else if (choice == 1) {
-            m_audio.StopLobby();
+            AudioManager::getInstance().StopLobby();
             LeaderboardSystem::Init();
             state = GameState::LEADERBOARD;
         }
@@ -189,7 +193,7 @@ void Game::UpdateMenu() {
             m_transitionEffect.Start(GameState::UNLOCKED_WORDS);
         }
         else if (choice == 4) {
-            m_audio.StopLobby();
+            AudioManager::getInstance().StopLobby();
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start(GameState::CREDIT);
         }
@@ -314,13 +318,13 @@ void Game::DrawLeaderboard() {
 // ===============================
 
 void Game::UpdateCredit() {
-    m_audio.UpdateCredit();
+    AudioManager::getInstance().UpdateCredit();
 
     bool backToMenu = false;
     creditScreen.Update(backToMenu);
 
     if (backToMenu && !m_transitionEffect.IsActive()) {
-        m_audio.StopCredit();
+        AudioManager::getInstance().StopCredit();
         m_transitionEffect.PlaySoundOut();
         m_transitionEffect.Start(GameState::MENU);
     }
@@ -335,7 +339,7 @@ void Game::DrawCredit() {
 // ===============================
 
 void Game::UpdateLoginRegister() {
-    m_audio.UpdateLobbyNoSeek();
+    AudioManager::getInstance().UpdateLobbyNoSeek();
 
     loginScreen.Update();
     if (loginScreen.ShouldLogin()) {
@@ -359,7 +363,7 @@ void Game::DrawLoginRegister() {
 }
 
 void Game::UpdateRegister() {
-    m_audio.UpdateLobbyNoSeek();
+    AudioManager::getInstance().UpdateLobbyNoSeek();
 
     registerScreen.Update();
 

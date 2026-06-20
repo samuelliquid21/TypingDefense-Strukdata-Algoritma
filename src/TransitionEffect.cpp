@@ -1,18 +1,6 @@
 #include "TransitionEffect.h"
+#include "AudioManager.h"
 #include "GameConfig.h"
-
-TransitionEffect::~TransitionEffect() {
-    if (m_loaded) {
-        UnloadSound(m_soundIn);
-        UnloadSound(m_soundOut);
-    }
-}
-
-void TransitionEffect::Init() {
-    m_soundIn = LoadSound("assets/sound/glitchmasuk.mp3");
-    m_soundOut = LoadSound("assets/sound/glitchkeluar.mp3");
-    m_loaded = true;
-}
 
 void TransitionEffect::Update(float dt) {
     if (!m_active) return;
@@ -65,9 +53,9 @@ GameState TransitionEffect::GetTargetState() const {
 }
 
 void TransitionEffect::PlaySoundIn() {
-    if (!IsSoundPlaying(m_soundIn)) PlaySound(m_soundIn);
+    AudioManager::getInstance().playSfxOnce("glitchMasuk");
 }
 
 void TransitionEffect::PlaySoundOut() {
-    if (!IsSoundPlaying(m_soundOut)) PlaySound(m_soundOut);
+    AudioManager::getInstance().playSfxOnce("glitchKeluar");
 }

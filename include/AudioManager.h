@@ -1,22 +1,33 @@
 #pragma once
-#include "raylib.h"
+#include <string>
 
 class AudioManager {
 public:
-    AudioManager() = default;
-    ~AudioManager();
+    static AudioManager& getInstance();
 
     void Init();
 
+    // === Generic Music API ===
+    void playMusic(const std::string& key);
+    void stopMusic(const std::string& key);
+    void updateMusic(const std::string& key);
+    void setMusicVolume(const std::string& key, float vol);
+
+    // === Generic SFX API ===
+    void playSfx(const std::string& key);
+    void playSfxOnce(const std::string& key);
+    void setSfxVolume(const std::string& key, float vol);
+
+    // === Convenience (lobby/credit) ===
     void UpdateLobby();
     void UpdateLobbyNoSeek();
     void UpdateCredit();
-
     void StopLobby();
     void StopCredit();
 
 private:
-    Music m_lobby{};
-    Music m_credit{};
-    bool m_loaded = false;
+    AudioManager() = default;
+    ~AudioManager() = default;
+    AudioManager(const AudioManager&) = delete;
+    AudioManager& operator=(const AudioManager&) = delete;
 };
