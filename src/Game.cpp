@@ -63,8 +63,9 @@ Game::~Game() {
 }
 
 void Game::restartGame() {
+    auto* newMgr = new GameplayManager();
     delete gameplayManager;
-    gameplayManager = new GameplayManager();
+    gameplayManager = newMgr;
     gameplayManager->textureInit();
     setupCallbacks();
 }
@@ -239,11 +240,12 @@ void Game::UpdateGameplay() {
             int earnedRP = score / 100;
             if (earnedRP > 0)
                 m_currentPlayer.research_point += earnedRP;
-            if (score > m_currentPlayer.highest_score)
+            if (score > m_currentPlayer.highest_score) {
                 m_currentPlayer.highest_score = score;
                 m_currentPlayer.accuracy         = gameplayManager->GetAccuracy();
                 m_currentPlayer.enemies_defeated = gameplayManager->enemiesDefeated;
                 m_currentPlayer.survival_time    = gameplayManager->survivalTime;
+            }
             DataManager::getInstance().SavePlayer(m_currentPlayer);
         }
         restartGame();          // Reset gameplay untuk sesi berikutnya
