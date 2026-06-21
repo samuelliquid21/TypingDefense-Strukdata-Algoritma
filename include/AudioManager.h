@@ -18,10 +18,11 @@ public:
     void playSfxOnce(const std::string& key);
     void setSfxVolume(const std::string& key, float vol);
 
-    // === Convenience (lobby/credit) ===
+    // === Convenience (lobby/credit/bgm) ===
     void UpdateLobby();
     void UpdateLobbyNoSeek();
     void UpdateCredit();
+    void UpdateDefault();
     void StopLobby();
     void StopCredit();
 

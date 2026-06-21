@@ -166,6 +166,7 @@ void Game::UpdateMenu() {
 
     // Tombol F1 untuk membuka dictionary kapan saja dari menu
     if (IsKeyPressed(KEY_F1)) {
+        AudioManager::getInstance().StopLobby();
         m_dictionary.Reset();
         state = GameState::WORD_DICTIONARY;
     }
@@ -187,10 +188,12 @@ void Game::UpdateMenu() {
             state = GameState::LEADERBOARD;
         }
         else if (choice == 2) {
+            AudioManager::getInstance().StopLobby();
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start(GameState::UNLOCK_SKILL);
         }
         else if (choice == 3) {
+            AudioManager::getInstance().StopLobby();
             m_unlockedWords.BuildFromPlayer(m_currentPlayer);
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start(GameState::UNLOCKED_WORDS);
@@ -201,6 +204,7 @@ void Game::UpdateMenu() {
             m_transitionEffect.Start(GameState::CREDIT);
         }
         else if (choice == 5) {
+            AudioManager::getInstance().StopLobby();
             logoutScreen.Reset();
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start(GameState::LOGOUT);
@@ -232,6 +236,7 @@ void Game::DrawMenu() {
 }
 
 void Game::UpdateGameplay() {
+    AudioManager::getInstance().UpdateDefault();
     gameplayManager->update(GetFrameTime());
 
     // Cek apakah player terkena asteroid
@@ -263,6 +268,7 @@ void Game::DrawGameplay() {
 }
 
 void Game::UpdatePause() {
+    AudioManager::getInstance().UpdateDefault();
     pauseMenu.Update();
 
     if (pauseMenu.IsOptionChosen()) {
@@ -270,6 +276,7 @@ void Game::UpdatePause() {
             pauseMenu.StartCountdown(); // Lanjutkan game dengan countdown
         } else if (pauseMenu.GetSelectedIndex() == 1) {
             // Kembali ke menu — undo semua perubahan session
+            AudioManager::getInstance().stopMusic("bgm");
             pauseMenu.Reset();
             m_currentPlayer = m_sessionBackup;
             restartGame();
@@ -290,8 +297,10 @@ void Game::DrawPause() {
 }
 
 void Game::UpdateGameOver() {
+    AudioManager::getInstance().UpdateDefault();
     gameOver.Update();
     if (gameOver.ShouldReturnToMenu()) {
+        AudioManager::getInstance().stopMusic("bgm");
         state = GameState::MENU;
     }
 }
@@ -389,9 +398,11 @@ void Game::DrawRegister() {
 }
 
 void Game::UpdateLogout() {
+    AudioManager::getInstance().UpdateDefault();
     logoutScreen.Update();
 
     if (logoutScreen.IsFinished()) {
+        AudioManager::getInstance().stopMusic("bgm");
         m_currentPlayer = PlayerProfile{};
         m_isLoggedIn = false;
         techTree.loadFromProfile(m_currentPlayer);
@@ -411,6 +422,7 @@ void Game::DrawLogout() {
 // ===============================
 
 void Game::UpdateTechTree() {
+    AudioManager::getInstance().UpdateDefault();
     techTreeUI.Update();
 
     // Proses klik untuk membeli skill di tech tree
@@ -423,6 +435,7 @@ void Game::UpdateTechTree() {
     }
 
     if (IsKeyPressed(KEY_ESCAPE)) {
+        AudioManager::getInstance().stopMusic("bgm");
         m_transitionEffect.PlaySoundOut();
         m_transitionEffect.Start(GameState::MENU);
     }
@@ -437,8 +450,10 @@ void Game::DrawTechTree() {
 // ===============================
 
 void Game::UpdateDictionary() {
+    AudioManager::getInstance().UpdateDefault();
     m_dictionary.Update();
     if (m_dictionary.WantsToGoBack()) {
+        AudioManager::getInstance().stopMusic("bgm");
         m_transitionEffect.PlaySoundOut();
         m_transitionEffect.Start(GameState::MENU);
     }
@@ -453,8 +468,10 @@ void Game::DrawDictionary() {
 // ===============================
 
 void Game::UpdateUnlockedWords() {
+    AudioManager::getInstance().UpdateDefault();
     m_unlockedWords.Update();
     if (m_unlockedWords.WantsToGoBack()) {
+        AudioManager::getInstance().stopMusic("bgm");
         m_transitionEffect.PlaySoundOut();
         m_transitionEffect.Start(GameState::MENU);
     }

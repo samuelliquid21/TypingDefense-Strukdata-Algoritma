@@ -12,6 +12,7 @@ void AudioManager::Init() {
     AssetManager::getInstance().loadMusic("lobby", "assets/sound/soundtrack.mp3");
     AssetManager::getInstance().loadMusic("credit", "assets/sound/cosmic.mp3");
     AssetManager::getInstance().loadMusic("bgmLeaderboard", "assets/sound/bgm.mp3");
+    AssetManager::getInstance().loadMusic("bgm", "assets/sound/bgm.mp3");
 
     // SFX
     AssetManager::getInstance().loadSound("glitchMasuk", "assets/sound/glitchmasuk.mp3");
@@ -30,6 +31,7 @@ void AudioManager::Init() {
 
     setMusicVolume("lobby", 0.5f);
     setMusicVolume("credit", 0.5f);
+    setMusicVolume("bgm", 0.5f);
 
     // Start lobby
     playMusic("lobby");
@@ -125,4 +127,13 @@ void AudioManager::StopLobby() {
 
 void AudioManager::StopCredit() {
     stopMusic("credit");
+}
+
+void AudioManager::UpdateDefault() {
+    Music mus = AssetManager::getInstance().getMusic("bgm");
+    if (mus.stream.buffer == nullptr) return;
+    UpdateMusicStream(mus);
+    if (!IsMusicStreamPlaying(mus)) {
+        PlayMusicStream(mus);
+    }
 }
