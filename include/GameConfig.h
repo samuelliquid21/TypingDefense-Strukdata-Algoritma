@@ -27,6 +27,10 @@ namespace Config {
     constexpr float bombShockwaveDuration{0.5f};     // durasi animasi shockwave (detik)
     constexpr float bombShockwaveMaxRadius{1100.0f};  // radius maksimal shockwave
 
+    // === Konfigurasi Score Booster Skill ===
+    constexpr float scoreBoosterDuration{5.0f};      // durasi multiplier aktif
+    constexpr float scoreBoosterCooldown{30.0f};     // cooldown score booster (detik)
+
     // === Konfigurasi Debug ===
     constexpr bool enableDebugPlayerInfo{false};      // tampilkan info player di menu utama
 }

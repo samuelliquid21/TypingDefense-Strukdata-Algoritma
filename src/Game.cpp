@@ -52,6 +52,7 @@ Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
 
     bg.Load("./assets/img/Space_Background.png", 20.0f);
     gameplayManager->textureInit();
+    gameplayManager->setUnlockedSkills(&m_currentPlayer.unlocked_skills);
 
     setupCallbacks();
 
@@ -67,6 +68,7 @@ void Game::restartGame() {
     delete gameplayManager;
     gameplayManager = newMgr;
     gameplayManager->textureInit();
+    gameplayManager->setUnlockedSkills(&m_currentPlayer.unlocked_skills);
     setupCallbacks();
 }
 

@@ -5,6 +5,7 @@
 #include "ComboStack.h"
 #include "ShieldSkill.h"
 #include "BombSkill.h"
+#include "ScoreBoosterSkill.h"
 #include "ExplosionManager.h"
 #include <functional>
 
@@ -27,6 +28,7 @@ private:
     ComboStack comboStack;                                  // Stack untuk combo multiplier (max 6 level)
     ShieldSkill shieldSkill;                                 // Skill perisai pelindung pemain
     BombSkill bombSkill;                                     // Skill bom shockwave area
+    ScoreBoosterSkill scoreBoosterSkill;                       // Skill multiplier 16x skor
     ExplosionManager explosionManager;                       // Efek partikel ledakan
     typingState state = typingState::SEARCH_FOR_TARGET;     // State typing saat ini
     Asteroid* currentTarget = nullptr;                      // Pointer ke asteroid yang sedang diketik
@@ -34,6 +36,8 @@ private:
 
     ScoreCallback onScoreChanged = nullptr;                     // Callback saat skor berubah (nullable)
     AsteroidDestroyedCallback onAsteroidDestroyed = nullptr;    // Callback saat asteroid hancur (nullable)
+
+    const std::vector<std::string>* m_unlockedSkills = nullptr; // Pointer ke daftar skill yang sudah di-unlock
 
 public:
     int   score = 0;   // Skor pemain saat ini
@@ -52,6 +56,9 @@ public:
     void SetAsteroidDestroyedCallback(AsteroidDestroyedCallback callback); // Daftarkan callback asteroid hancur
 
     void textureInit(); // Inisialisasi texture spaceship dan load sound effect
+
+    void setUnlockedSkills(const std::vector<std::string>* skills);
+    bool isUnlocked(const std::string& name) const;
 
     bool isHit(); // Cek tabrakan asteroid dengan player (shield atau tidak)
 

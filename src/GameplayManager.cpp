@@ -50,7 +50,8 @@ void GameplayManager::textureInit() {
 
 void GameplayManager::AddScore(int points) {
     // Tambah skor dengan multiplier dari combo stack
-    score += points * comboStack.GetMultiplier();
+    int mult = scoreBoosterSkill.isActive() ? ScoreBoosterSkill::SCORE_MULTIPLIER : 1;
+    score += points * comboStack.GetMultiplier() * mult;
 }
 
 void GameplayManager::AddScore(int basePoints, int multiplier) {
@@ -69,6 +70,18 @@ void GameplayManager::SetAsteroidDestroyedCallback(AsteroidDestroyedCallback cal
     onAsteroidDestroyed = callback;
 }
 
+void GameplayManager::setUnlockedSkills(const std::vector<std::string>* skills) {
+    m_unlockedSkills = skills;
+}
+
+bool GameplayManager::isUnlocked(const std::string& name) const {
+    if (!m_unlockedSkills) return false;
+    for (const auto& s : *m_unlockedSkills) {
+        if (s == name) return true;
+    }
+    return false;
+}
+
 void GameplayManager::update(float deltaTime) {
     // Update semua subsistem game
     survivalTime += deltaTime;
@@ -76,6 +89,7 @@ void GameplayManager::update(float deltaTime) {
     asteroidManager.update(deltaTime);
     shieldSkill.update(deltaTime);
     bombSkill.update(deltaTime);
+    scoreBoosterSkill.update(deltaTime);
     explosionManager.update(deltaTime);
 
     // Cek efek bom shockwave: hancurkan semua asteroid dalam radius lingkaran
@@ -94,13 +108,18 @@ void GameplayManager::update(float deltaTime) {
     }
 
     // Tombol 1: aktifkan shield skill jika sudah siap
-    if (IsKeyPressed(KEY_ONE)) {
+    if (isUnlocked("barrier") && IsKeyPressed(KEY_ONE)) {
         shieldSkill.activate();
     }
 
     // Tombol 2: aktifkan bomb skill jika sudah siap
-    if (IsKeyPressed(KEY_TWO)) {
+    if (isUnlocked("shockwave") && IsKeyPressed(KEY_TWO)) {
         bombSkill.activate();
+    }
+
+    // Tombol 6: aktifkan score booster jika sudah siap
+    if (isUnlocked("score_booster") && IsKeyPressed(KEY_SIX)) {
+        scoreBoosterSkill.activate();
     }
 
     // Tangkap input karakter dari keyboard
@@ -197,6 +216,7 @@ void GameplayManager::draw() {
     explosionManager.draw();
     shieldSkill.draw();
     bombSkill.draw();
+    scoreBoosterSkill.draw();
     int multiplier = comboStack.GetMultiplier();
 
     // Tampilkan skor di tengah atas layar
@@ -246,6 +266,22 @@ void GameplayManager::draw() {
         bombColor = GRAY;
     }
     DrawText(bombText, Config::screenWidth - MeasureText(bombText, 15) - 10, 28, 15, bombColor);
+
+    // HUD status Score Booster (pojok kanan atas, di bawah bomb)
+    const char* sbText;
+    Color sbColor;
+    if (scoreBoosterSkill.isReady()) {
+        sbText = "SCORE: READY [6]";
+        sbColor = YELLOW;
+    } else if (scoreBoosterSkill.isActive()) {
+        sbText = "SCORE: ACTIVE x16";
+        sbColor = GOLD;
+    } else {
+        float remaining = Config::scoreBoosterCooldown * (1.0f - scoreBoosterSkill.getCooldownProgress());
+        sbText = TextFormat("SCORE: %.0fs", remaining);
+        sbColor = GRAY;
+    }
+    DrawText(sbText, Config::screenWidth - MeasureText(sbText, 15) - 10, 46, 15, sbColor);
 }
 
 void GameplayManager::reset() {
@@ -261,4 +297,5 @@ void GameplayManager::reset() {
     wordsCompleted = 0;
     wasPreviousKeyWrong = false;
     explosionManager.reset();
+    scoreBoosterSkill = ScoreBoosterSkill();
 }

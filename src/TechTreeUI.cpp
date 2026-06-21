@@ -243,9 +243,9 @@ void TechTreeUI::DrawTitle() {
 // Dapatkan warna untuk node berdasarkan state-nya
 Color TechTreeUI::GetStateColor(SkillState state) {
     switch (state) {
-        case LOCKED:    return Color{50, 50, 60, 255};   // Abu-abu gelap
-        case AVAILABLE: return Color{0, 80, 180, 200};    // Biru
-        case UNLOCKED:  return Color{0, 150, 60, 200};    // Hijau
+        case LOCKED:    return Color{50, 50, 60, 255};
+        case AVAILABLE: return Color{0, 200, 255, 220};
+        case UNLOCKED:  return Color{0, 230, 150, 220};
     }
     return DARKGRAY;
 }

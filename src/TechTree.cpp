@@ -10,30 +10,30 @@ TechTree::TechTree() {
     // Definisikan 6 skill dengan posisi grid 3 baris × kolom
     skills = {
         {SkillName::BARRIER,       {SkillName::BARRIER, 30, "Shield 1 hantaman", false,
-                                   {540.0f, 100.0f}, {540.0f - boxW/2, 100.0f - boxH/2, boxW, boxH}, LOCKED}},
+                                    {540.0f, 100.0f}, {540.0f - boxW/2, 100.0f - boxH/2, boxW, boxH}, LOCKED}},
 
         {SkillName::AURA_FIELD,    {SkillName::AURA_FIELD, 100, "Shield aktif rentang waktu", false,
-                                   {340.0f, 260.0f}, {340.0f - boxW/2, 260.0f - boxH/2, boxW, boxH}, LOCKED}},
-
-        {SkillName::SHOCKWAVE,     {SkillName::SHOCKWAVE, 300, "Hancurkan asteroid sekitar", false,
-                                   {740.0f, 260.0f}, {740.0f - boxW/2, 260.0f - boxH/2, boxW, boxH}, LOCKED}},
-
-        {SkillName::CHRONO_STASIS, {SkillName::CHRONO_STASIS, 450, "Perlambat gerakan asteroid", false,
-                                   {340.0f, 420.0f}, {340.0f - boxW/2, 420.0f - boxH/2, boxW, boxH}, LOCKED}},
-
-        {SkillName::INSTANT_CRIT,  {SkillName::INSTANT_CRIT, 500, "Ketik huruf pertama untuk hancurkan", false,
-                                   {620.0f, 420.0f}, {620.0f - boxW/2, 420.0f - boxH/2, boxW, boxH}, LOCKED}},
+                                    {300.0f, 280.0f}, {300.0f - boxW/2, 280.0f - boxH/2, boxW, boxH}, LOCKED}},
 
         {SkillName::SCORE_BOOSTER, {SkillName::SCORE_BOOSTER, 250, "Multiplier 16x score", false,
-                                   {860.0f, 420.0f}, {860.0f - boxW/2, 420.0f - boxH/2, boxW, boxH}, LOCKED}}
+                                    {540.0f, 280.0f}, {540.0f - boxW/2, 280.0f - boxH/2, boxW, boxH}, LOCKED}},
+
+        {SkillName::SHOCKWAVE,     {SkillName::SHOCKWAVE, 300, "Hancurkan asteroid sekitar", false,
+                                    {780.0f, 280.0f}, {780.0f - boxW/2, 280.0f - boxH/2, boxW, boxH}, LOCKED}},
+
+        {SkillName::CHRONO_STASIS, {SkillName::CHRONO_STASIS, 450, "Perlambat gerakan asteroid", false,
+                                    {300.0f, 460.0f}, {300.0f - boxW/2, 460.0f - boxH/2, boxW, boxH}, LOCKED}},
+
+        {SkillName::INSTANT_CRIT,  {SkillName::INSTANT_CRIT, 500, "Ketik huruf pertama untuk hancurkan", false,
+                                    {780.0f, 460.0f}, {780.0f - boxW/2, 460.0f - boxH/2, boxW, boxH}, LOCKED}}
     };
 
-    // Struktur dependensi: BARRIER root → 2 cabang (AURA_FIELD & SHOCKWAVE)
+    // Struktur dependensi: BARRIER root → 3 cabang (AURA_FIELD, SCORE_BOOSTER, SHOCKWAVE)
     addDependency(SkillName::BARRIER, SkillName::AURA_FIELD);
+    addDependency(SkillName::BARRIER, SkillName::SCORE_BOOSTER);
     addDependency(SkillName::BARRIER, SkillName::SHOCKWAVE);
     addDependency(SkillName::AURA_FIELD, SkillName::CHRONO_STASIS);
     addDependency(SkillName::SHOCKWAVE, SkillName::INSTANT_CRIT);
-    addDependency(SkillName::SHOCKWAVE, SkillName::SCORE_BOOSTER);
 
     // Hitung state awal: BARRIER jadi AVAILABLE, sisanya LOCKED
     updateSkillStates();
