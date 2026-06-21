@@ -90,12 +90,7 @@ void Game::setupCallbacks() {
 void Game::Update() {
     float dt = GetFrameTime();
 
-    if (m_transitionEffect.IsActive()) {
-        m_transitionEffect.Update(dt);
-        if (!m_transitionEffect.IsActive())
-            state = m_transitionEffect.GetTargetState();
-        return;
-    }
+    m_transitionEffect.Update(dt);
 
     // Background tetap bergerak kecuali saat pause
     if (state != GameState::PAUSE) {
@@ -122,30 +117,28 @@ void Game::Update() {
 
 void Game::Draw() {
     BeginDrawing();
+    ClearBackground(BLACK);
+    bg.Draw();
 
-    if (m_transitionEffect.IsActive()) {
-        ClearBackground(BLACK);
-        bg.Draw();
-        m_transitionEffect.Draw();
-    } else {
-        bg.Draw();
-        // Delegasikan draw ke method sesuai state aktif
-        switch (state) {
-            case GameState::MENU:         DrawMenu(); break;
-            case GameState::GAMEPLAY:     DrawGameplay(); break;
-            case GameState::PAUSE:        DrawPause(); break;
-            case GameState::GAME_OVER:    DrawGameOver(); break;
-            case GameState::LEADERBOARD:       DrawLeaderboard(); break;
-            case GameState::CREDIT:            DrawCredit(); break;
-            case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
-            case GameState::REGISTER:          DrawRegister(); break;
-            case GameState::LOGOUT:            DrawLogout(); break;
-            case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
-            case GameState::WORD_DICTIONARY:   DrawDictionary(); break;
-            case GameState::UNLOCKED_WORDS:    DrawUnlockedWords(); break;
-            default: break;
-        }
+    // Delegasikan draw ke method sesuai state aktif
+    switch (state) {
+        case GameState::MENU:         DrawMenu(); break;
+        case GameState::GAMEPLAY:     DrawGameplay(); break;
+        case GameState::PAUSE:        DrawPause(); break;
+        case GameState::GAME_OVER:    DrawGameOver(); break;
+        case GameState::LEADERBOARD:       DrawLeaderboard(); break;
+        case GameState::CREDIT:            DrawCredit(); break;
+        case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
+        case GameState::REGISTER:          DrawRegister(); break;
+        case GameState::LOGOUT:            DrawLogout(); break;
+        case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
+        case GameState::WORD_DICTIONARY:   DrawDictionary(); break;
+        case GameState::UNLOCKED_WORDS:    DrawUnlockedWords(); break;
+        default: break;
     }
+
+    // Overlay transisi di atas semua konten state
+    m_transitionEffect.Draw();
 
     EndDrawing();
 }
@@ -180,7 +173,9 @@ void Game::UpdateMenu() {
             gameOver.Reset();
             m_sessionBackup = m_currentPlayer;  // Backup sebelum gameplay
             restartGame();
+            m_transitionEffect.PlaySoundIn();
             state = GameState::GAMEPLAY;
+            m_transitionEffect.Start();
         }
         else if (choice == 1) {
             AudioManager::getInstance().StopLobby();
@@ -189,25 +184,29 @@ void Game::UpdateMenu() {
         }
         else if (choice == 2) {
             AudioManager::getInstance().StopLobby();
+            state = GameState::UNLOCK_SKILL;
             m_transitionEffect.PlaySoundIn();
-            m_transitionEffect.Start(GameState::UNLOCK_SKILL);
+            m_transitionEffect.Start();
         }
         else if (choice == 3) {
             AudioManager::getInstance().StopLobby();
             m_unlockedWords.BuildFromPlayer(m_currentPlayer);
+            state = GameState::UNLOCKED_WORDS;
             m_transitionEffect.PlaySoundIn();
-            m_transitionEffect.Start(GameState::UNLOCKED_WORDS);
+            m_transitionEffect.Start();
         }
         else if (choice == 4) {
             AudioManager::getInstance().StopLobby();
+            state = GameState::CREDIT;
             m_transitionEffect.PlaySoundIn();
-            m_transitionEffect.Start(GameState::CREDIT);
+            m_transitionEffect.Start();
         }
         else if (choice == 5) {
             AudioManager::getInstance().StopLobby();
             logoutScreen.Reset();
+            state = GameState::LOGOUT;
             m_transitionEffect.PlaySoundIn();
-            m_transitionEffect.Start(GameState::LOGOUT);
+            m_transitionEffect.Start();
         }
         else if (choice == 6) {
             // Keluar dari game
@@ -337,8 +336,9 @@ void Game::UpdateCredit() {
 
     if (backToMenu && !m_transitionEffect.IsActive()) {
         AudioManager::getInstance().StopCredit();
+        state = GameState::MENU;
         m_transitionEffect.PlaySoundOut();
-        m_transitionEffect.Start(GameState::MENU);
+        m_transitionEffect.Start();
     }
 }
 
@@ -436,8 +436,9 @@ void Game::UpdateTechTree() {
 
     if (IsKeyPressed(KEY_ESCAPE)) {
         AudioManager::getInstance().stopMusic("bgm");
+        state = GameState::MENU;
         m_transitionEffect.PlaySoundOut();
-        m_transitionEffect.Start(GameState::MENU);
+        m_transitionEffect.Start();
     }
 }
 
@@ -454,8 +455,9 @@ void Game::UpdateDictionary() {
     m_dictionary.Update();
     if (m_dictionary.WantsToGoBack()) {
         AudioManager::getInstance().stopMusic("bgm");
+        state = GameState::MENU;
         m_transitionEffect.PlaySoundOut();
-        m_transitionEffect.Start(GameState::MENU);
+        m_transitionEffect.Start();
     }
 }
 
@@ -472,8 +474,9 @@ void Game::UpdateUnlockedWords() {
     m_unlockedWords.Update();
     if (m_unlockedWords.WantsToGoBack()) {
         AudioManager::getInstance().stopMusic("bgm");
+        state = GameState::MENU;
         m_transitionEffect.PlaySoundOut();
-        m_transitionEffect.Start(GameState::MENU);
+        m_transitionEffect.Start();
     }
 }
 

@@ -37,8 +37,7 @@ void TransitionEffect::Draw() const {
     }
 }
 
-void TransitionEffect::Start(GameState target) {
-    m_target = target;
+void TransitionEffect::Start() {
     m_timer = m_duration;
     m_active = true;
     m_intensity = 1.0f;
@@ -46,10 +45,6 @@ void TransitionEffect::Start(GameState target) {
 
 bool TransitionEffect::IsActive() const {
     return m_active;
-}
-
-GameState TransitionEffect::GetTargetState() const {
-    return m_target;
 }
 
 void TransitionEffect::PlaySoundIn() {
