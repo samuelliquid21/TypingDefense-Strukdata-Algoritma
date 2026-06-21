@@ -11,6 +11,7 @@ Game (state machine)
 │       ├── Skills         → UNLOCK_SKILL (SKILL LAB)
 │       ├── Word Bank      → UNLOCKED_WORDS
 │       ├── Credit         → CREDIT
+│       ├── Logout         → LOGOUT
 │       └── Quit           → exit
 ├── GAMEPLAY
 │   └── GameplayManager
@@ -47,36 +48,38 @@ Game (state machine)
 | **Combo Stack** | Fixed-size array (max 6), Push setiap 5 kata, Pop saat salah ketik |
 | **Shield Skill** | Cooldown 30s, tahan 1 hantaman |
 | **Bomb Skill** | Cooldown 30s, shockwave radius 1100, animasi alpha fade |
-| **Main Menu** | Circular doubly linked list (6 opsi) |
-| **Leaderboard** | Sort by score, podium animation, glitch transisi |
-| **Credit** | Auto-scroll + manual scroll, looping |
+| **Main Menu** | Circular doubly linked list (7 opsi) |
+| **Leaderboard** | AVL Tree (insert descending + inorder traversal), podium animation, glitch transisi |
+| **Credit** | Auto-scroll + manual scroll, looping, reset scroll tiap masuk |
 | **Skill Tree (SKILL LAB)** | Node rendering, dependency edges, BFS state update, unlock + RP deduction, right-click tooltip dengan word-wrap |
 | **Dictionary (WORD DICTIONARY)** | Semua 150 kata, search realtime, definisi word-wrap, scroll, circular navigasi |
-| **Word Bank** | Hanya kata ter-unlock, circular doubly linked list backend, search realtime |
+| **Word Bank** | Hanya kata ter-unlock, circular doubly linked list backend, search realtime, manual selection sort A-Z / Z-A |
 | **Word Unlock + RP** | Setiap kata berhasil diketik full → +10 RP + simpan ke PlayerData.json |
 | **Data Persistence** | `DataManager` singleton, baca/tulis `PlayerData.json` |
 | **Player Info Debug** | Panel overlay (username, score, RP, unlocked words/skills) |
 | **Background** | Scrolling dual-texture seamless |
-| **Audio** | Musik lobby looping, musik credit, SFX laser/error/glitch |
+| **Audio** | Musik lobby looping, musik credit, bgm default untuk state tanpa musik, SFX laser/error/glitch/explosion |
 | **Exception Handling** | Try-catch di `DataManager` (parse error, file write, type error) + `TechTree` (throw invalid_argument) |
-| **Sorting Manual** | Word Bank — Selection Sort O(n²) manual, tombol S (A-Z) / D (Z-A) |
+| **Login Screen** | Form input username, validasi ke DataManager, ENTER submit, TAB ke register, ESC quit |
+| **Register Screen** | Form input username, cek unique, CreatePlayer(), ESC back ke login |
+| **Logout Screen** | Timer 1 detik, tampilkan pesan, transisi otomatis ke login |
+| **Glitch Transition** | Overlay visual (tidak blocking), 0.6 detik, glitch scanlines, SFX masuk/keluar |
+| **BGM Default** | `UpdateDefault()` auto-start bgm.mp3 untuk state tanpa musik spesifik |
+| **Aura Field Skill** | 10s duration, 30s cooldown, lingkaran ungu, absorbs all hits |
+| **Instant Crit Skill** | 10s duration, 30s cooldown, kotak merah, first letter instant destroy |
+| **Score Booster Skill** | 5s duration, 30s cooldown, multiplier 16x, lingkaran emas |
+| **Active Skill System** | Keybind `1`–`N` sequential (berdasarkan unlock order), HUD top-right hanya skill ter-unlock, state machine IDLE→ACTIVE→COOLDOWN |
+| **Explosion Particles** | Pool 64 explosions, max 35 particles per explosion, alpha fade, random direction/speed |
 
-### 🔶 Sebagian
+### ✅ Sudah Tidak Digunakan / Dihapus
 
-| Fitur | Status | Masalah |
-|---|---|---|
-| **Login/Register** | State enum + method stub sudah ada (`LOGIN_AND_REGISTER`, `LOGOUT`) | `UpdateLoginRegister()` dan `DrawLoginRegister()` masih kosong. Player masih hardcoded ke `"hyperion"` |
-| **Skill — Instant Crit** | Skill data + node di tree sudah ada | Belum diintegrasikan ke gameplay (`Asteroid::typingAsteroid()` belum pakai pengecekan skill) |
-| **Skill — Chrono Stasis** | Skill data + node di tree sudah ada | Belum diintegrasikan ke gameplay (belum perlambat asteroid) |
-| **Skill — Score Booster** | Skill data + node di tree sudah ada | Belum diintegrasikan ke scoring system |
-
-### ❌ Belum
-
-| Fitur | Catatan |
+| Fitur | Alasan |
 |---|---|
-| **Register flow** | Belum ada form input username |
-| **Logout flow** | Belum ada implementasi |
-| **Skill effects di gameplay** | Skill yang di-unlock di SKILL LAB belum mempengaruhi mekanik game |
+| **Chrono Stasis** | Dihapus dari TechTree agar BARRIER memiliki tepat 3 children (AURA, SCORE_BOOSTER, SHOCKWAVE) |
+
+### ❌ Tidak Ada
+
+Semua fitur yang direncanakan sudah diimplementasikan dan berfungsi.
 
 ---
 
@@ -111,11 +114,11 @@ Game.m_currentPlayer
 
 ---
 
-## Implementasi Wajib — Status & Lokasi
+## Riwayat Penyelesaian
 
-Berdasarkan daftar implementasi yang harus ada di projek UAS:
+Semua item implementasi wajib sudah selesai:
 
-### Algoritma
+### Algoritma & Exception Handling ✅
 
 | # | Item | Status | Lokasi |
 |---|---|---|---|
@@ -143,60 +146,28 @@ Berdasarkan daftar implementasi yang harus ada di projek UAS:
 | 17 | **circular linked list** | ✅ | `MainMenu.cpp` — Circular Doubly Linked List untuk navigasi menu; `UnlockedWords.cpp` — Circular Doubly Linked List untuk daftar kata |
 | 18 | **stack** | ✅ | `ComboStack.h` / `ComboStack.cpp` — fixed-size array stack (max 6 level, tiap Push = ×2 multiplier) |
 | 19 | **queue** | ✅ | `AsteroidManager.h:62` — `std::priority_queue<EventType>` (ASTEROID_SHOWER prioritas > NORMAL) |
-| 20 | **binary tree / avl tree** | ❌ | Belum diimplementasikan |
+| 20 | **binary tree / avl tree** | ✅ | `Leaderboard.h:26-58` / `Leaderboard.cpp:39-112` — AVL Tree dengan rotate kiri/kanan, balance factor, insert descending by score, inorder traversal |
 | 21 | **graph dengan BFS / DFS** | ✅ | `TechTree.cpp:111-128` — BFS dari BARRIER untuk menentukan `uiState` (LOCKED/AVAILABLE/UNLOCKED) tiap skill |
-| 22 | **hashing & hash table** | ✅ | `word_module.h` — `std::unordered_map` untuk definisi kata (easy/medium/hard_definitions); `TechTree.h:39` — `std::unordered_map<SkillName, SkillData>` |
-| 23 | **sorting manual** | ✅ | `UnlockedWords.cpp` — Selection Sort O(n²) manual (tidak pakai `std::sort`), tekan S/D untuk A-Z / Z-A |
+| 22 | **hashing & hash table** | ✅ | `word_module.h` — `std::unordered_map` untuk definisi kata; `TechTree.h:39` — `std::unordered_map<SkillName, SkillData>` |
+| 23 | **sorting manual** | ✅ | `UnlockedWords.cpp` — Selection Sort O(n²) manual, tekan S/D untuk A-Z / Z-A |
 
-### Keterangan Status
-- ✅ = sudah diimplementasikan dan berfungsi
-- ❌ = belum diimplementasikan
+### Fitur Game
 
----
-
-## Rencana Implementasi
-
-Berdasarkan item yang masih ❌ dan fitur yang 🔶 Sebagian, direncanakan sebagai berikut:
-
-### Prioritas 1 — Melengkapi Item Wajib
-
-#### 1. Exception Handling — `DataManager` ✅
-**Status:** Selesai. Try-catch di `DataManager::load()` (parse_error), `save()` (file write), `FindPlayer()` (type_error per-entry), `SavePlayer()` & `CreatePlayer()` (std::exception). `TechTree::SkillNameFromString()` throw `std::invalid_argument`, di-catch di `loadFromProfile()`.
-- File: `src/DataManager.cpp`, `src/TechTree.cpp`
-
-#### 2. AVL Tree — Leaderboard
-**Masalah:** Leaderboard sorted pakai array + `std::sort` setiap kali, bukan struktur data murni.
-**Rencana:**
-- Class `AVLTree` baru: key = score, value = username.
-- Insert otomatis balance dengan rotasi kiri/kanan.
-- In-order traversal untuk ranking descending.
-- Integrasi ke `LeaderboardSystem` untuk menyimpan & mengambil data terurut.
-- File baru: `include/AVLTree.h`, `src/AVLTree.cpp`
-
-#### 3. Sorting Manual — Word Bank ✅
-**Status:** Selesai. Selection Sort O(n²) manual pada `m_filteredNodes` (vector of WordNode pointers). Tombol `S` → A-Z, `D` → Z-A. Sort state persist antar search.
-- File: `src/UnlockedWords.cpp`, `include/UnlockedWords.h`
-
-### Prioritas 2 — Integrasi Skill ke Gameplay
-
-| Skill | Rencana Implementasi |
+| Fitur | Detail |
 |---|---|
-| **Instant Crit** | Di `Asteroid::typingAsteroid()`, jika player punya skill ini dan kata masih penuh (first huruf cocok) → langsung `active = false` tanpa perlu ketik sisa huruf. |
-| **Chrono Stasis** | Saat skill aktif, kurangi `velocity.x` dan `velocity.y` semua asteroid aktif menjadi 50% untuk durasi tertentu. Timer di `GameplayManager` atau `SkillManager` baru. |
-| **Score Booster** | Di `AddScore()`, kalikan base score dengan multiplier tambahan jika skill aktif. Tidak stack dengan combo. |
+| **Login/Register/Logout** | Form input keyboard, validasi DataManager, create/find player, timer logout |
+| **Aura Field Skill** | 10s duration, 30s cooldown, absorbs all hits, visual lingkaran ungu |
+| **Instant Crit Skill** | 10s duration, 30s cooldown, first letter instant destroy, visual kotak merah |
+| **Score Booster Skill** | 5s duration, 30s cooldown, multiplier 16x, visual lingkaran emas |
+| **Active Skill System** | Keybind `1`–`N` sequential, HUD top-right, state machine IDLE→ACTIVE→COOLDOWN |
+| **Explosion Particles** | Pool 64 explosions, max 35 particles, alpha fade, random direction |
+| **Glitch Transition** | Overlay visual non-blocking, 0.6s, SFX masuk/keluar |
+| **BGM Default** | `UpdateDefault()` auto-start bgm.mp3 untuk state tanpa musik |
 
-### Prioritas 3 — Login / Register Flow
+### Catatan
 
-- Implementasi `UpdateLoginRegister()` dan `DrawLoginRegister()` dengan form input username.
-- `CreatePlayer()` sudah ada di DataManager — tinggal panggil dari flow register.
-- `FindPlayer()` sudah ada — panggil dari flow login.
-- Ganti hardcoded `"hyperion"` dengan player hasil login.
-
-### Prioritas 4 — Word Gating di Gameplay
-
-- `WordSystem::getRandomWord()` saat ini ambil dari pool besar tanpa filter.
-- Rencana: tambah parameter `const std::vector<std::string>& unlockedWords`, filter pool berdasarkan kata yang sudah di-unlock.
-- Atau: jika `unlocked_words` kosong, fallback ke beberapa kata default agar pemain baru tetap bisa main.
+- Chrono Stasis dihapus dari TechTree (keputusan desain: BARRIER memiliki tepat 3 children)
+- Semua komentar dalam Bahasa Indonesia sesuai `docs/COMMENT_RULES.md`
 
 ---
 
