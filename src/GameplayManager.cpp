@@ -23,11 +23,16 @@ bool GameplayManager::isHit() {
         if (shieldSkill.isActive()) {
             // Shield menyerap damage: hancurkan semua asteroid yang menabrak, lalu konsumsi shield
             shieldSkill.consumeShield();
-            for (auto* ast : hits) ast->active = false;
-            return false; // Tidak game over karena shield masih aktif
+            AudioManager::getInstance().playSfxOnce("explosion");
+            for (auto* ast : hits) {
+                explosionManager.spawn(ast->position, 16, ORANGE);
+                ast->active = false;
+            }
+            return false;
         }
-        // Tidak punya shield: game over
         AudioManager::getInstance().playSfxOnce("gameover");
+        AudioManager::getInstance().playSfx("explosion");
+        explosionManager.spawn(Config::playerStartPos, 35, RED);
         return true;
     }
     return false;
@@ -35,6 +40,12 @@ bool GameplayManager::isHit() {
 
 void GameplayManager::textureInit() {
     spaceship.init();
+
+    // Hubungkan callback ledakan dari AsteroidManager ke ExplosionManager
+    asteroidManager.setExplosionCallback([this](Vector2 pos) {
+        explosionManager.spawn(pos, 16, ORANGE);
+        AudioManager::getInstance().playSfx("explosion");
+    });
 }
 
 void GameplayManager::AddScore(int points) {
@@ -65,6 +76,7 @@ void GameplayManager::update(float deltaTime) {
     asteroidManager.update(deltaTime);
     shieldSkill.update(deltaTime);
     bombSkill.update(deltaTime);
+    explosionManager.update(deltaTime);
 
     // Cek efek bom shockwave: hancurkan semua asteroid dalam radius lingkaran
     if (bombSkill.isActive()) {
@@ -72,7 +84,13 @@ void GameplayManager::update(float deltaTime) {
         auto hit = asteroidManager.scanAllAsteroids([r](const Asteroid& a) {
             return a.active && Vector2DistanceSqr(a.position, Config::playerStartPos) <= r * r;
         });
-        for (auto* ast : hit) ast->active = false;
+        if (!hit.empty()) {
+            AudioManager::getInstance().playSfxOnce("explosion");
+            for (auto* ast : hit) {
+                explosionManager.spawn(ast->position, 16, ORANGE);
+                ast->active = false;
+            }
+        }
     }
 
     // Tombol 1: aktifkan shield skill jika sudah siap
@@ -176,6 +194,7 @@ void GameplayManager::update(float deltaTime) {
 void GameplayManager::draw() {
     spaceship.draw();
     asteroidManager.draw();
+    explosionManager.draw();
     shieldSkill.draw();
     bombSkill.draw();
     int multiplier = comboStack.GetMultiplier();
@@ -241,4 +260,5 @@ void GameplayManager::reset() {
     comboStack.Reset();
     wordsCompleted = 0;
     wasPreviousKeyWrong = false;
+    explosionManager.reset();
 }

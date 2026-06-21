@@ -5,6 +5,7 @@
 #include "ComboStack.h"
 #include "ShieldSkill.h"
 #include "BombSkill.h"
+#include "ExplosionManager.h"
 #include <functional>
 
 // State mesin untuk sistem typing: mencari target vs sedang mengetik target
@@ -26,6 +27,7 @@ private:
     ComboStack comboStack;                                  // Stack untuk combo multiplier (max 6 level)
     ShieldSkill shieldSkill;                                 // Skill perisai pelindung pemain
     BombSkill bombSkill;                                     // Skill bom shockwave area
+    ExplosionManager explosionManager;                       // Efek partikel ledakan
     typingState state = typingState::SEARCH_FOR_TARGET;     // State typing saat ini
     Asteroid* currentTarget = nullptr;                      // Pointer ke asteroid yang sedang diketik
     bool wasPreviousKeyWrong = false;                       // Flag untuk mencegah error sound berulang
@@ -39,7 +41,6 @@ public:
     int   correctKeystrokes = 0;
     float survivalTime      = 0.0f;
     int wordsCompleted = 0;
-    float GetAccuracy() const;
 
     GameplayManager() = default; // Constructor default
     ~GameplayManager();          // Audio lifecycle via AudioManager

@@ -43,6 +43,7 @@ int Asteroid::typingAsteroid(char characterTyped) {
     // Jika kata sudah habis, nonaktifkan asteroid (hancur)
     if (word.empty()) {
         active = false;
+        if (onDestroyed) onDestroyed(position);
     }
 
     return 1; // Berhasil: 1 karakter diproses

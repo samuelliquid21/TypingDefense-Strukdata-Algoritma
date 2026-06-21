@@ -20,11 +20,13 @@ void AudioManager::Init() {
     AssetManager::getInstance().loadSound("laser", "assets/sound/laser.mp3");
     AssetManager::getInstance().loadSound("error", "assets/sound/error.mp3");
     AssetManager::getInstance().loadSound("gameover", "assets/sound/gameover.mp3");
+    AssetManager::getInstance().loadSound("explosion", "assets/sound/explosion.mp3");
 
     // Default volumes
     setSfxVolume("laser", 0.4f);
     setSfxVolume("error", 0.5f);
     setSfxVolume("gameover", 0.8f);
+    setSfxVolume("explosion", 1.0f);
 
     setMusicVolume("lobby", 0.5f);
     setMusicVolume("credit", 0.5f);
