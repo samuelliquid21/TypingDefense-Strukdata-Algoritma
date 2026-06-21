@@ -10,4 +10,5 @@ public:
     virtual bool isReady() const = 0;                      // Apakah skill siap dipakai? (IDLE)
     virtual bool isActive() const = 0;                     // Apakah skill sedang aktif?
     virtual float getCooldownProgress() const = 0;         // Progress cooldown 0.0–1.0
+    virtual void activate() = 0;                           // Aktifkan skill
 };

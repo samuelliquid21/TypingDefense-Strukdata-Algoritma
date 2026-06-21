@@ -31,6 +31,14 @@ namespace Config {
     constexpr float scoreBoosterDuration{5.0f};      // durasi multiplier aktif
     constexpr float scoreBoosterCooldown{30.0f};     // cooldown score booster (detik)
 
+    // === Konfigurasi Aura Field Skill ===
+    constexpr float auraFieldDuration{10.0f};        // durasi aura aktif
+    constexpr float auraFieldCooldown{30.0f};        // cooldown aura (detik)
+
+    // === Konfigurasi Instant Crit Skill ===
+    constexpr float instantCritDuration{10.0f};      // durasi instant crit aktif
+    constexpr float instantCritCooldown{30.0f};      // cooldown instant crit (detik)
+
     // === Konfigurasi Debug ===
     constexpr bool enableDebugPlayerInfo{false};      // tampilkan info player di menu utama
 }

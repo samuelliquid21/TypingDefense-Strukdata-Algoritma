@@ -11,7 +11,7 @@ public:
     bool isReady() const override;
     bool isActive() const override;
     float getCooldownProgress() const override;
-    bool activate();                               // picu ledakan, return false jika cooldown
+    void activate() override;                               // picu ledakan
     float getShockwaveRadius() const;              // Radius shockwave saat ini (untuk deteksi collision)
 
 private:

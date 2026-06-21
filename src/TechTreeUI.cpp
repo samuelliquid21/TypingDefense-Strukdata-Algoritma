@@ -100,10 +100,9 @@ void TechTreeUI::DrawNode(const SkillData& skill, bool isHovered) {
     // Konversi enum ke teks untuk ditampilkan
     std::string nameText;
     switch (skill.name) {
-        case BARRIER:       nameText = "Barrier"; break;
         case AURA_FIELD:    nameText = "Aura Field"; break;
+        case BARRIER:       nameText = "Barrier"; break;
         case SHOCKWAVE:     nameText = "Shockwave"; break;
-        case CHRONO_STASIS: nameText = "Chrono Stasis"; break;
         case INSTANT_CRIT:  nameText = "Instant Crit"; break;
         case SCORE_BOOSTER: nameText = "Score Booster"; break;
     }
@@ -175,10 +174,9 @@ void TechTreeUI::DrawTooltip(const SkillData& skill) {
     // Nama skill
     std::string nameText;
     switch (skill.name) {
-        case BARRIER:       nameText = "Barrier"; break;
         case AURA_FIELD:    nameText = "Aura Field"; break;
+        case BARRIER:       nameText = "Barrier"; break;
         case SHOCKWAVE:     nameText = "Shockwave"; break;
-        case CHRONO_STASIS: nameText = "Chrono Stasis"; break;
         case INSTANT_CRIT:  nameText = "Instant Crit"; break;
         case SCORE_BOOSTER: nameText = "Score Booster"; break;
     }

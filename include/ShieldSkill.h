@@ -11,7 +11,7 @@ public:
     bool isReady() const override;
     bool isActive() const override;
     float getCooldownProgress() const override;     // 0.0 = siap, 1.0 = cooldown selesai
-    void activate();                                // Aktivasi manual (tekan tombol 1)
+    void activate() override;                                // Aktivasi manual (tekan tombol 1)
     bool consumeShield();                           // True jika shield menyerap hit → masuk COOLDOWN
 
     static constexpr int SHIELD_RADIUS = 52;        // Radius lingkaran shield untuk deteksi collision

@@ -1,10 +1,10 @@
 #pragma once
 #include "Skill.h"
 
-// Skill Score Booster: multiplier 16x skor selama durasi aktif
-class ScoreBoosterSkill : public Skill {
+// Skill Aura Field: shield aktif berdasarkan durasi (10 detik)
+class AuraFieldSkill : public Skill {
 public:
-    ScoreBoosterSkill();
+    AuraFieldSkill();
     void update(float deltaTime) override;
     void draw() override;
     const char* getName() const override;
@@ -12,8 +12,7 @@ public:
     bool isActive() const override;
     float getCooldownProgress() const override;
     void activate() override;
-
-    static constexpr int SCORE_MULTIPLIER = 16;
+    static constexpr int AURA_RADIUS = 64;
 
 private:
     enum State { IDLE, ACTIVE, COOLDOWN };

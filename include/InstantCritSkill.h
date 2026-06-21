@@ -1,10 +1,10 @@
 #pragma once
 #include "Skill.h"
 
-// Skill Score Booster: multiplier 16x skor selama durasi aktif
-class ScoreBoosterSkill : public Skill {
+// Skill Instant Crit: huruf pertama langsung hancurkan asteroid (10 detik)
+class InstantCritSkill : public Skill {
 public:
-    ScoreBoosterSkill();
+    InstantCritSkill();
     void update(float deltaTime) override;
     void draw() override;
     const char* getName() const override;
@@ -12,8 +12,6 @@ public:
     bool isActive() const override;
     float getCooldownProgress() const override;
     void activate() override;
-
-    static constexpr int SCORE_MULTIPLIER = 16;
 
 private:
     enum State { IDLE, ACTIVE, COOLDOWN };

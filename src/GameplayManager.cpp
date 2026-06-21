@@ -9,10 +9,15 @@ GameplayManager::~GameplayManager() {
 }
 
 bool GameplayManager::isHit() {
-    // Hitbox player: pakai radius shield jika sedang aktif, atau ukuran normal dari config
-    int hitRadius = shieldSkill.isActive()
-        ? ShieldSkill::SHIELD_RADIUS
-        : Config::playerHitbox;
+    // Hitbox player: pakai radius aura, shield, atau ukuran normal
+    int hitRadius;
+    if (auraFieldSkill.isActive()) {
+        hitRadius = AuraFieldSkill::AURA_RADIUS;
+    } else if (shieldSkill.isActive()) {
+        hitRadius = ShieldSkill::SHIELD_RADIUS;
+    } else {
+        hitRadius = Config::playerHitbox;
+    }
 
     // Scan semua asteroid aktif yang bertabrakan dengan player
     auto hits = asteroidManager.scanAllAsteroids([hitRadius](const Asteroid& ast) {
@@ -20,6 +25,15 @@ bool GameplayManager::isHit() {
             ast.position, ast.radius, Config::playerStartPos, hitRadius);
     });
     if (!hits.empty()) {
+        if (auraFieldSkill.isActive()) {
+            // Aura menyerap semua damage, tetap aktif sampai durasi habis
+            AudioManager::getInstance().playSfxOnce("explosion");
+            for (auto* ast : hits) {
+                explosionManager.spawn(ast->position, 16, ORANGE);
+                ast->active = false;
+            }
+            return false;
+        }
         if (shieldSkill.isActive()) {
             // Shield menyerap damage: hancurkan semua asteroid yang menabrak, lalu konsumsi shield
             shieldSkill.consumeShield();
@@ -72,6 +86,7 @@ void GameplayManager::SetAsteroidDestroyedCallback(AsteroidDestroyedCallback cal
 
 void GameplayManager::setUnlockedSkills(const std::vector<std::string>* skills) {
     m_unlockedSkills = skills;
+    rebuildActiveSkills();
 }
 
 bool GameplayManager::isUnlocked(const std::string& name) const {
@@ -82,15 +97,39 @@ bool GameplayManager::isUnlocked(const std::string& name) const {
     return false;
 }
 
+void GameplayManager::rebuildActiveSkills() {
+    m_activeSkills.clear();
+    int key = 1;
+
+    struct { Skill* skill; const char* keyName; } all[] = {
+        {&shieldSkill,       "barrier"},
+        {&auraFieldSkill,    "aura_field"},
+        {&bombSkill,         "shockwave"},
+        {&instantCritSkill,  "instant_crit"},
+        {&scoreBoosterSkill, "score_booster"},
+    };
+
+    for (auto& entry : all) {
+        if (isUnlocked(entry.keyName)) {
+            m_activeSkills.push_back({entry.skill, entry.keyName, key++});
+        }
+    }
+}
+
 void GameplayManager::update(float deltaTime) {
     // Update semua subsistem game
     survivalTime += deltaTime;
     spaceship.update(deltaTime);
     asteroidManager.update(deltaTime);
-    shieldSkill.update(deltaTime);
-    bombSkill.update(deltaTime);
-    scoreBoosterSkill.update(deltaTime);
     explosionManager.update(deltaTime);
+
+    // Update & keypress untuk skill aktif yang ter-unlock
+    for (auto& binding : m_activeSkills) {
+        if (IsKeyPressed(KEY_ZERO + binding.keyNumber)) {
+            binding.skill->activate();
+        }
+        binding.skill->update(deltaTime);
+    }
 
     // Cek efek bom shockwave: hancurkan semua asteroid dalam radius lingkaran
     if (bombSkill.isActive()) {
@@ -105,21 +144,6 @@ void GameplayManager::update(float deltaTime) {
                 ast->active = false;
             }
         }
-    }
-
-    // Tombol 1: aktifkan shield skill jika sudah siap
-    if (isUnlocked("barrier") && IsKeyPressed(KEY_ONE)) {
-        shieldSkill.activate();
-    }
-
-    // Tombol 2: aktifkan bomb skill jika sudah siap
-    if (isUnlocked("shockwave") && IsKeyPressed(KEY_TWO)) {
-        bombSkill.activate();
-    }
-
-    // Tombol 6: aktifkan score booster jika sudah siap
-    if (isUnlocked("score_booster") && IsKeyPressed(KEY_SIX)) {
-        scoreBoosterSkill.activate();
     }
 
     // Tangkap input karakter dari keyboard
@@ -155,6 +179,24 @@ void GameplayManager::update(float deltaTime) {
                 correctKeystrokes++;
                 AudioManager::getInstance().playSfx("laser");
                 AddScore(result);
+
+                // INSTANT_CRIT: huruf pertama langsung hancurkan asteroid
+                if (instantCritSkill.isActive() && currentTarget->active) {
+                    currentTarget->word = "";
+                    currentTarget->active = false;
+                    if (currentTarget->onDestroyed) currentTarget->onDestroyed(currentTarget->position);
+                    if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
+                    wordsCompleted++;
+                    if (wordsCompleted >= 5) {
+                        comboStack.Push();
+                        wordsCompleted = 0;
+                    }
+                    state = SEARCH_FOR_TARGET;
+                    currentTarget = nullptr;
+                    wasPreviousKeyWrong = false;
+                    return;
+                }
+
                 state = TARGET_LOCKED; // Pindah ke state mengetik
                 wasPreviousKeyWrong = false;
             }
@@ -214,9 +256,12 @@ void GameplayManager::draw() {
     spaceship.draw();
     asteroidManager.draw();
     explosionManager.draw();
-    shieldSkill.draw();
-    bombSkill.draw();
-    scoreBoosterSkill.draw();
+
+    // Draw visual untuk skill yang ter-unlock
+    for (auto& binding : m_activeSkills) {
+        binding.skill->draw();
+    }
+
     int multiplier = comboStack.GetMultiplier();
 
     // Tampilkan skor di tengah atas layar
@@ -235,53 +280,30 @@ void GameplayManager::draw() {
         DrawText(progressText, Config::screenWidth/2 - MeasureText(progressText, 20)/2, 85, 20, (multiplier > 1) ? GREEN : DARKGRAY);
     }
 
-    // HUD status Shield (pojok kanan atas)
-    const char* shieldText;
-    Color shieldColor;
-    if (shieldSkill.isReady()) {
-        shieldText = "SHIELD: READY [1]";
-        shieldColor = GREEN;
-    } else if (shieldSkill.isActive()) {
-        shieldText = "SHIELD: ACTIVE";
-        shieldColor = SKYBLUE;
-    } else {
-        float remaining = Config::shieldCooldown * (1.0f - shieldSkill.getCooldownProgress());
-        shieldText = TextFormat("SHIELD: %.0fs", remaining);
-        shieldColor = GRAY;
-    }
-    DrawText(shieldText, Config::screenWidth - MeasureText(shieldText, 15) - 10, 10, 15, shieldColor);
+    // HUD skill aktif (pojok kanan atas) — hanya untuk skill yang ter-unlock
+    int hudY = 10;
+    for (auto& binding : m_activeSkills) {
+        const char* keyStr = TextFormat("[%d]", binding.keyNumber);
+        const char* name = binding.skill->getName();
+        Color color;
+        char line[64];
 
-    // HUD status Bomb (pojok kanan atas, di bawah shield)
-    const char* bombText;
-    Color bombColor;
-    if (bombSkill.isReady()) {
-        bombText = "BOMB: READY [2]";
-        bombColor = ORANGE;
-    } else if (bombSkill.isActive()) {
-        bombText = "BOMB: ACTIVE";
-        bombColor = RED;
-    } else {
-        float remaining = Config::bombCooldown * (1.0f - bombSkill.getCooldownProgress());
-        bombText = TextFormat("BOMB: %.0fs", remaining);
-        bombColor = GRAY;
+        if (binding.skill->isReady()) {
+            snprintf(line, sizeof(line), "%s: READY %s", name, keyStr);
+            color = GREEN;
+        } else if (binding.skill->isActive()) {
+            snprintf(line, sizeof(line), "%s: ACTIVE", name);
+            color = SKYBLUE;
+        } else {
+            // Gunakan cooldown skill — ambil dari getName untuk lookup (tidak 100% akurat)
+            // Alternatif: simpan cooldown value di SkillBinding
+            float remaining = 30.0f * (1.0f - binding.skill->getCooldownProgress());
+            snprintf(line, sizeof(line), "%s: %.0fs", name, remaining);
+            color = GRAY;
+        }
+        DrawText(line, Config::screenWidth - MeasureText(line, 15) - 10, hudY, 15, color);
+        hudY += 18;
     }
-    DrawText(bombText, Config::screenWidth - MeasureText(bombText, 15) - 10, 28, 15, bombColor);
-
-    // HUD status Score Booster (pojok kanan atas, di bawah bomb)
-    const char* sbText;
-    Color sbColor;
-    if (scoreBoosterSkill.isReady()) {
-        sbText = "SCORE: READY [6]";
-        sbColor = YELLOW;
-    } else if (scoreBoosterSkill.isActive()) {
-        sbText = "SCORE: ACTIVE x16";
-        sbColor = GOLD;
-    } else {
-        float remaining = Config::scoreBoosterCooldown * (1.0f - scoreBoosterSkill.getCooldownProgress());
-        sbText = TextFormat("SCORE: %.0fs", remaining);
-        sbColor = GRAY;
-    }
-    DrawText(sbText, Config::screenWidth - MeasureText(sbText, 15) - 10, 46, 15, sbColor);
 }
 
 void GameplayManager::reset() {
@@ -298,4 +320,6 @@ void GameplayManager::reset() {
     wasPreviousKeyWrong = false;
     explosionManager.reset();
     scoreBoosterSkill = ScoreBoosterSkill();
+    auraFieldSkill = AuraFieldSkill();
+    instantCritSkill = InstantCritSkill();
 }

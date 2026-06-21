@@ -1,0 +1,68 @@
+#include "AuraFieldSkill.h"
+#include "raylib.h"
+#include "GameConfig.h"
+
+AuraFieldSkill::AuraFieldSkill() {}
+
+void AuraFieldSkill::activate() {
+    if (state != IDLE) return;
+    state = ACTIVE;
+    timer = 0.0f;
+}
+
+void AuraFieldSkill::update(float deltaTime) {
+    if (state == ACTIVE) {
+        timer += deltaTime;
+        if (timer >= Config::auraFieldDuration) {
+            state = COOLDOWN;
+            timer = 0.0f;
+        }
+    } else if (state == COOLDOWN) {
+        timer += deltaTime;
+        if (timer >= Config::auraFieldCooldown) {
+            state = IDLE;
+            timer = 0.0f;
+        }
+    }
+}
+
+void AuraFieldSkill::draw() {
+    if (state == IDLE) {
+        DrawCircleLines(
+            Config::playerStartPos.x,
+            Config::playerStartPos.y,
+            AURA_RADIUS,
+            {180, 0, 255, 30}
+        );
+    } else if (state == ACTIVE) {
+        DrawCircleLines(
+            Config::playerStartPos.x,
+            Config::playerStartPos.y,
+            AURA_RADIUS,
+            {180, 0, 255, 150}
+        );
+        DrawCircleLines(
+            Config::playerStartPos.x,
+            Config::playerStartPos.y,
+            AURA_RADIUS + 4,
+            {180, 0, 255, 80}
+        );
+    }
+}
+
+const char* AuraFieldSkill::getName() const {
+    return "AURA";
+}
+
+bool AuraFieldSkill::isReady() const {
+    return state == IDLE;
+}
+
+bool AuraFieldSkill::isActive() const {
+    return state == ACTIVE;
+}
+
+float AuraFieldSkill::getCooldownProgress() const {
+    if (state == IDLE || state == ACTIVE) return 0.0f;
+    return timer / Config::auraFieldCooldown;
+}

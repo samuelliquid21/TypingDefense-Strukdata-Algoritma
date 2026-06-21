@@ -5,12 +5,11 @@
 BombSkill::BombSkill() {}
 
 // Aktifkan bom: mulai animasi shockwave, return false jika masih cooldown
-bool BombSkill::activate() {
-    if (state != IDLE) return false; // Abaikan jika sedang meledak atau cooldown
+void BombSkill::activate() {
+    if (state != IDLE) return;
     state = EXPLODING;
     timer = 0.0f;
     shockwaveRadius = 0.0f;
-    return true;
 }
 
 // Update: animasi shockwave membesar, lalu transisi ke COOLDOWN
