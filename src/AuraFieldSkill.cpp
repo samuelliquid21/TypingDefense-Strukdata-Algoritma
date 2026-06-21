@@ -2,14 +2,20 @@
 #include "raylib.h"
 #include "GameConfig.h"
 
+// ===============================
+// 🛡️ AURA FIELD SKILL
+// ===============================
+
 AuraFieldSkill::AuraFieldSkill() {}
 
+// Aktifkan aura: hanya bisa dari state IDLE
 void AuraFieldSkill::activate() {
     if (state != IDLE) return;
     state = ACTIVE;
     timer = 0.0f;
 }
 
+// Update timer: ACTIVE → COOLDOWN → IDLE berdasarkan durasi konfigurasi
 void AuraFieldSkill::update(float deltaTime) {
     if (state == ACTIVE) {
         timer += deltaTime;
@@ -26,6 +32,9 @@ void AuraFieldSkill::update(float deltaTime) {
     }
 }
 
+// Render lingkaran aura di sekitar player
+// IDLE: lingkaran tipis transparan (indikasi siap)
+// ACTIVE: lingkaran ganda terang (aura aktif)
 void AuraFieldSkill::draw() {
     if (state == IDLE) {
         DrawCircleLines(

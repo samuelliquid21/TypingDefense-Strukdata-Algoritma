@@ -2,14 +2,20 @@
 #include "raylib.h"
 #include "GameConfig.h"
 
+// ===============================
+// ⚡ INSTANT CRIT SKILL
+// ===============================
+
 InstantCritSkill::InstantCritSkill() {}
 
+// Aktifkan instant crit: hanya bisa dari state IDLE
 void InstantCritSkill::activate() {
     if (state != IDLE) return;
     state = ACTIVE;
     timer = 0.0f;
 }
 
+// Update timer: ACTIVE → COOLDOWN → IDLE berdasarkan durasi konfigurasi
 void InstantCritSkill::update(float deltaTime) {
     if (state == ACTIVE) {
         timer += deltaTime;
@@ -26,6 +32,9 @@ void InstantCritSkill::update(float deltaTime) {
     }
 }
 
+// Render indikator kotak merah di sekitar player
+// IDLE: garis tipis transparan
+// ACTIVE: garis ganda terang
 void InstantCritSkill::draw() {
     if (state == IDLE) {
         DrawRectangleLines(

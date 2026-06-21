@@ -2,6 +2,10 @@
 #include "AudioManager.h"
 #include "GameConfig.h"
 
+// ===============================
+// 🌀 EFEK TRANSISI GLITCH
+// ===============================
+
 void TransitionEffect::Update(float dt) {
     if (!m_active) return;
 

@@ -2,6 +2,10 @@
 #include <stdexcept>
 #include "raylib.h"
 
+// ===============================
+// 🌳 TECH TREE (GRAPH + BFS)
+// ===============================
+
 // Konstruktor: inisialisasi semua skill dengan posisi, biaya, dan dependensi
 TechTree::TechTree() {
     float boxW = 220.0f;

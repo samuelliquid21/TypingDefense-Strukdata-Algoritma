@@ -2,6 +2,10 @@
 #include "raylib.h"
 #include "GameConfig.h"
 
+// ===============================
+// 💣 BOMB SKILL
+// ===============================
+
 BombSkill::BombSkill() {}
 
 // Aktifkan bom: mulai animasi shockwave, return false jika masih cooldown

@@ -2,7 +2,9 @@
 #include <fstream>
 #include "raylib.h"
 
-// ==== SINGLETON ====
+// ===============================
+// 💾 MANAJER DATA (JSON)
+// ===============================
 
 DataManager& DataManager::getInstance() {
     static DataManager instance; // Inisialisasi sekali, thread-safe di C++11+

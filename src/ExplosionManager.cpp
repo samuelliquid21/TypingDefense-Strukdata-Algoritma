@@ -1,16 +1,23 @@
 #include "ExplosionManager.h"
 #include "raymath.h"
 
+// ===============================
+// 💥 MANAGER LEDAKAN
+// ===============================
+
+// Spawn partikel ledakan di posisi tertentu.
+// Mencari slot pool yang tidak aktif, lalu menginisialisasi
+// partikel dengan arah random dan kecepatan 80-300.
 void ExplosionManager::spawn(Vector2 pos, int count, Color color) {
-    // Cari slot pool yang tidak aktif
     for (auto &e : m_pool) {
         if (!e.active) {
             e.pos = pos;
             e.color = color;
             e.timer = e.duration;
-            e.particleCount = (count > 35) ? 35 : count;
+            e.particleCount = (count > 35) ? 35 : count; // Maks 35 partikel per ledakan
             e.active = true;
 
+            // Init tiap partikel dengan arah dan kecepatan random
             for (int i = 0; i < e.particleCount; i++) {
                 float angle = GetRandomValue(0, 360) * DEG2RAD;
                 float speed = (float)GetRandomValue(80, 300);
@@ -26,16 +33,18 @@ void ExplosionManager::spawn(Vector2 pos, int count, Color color) {
     }
 }
 
+// Update posisi partikel (bergerak sesuai velocity) dengan damping.
+// Partikel yang sudah habis durasi dinonaktifkan.
 void ExplosionManager::update(float dt) {
     for (auto &e : m_pool) {
         if (!e.active) continue;
 
         e.timer -= dt;
+        // Gerak partikel + perlambatan
         for (int i = 0; i < e.particleCount; i++) {
             e.particles[i].pos.x += e.particles[i].vel.x * dt;
             e.particles[i].pos.y += e.particles[i].vel.y * dt;
-            // Damping perlambatan
-            e.particles[i].vel.x *= 0.98f;
+            e.particles[i].vel.x *= 0.98f; // Damping
             e.particles[i].vel.y *= 0.98f;
         }
 
@@ -45,6 +54,8 @@ void ExplosionManager::update(float dt) {
     }
 }
 
+// Render semua partikel ledakan yang aktif.
+// Alpha memudar seiring sisa durasi (timer/duration).
 void ExplosionManager::draw() {
     for (auto &e : m_pool) {
         if (!e.active) continue;
@@ -60,6 +71,7 @@ void ExplosionManager::draw() {
     }
 }
 
+// Nonaktifkan semua ledakan (reset pool).
 void ExplosionManager::reset() {
     for (auto &e : m_pool) {
         e.active = false;

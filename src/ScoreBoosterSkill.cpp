@@ -2,14 +2,20 @@
 #include "raylib.h"
 #include "GameConfig.h"
 
+// ===============================
+// ⭐ SCORE BOOSTER SKILL
+// ===============================
+
 ScoreBoosterSkill::ScoreBoosterSkill() {}
 
+// Aktifkan score booster: hanya bisa dari state IDLE
 void ScoreBoosterSkill::activate() {
     if (state != IDLE) return;
     state = ACTIVE;
     timer = 0.0f;
 }
 
+// Update timer: ACTIVE → COOLDOWN → IDLE berdasarkan durasi konfigurasi
 void ScoreBoosterSkill::update(float deltaTime) {
     if (state == ACTIVE) {
         timer += deltaTime;
@@ -26,9 +32,11 @@ void ScoreBoosterSkill::update(float deltaTime) {
     }
 }
 
+// Render lingkaran emas di sekitar player
+// IDLE: lingkaran tipis transparan
+// ACTIVE: lingkaran ganda terang (multiplier aktif)
 void ScoreBoosterSkill::draw() {
     if (state == IDLE) {
-        // Lingkaran tipis emas — indikasi siap
         DrawCircleLines(
             Config::playerStartPos.x,
             Config::playerStartPos.y,
@@ -36,7 +44,6 @@ void ScoreBoosterSkill::draw() {
             {255, 200, 0, 30}
         );
     } else if (state == ACTIVE) {
-        // Lingkaran emas terang — multiplier aktif
         DrawCircleLines(
             Config::playerStartPos.x,
             Config::playerStartPos.y,

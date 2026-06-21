@@ -1,5 +1,9 @@
 #include "MainMenu.h"
 
+// ===============================
+// 📋 MENU UTAMA
+// ===============================
+
 MainMenu::MainMenu() {
     title = "Cosmic Keypad";
 

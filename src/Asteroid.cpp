@@ -3,6 +3,9 @@
 #include "GameConfig.h"
 #include "raymath.h"
 
+// ===============================
+// ☄️ ASTEROID
+// ===============================
 int Asteroid::counter = 0;
 
 // == FUNGSI PEMBANTU ANONYM ==

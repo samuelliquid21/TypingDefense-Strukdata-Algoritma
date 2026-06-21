@@ -2,6 +2,10 @@
 #include "GameConfig.h"
 #include <string>
 
+// ===============================
+// 🖌️ UI TECH TREE
+// ===============================
+
 // Konstruktor: inisialisasi ref tree, default hover & tooltip ke BARRIER (tidak aktif)
 TechTreeUI::TechTreeUI(TechTree& tree)
     : m_tree(tree), m_hoveredSkill(BARRIER), m_tooltipSkill(BARRIER), m_isTooltipActive(false) {}

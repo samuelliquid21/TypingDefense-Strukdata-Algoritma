@@ -4,6 +4,9 @@
 #include "GameConfig.h"
 #include "raymath.h"
 
+// ===============================
+// 🎮 MANAGER GAMEPLAY
+// ===============================
 GameplayManager::~GameplayManager() {
     // no-op: AssetManager handle lifecycle
 }

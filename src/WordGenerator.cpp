@@ -2,6 +2,10 @@
 #include "word_module.h"
 #include <random>
 
+// ===============================
+// 🔤 GENERATOR KATA RANDOM
+// ===============================
+
 namespace {
     // Random number generator dengan Mersenne Twister (seed dari hardware)
     std::mt19937 rng(std::random_device{}());

@@ -1,41 +1,48 @@
 #include "GameOver.h"
 #include "GameConfig.h"
 
+// ===============================
+// 💀 LAYAR GAME OVER
+// ===============================
+
 GameOver::GameOver() {
     Reset();
 }
 
+// Reset skor dan status ke nilai awal
 void GameOver::Reset() {
     score = 0;
-    returnToMenu = false;  // Belum memilih kembali
+    returnToMenu = false;
 }
 
+// Simpan skor akhir untuk ditampilkan di Draw()
 void GameOver::SetScore(int s) {
-    score = s; // Simpan skor akhir untuk ditampilkan di Draw()
+    score = s;
 }
 
+// Tunggu input ENTER untuk kembali ke menu utama
 void GameOver::Update() {
-    // Tunggu input ENTER untuk kembali ke menu utama
     if (IsKeyPressed(KEY_ENTER)) {
-        returnToMenu = true; // Sinyal ke state machine
+        returnToMenu = true;
     }
 }
 
+// Render layar game over: judul merah, skor, petunjuk
 void GameOver::Draw() {
     int centerX = Config::screenWidth / 2;
     int yStart = 100;
 
-    // Judul "GAME OVER" di bagian atas dengan warna merah
+    // Judul GAME OVER
     const char* title = "GAME OVER";
     int titleW = MeasureText(title, 40);
     DrawText(title, centerX - titleW/2, yStart, 40, RED);
 
-    // Tampilkan skor akhir player
+    // Tampilkan skor akhir
     const char* scoreText = TextFormat("Score Kamu: %d", score);
     int scoreW = MeasureText(scoreText, 20);
     DrawText(scoreText, centerX - scoreW/2, yStart + 80, 20, WHITE);
 
-    // Petunjuk untuk melanjutkan
+    // Petunjuk kembali
     const char* btn = "Tekan ENTER untuk kembali";
     int btnW = MeasureText(btn, 20);
     DrawText(btn, centerX - btnW/2, yStart + 140, 20, GRAY);

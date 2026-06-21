@@ -3,7 +3,10 @@
 #include "GameConfig.h"
 #include "raylib.h"
 #include <algorithm>
-#include <string>
+
+// ===============================
+// 📖 KAMUS KATA
+// ===============================#include <string>
 
 Dictionary::Dictionary() {
     LoadWords();

@@ -2,7 +2,9 @@
 #include "raylib.h"
 #include "GameConfig.h"
 
-// ==== CONSTRUCTOR DAN DESTRUCTOR ====
+// ===============================
+// ☄️ MANAGER ASTEROID
+// ===============================
 
 AsteroidManager::AsteroidManager() {
     // Inisialisasi awal: buat node shower awal, start semua timer

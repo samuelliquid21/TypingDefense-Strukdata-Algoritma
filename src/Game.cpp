@@ -197,6 +197,7 @@ void Game::UpdateMenu() {
         }
         else if (choice == 4) {
             AudioManager::getInstance().StopLobby();
+            creditScreen.Reset();
             state = GameState::CREDIT;
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start();
