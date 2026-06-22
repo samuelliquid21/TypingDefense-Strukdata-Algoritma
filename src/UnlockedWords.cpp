@@ -4,6 +4,9 @@
 #include "raylib.h"
 #include <algorithm>
 
+// ===============================
+// 🔓 KATA TERBUKA
+// ===============================
 WordNode::WordNode(const std::string& w, const std::string& d, const std::string& def)
     : word(w), difficulty(d), definition(def), prev(nullptr), next(nullptr) {}
 

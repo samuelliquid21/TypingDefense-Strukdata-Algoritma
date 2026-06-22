@@ -2,6 +2,10 @@
 #include "GameConfig.h"
 #include <string>
 
+// ===============================
+// 🖌️ UI TECH TREE
+// ===============================
+
 // Konstruktor: inisialisasi ref tree, default hover & tooltip ke BARRIER (tidak aktif)
 TechTreeUI::TechTreeUI(TechTree& tree)
     : m_tree(tree), m_hoveredSkill(BARRIER), m_tooltipSkill(BARRIER), m_isTooltipActive(false) {}
@@ -100,10 +104,9 @@ void TechTreeUI::DrawNode(const SkillData& skill, bool isHovered) {
     // Konversi enum ke teks untuk ditampilkan
     std::string nameText;
     switch (skill.name) {
-        case BARRIER:       nameText = "Barrier"; break;
         case AURA_FIELD:    nameText = "Aura Field"; break;
+        case BARRIER:       nameText = "Barrier"; break;
         case SHOCKWAVE:     nameText = "Shockwave"; break;
-        case CHRONO_STASIS: nameText = "Chrono Stasis"; break;
         case INSTANT_CRIT:  nameText = "Instant Crit"; break;
         case SCORE_BOOSTER: nameText = "Score Booster"; break;
     }
@@ -175,10 +178,9 @@ void TechTreeUI::DrawTooltip(const SkillData& skill) {
     // Nama skill
     std::string nameText;
     switch (skill.name) {
-        case BARRIER:       nameText = "Barrier"; break;
         case AURA_FIELD:    nameText = "Aura Field"; break;
+        case BARRIER:       nameText = "Barrier"; break;
         case SHOCKWAVE:     nameText = "Shockwave"; break;
-        case CHRONO_STASIS: nameText = "Chrono Stasis"; break;
         case INSTANT_CRIT:  nameText = "Instant Crit"; break;
         case SCORE_BOOSTER: nameText = "Score Booster"; break;
     }
@@ -243,9 +245,9 @@ void TechTreeUI::DrawTitle() {
 // Dapatkan warna untuk node berdasarkan state-nya
 Color TechTreeUI::GetStateColor(SkillState state) {
     switch (state) {
-        case LOCKED:    return Color{50, 50, 60, 255};   // Abu-abu gelap
-        case AVAILABLE: return Color{0, 80, 180, 200};    // Biru
-        case UNLOCKED:  return Color{0, 150, 60, 200};    // Hijau
+        case LOCKED:    return Color{50, 50, 60, 255};
+        case AVAILABLE: return Color{0, 200, 255, 220};
+        case UNLOCKED:  return Color{0, 230, 150, 220};
     }
     return DARKGRAY;
 }

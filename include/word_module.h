@@ -17,7 +17,7 @@
 //  EASY  -  1 sampai 5 huruf  (50 kata)
 //  Pool kata mudah: kosakata pendek, umum, mudah diketik
 // ------------------------------------------------------------
-const std::vector<std::string> easy = {
+inline const std::vector<std::string> easy = {
     // 1 huruf
     "a",
     // 2 huruf
@@ -36,7 +36,7 @@ const std::vector<std::string> easy = {
 };
 
 // Definisi bahasa Indonesia untuk setiap kata Easy
-const std::unordered_map<std::string, std::string> easy_definitions = {
+inline const std::unordered_map<std::string, std::string> easy_definitions = {
     {"a",     "Artikel tak tentu dalam bahasa Inggris"},
     {"ox",    "Sapi jantan besar yang sering digunakan sebagai hewan penarik beban"},
     {"ax",    "Alat pemotong kayu dengan mata besi tajam dan bertangkai panjang"},
@@ -94,7 +94,7 @@ const std::unordered_map<std::string, std::string> easy_definitions = {
 //  MEDIUM  -  6 sampai 10 huruf  (50 kata)
 //  Pool kata sedang: panjang kata sedang, tantangan mengetik menengah
 // ------------------------------------------------------------
-const std::vector<std::string> medium = {
+inline const std::vector<std::string> medium = {
     // 6 huruf
     "arctic", "bottle", "cactus", "dagger", "embryo",
     "fossil", "goblin", "harbor", "ignite", "jungle",
@@ -112,7 +112,7 @@ const std::vector<std::string> medium = {
 };
 
 // Definisi bahasa Indonesia untuk setiap kata Medium
-const std::unordered_map<std::string, std::string> medium_definitions = {
+inline const std::unordered_map<std::string, std::string> medium_definitions = {
     {"arctic",     "Wilayah kutub utara Bumi yang tertutup es dan sangat dingin"},
     {"bottle",     "Wadah silindris bermulut sempit untuk menyimpan cairan"},
     {"cactus",     "Tanaman berduri yang mampu bertahan di lingkungan gurun yang kering"},
@@ -170,7 +170,7 @@ const std::unordered_map<std::string, std::string> medium_definitions = {
 //  HARD  -  11 huruf ke atas  (50 kata)
 //  Pool kata sulit: kata panjang, tantangan mengetik tingkat tinggi
 // ------------------------------------------------------------
-const std::vector<std::string> hard = {
+inline const std::vector<std::string> hard = {
     // 11 huruf
     "archipelago",          "biodiversity",         "computation",
     "deforestation",        "electrolysis",         "fluorescence",
@@ -199,7 +199,7 @@ const std::vector<std::string> hard = {
 };
 
 // Definisi bahasa Indonesia untuk setiap kata Hard
-const std::unordered_map<std::string, std::string> hard_definitions = {
+inline const std::unordered_map<std::string, std::string> hard_definitions = {
     {"archipelago",           "Gugusan pulau-pulau yang tersebar di lautan dalam satu kawasan"},
     {"biodiversity",          "Keanekaragaman seluruh makhluk hidup yang ada di suatu ekosistem atau wilayah"},
     {"computation",           "Proses melakukan perhitungan atau pengolahan data secara sistematis"},

@@ -28,6 +28,8 @@ public:
     void update(float deltaTime);   // Update logika: timer, queue, pergerakan asteroid
     void draw();                    // Render semua asteroid aktif
 
+    void setExplosionCallback(std::function<void(Vector2)> cb); // Set callback ledakan untuk semua asteroid
+
 private:
     DifficultyManager difficultyManager; // Pengelola tingkat kesulitan berdasarkan waktu
 
@@ -59,4 +61,6 @@ private:
 
     // -- DEBUG --
     int getActiveAsteroidCount() const; // Hitung total asteroid aktif (pool + shower)
+
+    std::function<void(Vector2)> m_explosionCallback; // Callback ledakan yang diteruskan ke Asteroid
 };

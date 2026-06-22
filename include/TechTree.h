@@ -9,10 +9,9 @@
 
 // Daftar skill yang tersedia di Tech Tree
 enum SkillName {
-    BARRIER,        // Shield 1 hantaman — skill dasar (root)
     AURA_FIELD,     // Shield aktif berdasarkan waktu
+    BARRIER,        // Shield 1 hantaman — skill dasar (root)
     SHOCKWAVE,      // Hancurkan asteroid sekitar
-    CHRONO_STASIS,  // Perlambat gerakan asteroid
     INSTANT_CRIT,   // Ketik huruf pertama untuk hancurkan
     SCORE_BOOSTER   // Multiplier 16x score
 };

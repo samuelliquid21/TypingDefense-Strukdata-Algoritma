@@ -1,4 +1,8 @@
-#include "Combostack.h"
+#include "ComboStack.h"
+
+// ===============================
+// 🔗 COMBO STACK (FIXED ARRAY)
+// ===============================
 
 // Push: tambah combo dengan nilai ×2 dari level sebelumnya.
 // Multiplier: 1× → 2× → 4× → 8× → 16× → 32× → 64× (maks 6 level)

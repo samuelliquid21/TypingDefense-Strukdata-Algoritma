@@ -3,7 +3,7 @@
 #include "raylib.h"
 #include "GameConfig.h"
 
-#define LASER_DELAY 0.1f // Durasi laser menyala sebelum mati otomatis (detik)
+constexpr float LASER_DELAY = 0.1f; // Durasi laser menyala sebelum mati otomatis (detik)
 
 // Kelas spaceship pemain: posisi, texture, dan sistem laser
 class SpaceShip

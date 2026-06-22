@@ -1,5 +1,9 @@
 #include "Credit.h"
 
+// ===============================
+// 📜 CREDIT SCREEN
+// ===============================
+
 Credit::Credit() {
     scrollY = 720.0f;     // Mulai dari bawah layar (efek rolling credit)
     scrollSpeed = 60.0f;
@@ -59,6 +63,10 @@ Credit::Credit() {
     // Hitung total tinggi scroll agar bisa loop dengan benar
     int rowHeight = 45;
     totalHeight = entries.size() * rowHeight + 720.0f; // +720 agar habis scroll ada jeda
+}
+
+void Credit::Reset() {
+    scrollY = 720.0f;
 }
 
 void Credit::Update(bool& backToMenu) {

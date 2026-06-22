@@ -17,6 +17,8 @@
 #include "LoginScreen.h"
 #include "RegisterScreen.h"
 #include "LogoutScreen.h"
+#include "TransitionEffect.h"
+#include "DebugOverlay.h"
 
 // Kelas utama game — mengelola state machine, game loop, dan seluruh subsistem.
 // Menggunakan pola Game::Run() -> Update() / Draw() yang dipanggil tiap frame.
@@ -54,25 +56,17 @@ private:
 
     // === Data Pemain ===
     PlayerProfile m_currentPlayer;
+    PlayerProfile m_sessionBackup;
     bool m_isLoggedIn = false;
 
-    // === Audio ===
-    Music musicCredit;
-    Music musicLobby;
-
-    // === Transisi & Efek Glitch (dari Leaderboard) ===
-    float transitionTimer;
-    bool isTransitioning;
-    float glitchIntensity;
-    GameState targetState;
-
-    Sound glitchMasuk;
-    Sound glitchKeluar;
+    // === Transisi & Efek Glitch ===
+    TransitionEffect m_transitionEffect;
 
     // === Metode Update per State ===
     void Update();
     void Draw();
     void restartGame();
+    void setupCallbacks();
 
     void UpdateMenu();
     void UpdateGameplay();
@@ -100,5 +94,4 @@ private:
     void DrawDictionary();
     void DrawUnlockedWords();
 
-    void DrawPlayerInfo();
 };

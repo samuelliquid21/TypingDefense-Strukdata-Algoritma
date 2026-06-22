@@ -1,20 +1,26 @@
 #include "GameplayManager.h"
+#include "AudioManager.h"
 #include "raylib.h"
 #include "GameConfig.h"
 #include "raymath.h"
 
+// ===============================
+// 🎮 MANAGER GAMEPLAY
+// ===============================
 GameplayManager::~GameplayManager() {
-    // Unload semua sound effect yang sudah di-load dari memory
-    UnloadSound(laser);
-    UnloadSound(error);
-    UnloadSound(gameover);
+    // no-op: AssetManager handle lifecycle
 }
 
 bool GameplayManager::isHit() {
-    // Hitbox player: pakai radius shield jika sedang aktif, atau ukuran normal dari config
-    int hitRadius = shieldSkill.isActive()
-        ? ShieldSkill::SHIELD_RADIUS
-        : Config::playerHitbox;
+    // Hitbox player: pakai radius aura, shield, atau ukuran normal
+    int hitRadius;
+    if (auraFieldSkill.isActive()) {
+        hitRadius = AuraFieldSkill::AURA_RADIUS;
+    } else if (shieldSkill.isActive()) {
+        hitRadius = ShieldSkill::SHIELD_RADIUS;
+    } else {
+        hitRadius = Config::playerHitbox;
+    }
 
     // Scan semua asteroid aktif yang bertabrakan dengan player
     auto hits = asteroidManager.scanAllAsteroids([hitRadius](const Asteroid& ast) {
@@ -22,14 +28,28 @@ bool GameplayManager::isHit() {
             ast.position, ast.radius, Config::playerStartPos, hitRadius);
     });
     if (!hits.empty()) {
+        if (auraFieldSkill.isActive()) {
+            // Aura menyerap semua damage, tetap aktif sampai durasi habis
+            AudioManager::getInstance().playSfxOnce("explosion");
+            for (auto* ast : hits) {
+                explosionManager.spawn(ast->position, 16, ORANGE);
+                ast->active = false;
+            }
+            return false;
+        }
         if (shieldSkill.isActive()) {
             // Shield menyerap damage: hancurkan semua asteroid yang menabrak, lalu konsumsi shield
             shieldSkill.consumeShield();
-            for (auto* ast : hits) ast->active = false;
-            return false; // Tidak game over karena shield masih aktif
+            AudioManager::getInstance().playSfxOnce("explosion");
+            for (auto* ast : hits) {
+                explosionManager.spawn(ast->position, 16, ORANGE);
+                ast->active = false;
+            }
+            return false;
         }
-        // Tidak punya shield: game over
-        if (!IsSoundPlaying(gameover)) PlaySound(gameover);
+        AudioManager::getInstance().playSfxOnce("gameover");
+        AudioManager::getInstance().playSfx("explosion");
+        explosionManager.spawn(Config::playerStartPos, 35, RED);
         return true;
     }
     return false;
@@ -37,20 +57,18 @@ bool GameplayManager::isHit() {
 
 void GameplayManager::textureInit() {
     spaceship.init();
-    // Load semua sound effect dari direktori assets
-    laser = LoadSound("assets/sound/laser.mp3");
-    error = LoadSound("assets/sound/error.mp3");
-    gameover = LoadSound("assets/sound/gameover.mp3");
 
-    // Set volume masing-masing sound agar tidak terlalu keras
-    SetSoundVolume(laser, 0.4f);
-    SetSoundVolume(error, 0.5f);
-    SetSoundVolume(gameover, 0.8f);
+    // Hubungkan callback ledakan dari AsteroidManager ke ExplosionManager
+    asteroidManager.setExplosionCallback([this](Vector2 pos) {
+        explosionManager.spawn(pos, 16, ORANGE);
+        AudioManager::getInstance().playSfx("explosion");
+    });
 }
 
 void GameplayManager::AddScore(int points) {
     // Tambah skor dengan multiplier dari combo stack
-    score += points * comboStack.GetMultiplier();
+    int mult = scoreBoosterSkill.isActive() ? ScoreBoosterSkill::SCORE_MULTIPLIER : 1;
+    score += points * comboStack.GetMultiplier() * mult;
 }
 
 void GameplayManager::AddScore(int basePoints, int multiplier) {
@@ -69,13 +87,52 @@ void GameplayManager::SetAsteroidDestroyedCallback(AsteroidDestroyedCallback cal
     onAsteroidDestroyed = callback;
 }
 
+void GameplayManager::setUnlockedSkills(const std::vector<std::string>* skills) {
+    m_unlockedSkills = skills;
+    rebuildActiveSkills();
+}
+
+bool GameplayManager::isUnlocked(const std::string& name) const {
+    if (!m_unlockedSkills) return false;
+    for (const auto& s : *m_unlockedSkills) {
+        if (s == name) return true;
+    }
+    return false;
+}
+
+void GameplayManager::rebuildActiveSkills() {
+    m_activeSkills.clear();
+    int key = 1;
+
+    struct { Skill* skill; const char* keyName; } all[] = {
+        {&shieldSkill,       "barrier"},
+        {&auraFieldSkill,    "aura_field"},
+        {&bombSkill,         "shockwave"},
+        {&instantCritSkill,  "instant_crit"},
+        {&scoreBoosterSkill, "score_booster"},
+    };
+
+    for (auto& entry : all) {
+        if (isUnlocked(entry.keyName)) {
+            m_activeSkills.push_back({entry.skill, entry.keyName, key++});
+        }
+    }
+}
+
 void GameplayManager::update(float deltaTime) {
     // Update semua subsistem game
     survivalTime += deltaTime;
     spaceship.update(deltaTime);
     asteroidManager.update(deltaTime);
-    shieldSkill.update(deltaTime);
-    bombSkill.update(deltaTime);
+    explosionManager.update(deltaTime);
+
+    // Update & keypress untuk skill aktif yang ter-unlock
+    for (auto& binding : m_activeSkills) {
+        if (IsKeyPressed(KEY_ZERO + binding.keyNumber)) {
+            binding.skill->activate();
+        }
+        binding.skill->update(deltaTime);
+    }
 
     // Cek efek bom shockwave: hancurkan semua asteroid dalam radius lingkaran
     if (bombSkill.isActive()) {
@@ -83,17 +140,13 @@ void GameplayManager::update(float deltaTime) {
         auto hit = asteroidManager.scanAllAsteroids([r](const Asteroid& a) {
             return a.active && Vector2DistanceSqr(a.position, Config::playerStartPos) <= r * r;
         });
-        for (auto* ast : hit) ast->active = false;
-    }
-
-    // Tombol 1: aktifkan shield skill jika sudah siap
-    if (IsKeyPressed(KEY_ONE)) {
-        shieldSkill.activate();
-    }
-
-    // Tombol 2: aktifkan bomb skill jika sudah siap
-    if (IsKeyPressed(KEY_TWO)) {
-        bombSkill.activate();
+        if (!hit.empty()) {
+            AudioManager::getInstance().playSfxOnce("explosion");
+            for (auto* ast : hit) {
+                explosionManager.spawn(ast->position, 16, ORANGE);
+                ast->active = false;
+            }
+        }
     }
 
     // Tangkap input karakter dari keyboard
@@ -127,15 +180,33 @@ void GameplayManager::update(float deltaTime) {
             totalKeystrokes++;
             if (result > 0) {
                 correctKeystrokes++;
-                PlaySound(laser);
+                AudioManager::getInstance().playSfx("laser");
                 AddScore(result);
+
+                // INSTANT_CRIT: huruf pertama langsung hancurkan asteroid
+                if (instantCritSkill.isActive() && currentTarget->active) {
+                    currentTarget->word = "";
+                    currentTarget->active = false;
+                    if (currentTarget->onDestroyed) currentTarget->onDestroyed(currentTarget->position);
+                    if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
+                    wordsCompleted++;
+                    if (wordsCompleted >= 5) {
+                        comboStack.Push();
+                        wordsCompleted = 0;
+                    }
+                    state = SEARCH_FOR_TARGET;
+                    currentTarget = nullptr;
+                    wasPreviousKeyWrong = false;
+                    return;
+                }
+
                 state = TARGET_LOCKED; // Pindah ke state mengetik
                 wasPreviousKeyWrong = false;
             }
         } else {
             // Tidak ada target yang cocok: bunyi error sekali saja per urutan salah
             if (!wasPreviousKeyWrong) {
-                PlaySound(error);
+                AudioManager::getInstance().playSfx("error");
                 comboStack.Pop(); // Reset combo karena salah ketik
                 wasPreviousKeyWrong = true;
             }
@@ -154,7 +225,7 @@ void GameplayManager::update(float deltaTime) {
         totalKeystrokes++;
         if (result > 0) {
             correctKeystrokes++;
-            PlaySound(laser);
+            AudioManager::getInstance().playSfx("laser");
             AddScore(result);
             wasPreviousKeyWrong = false;
 
@@ -162,7 +233,6 @@ void GameplayManager::update(float deltaTime) {
             if (currentTarget->word.empty()) {
                 if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
                 wordsCompleted++;
-                enemiesDefeated++;
                 // Naikkan level combo setiap 5 kata berhasil diketik
                 if (wordsCompleted >= 5) {
                     comboStack.Push();
@@ -177,7 +247,7 @@ void GameplayManager::update(float deltaTime) {
         } else {
             // Salah ketik di tengah-tengah kata: error sound sekali saja
             if (!wasPreviousKeyWrong) {
-                PlaySound(error);
+                AudioManager::getInstance().playSfx("error");
                 comboStack.Pop();
                 wasPreviousKeyWrong = true;
             }
@@ -188,8 +258,13 @@ void GameplayManager::update(float deltaTime) {
 void GameplayManager::draw() {
     spaceship.draw();
     asteroidManager.draw();
-    shieldSkill.draw();
-    bombSkill.draw();
+    explosionManager.draw();
+
+    // Draw visual untuk skill yang ter-unlock
+    for (auto& binding : m_activeSkills) {
+        binding.skill->draw();
+    }
+
     int multiplier = comboStack.GetMultiplier();
 
     // Tampilkan skor di tengah atas layar
@@ -208,37 +283,30 @@ void GameplayManager::draw() {
         DrawText(progressText, Config::screenWidth/2 - MeasureText(progressText, 20)/2, 85, 20, (multiplier > 1) ? GREEN : DARKGRAY);
     }
 
-    // HUD status Shield (pojok kanan atas)
-    const char* shieldText;
-    Color shieldColor;
-    if (shieldSkill.isReady()) {
-        shieldText = "SHIELD: READY [1]";
-        shieldColor = GREEN;
-    } else if (shieldSkill.isActive()) {
-        shieldText = "SHIELD: ACTIVE";
-        shieldColor = SKYBLUE;
-    } else {
-        float remaining = Config::shieldCooldown * (1.0f - shieldSkill.getCooldownProgress());
-        shieldText = TextFormat("SHIELD: %.0fs", remaining);
-        shieldColor = GRAY;
-    }
-    DrawText(shieldText, Config::screenWidth - MeasureText(shieldText, 15) - 10, 10, 15, shieldColor);
+    // HUD skill aktif (pojok kanan atas) — hanya untuk skill yang ter-unlock
+    int hudY = 10;
+    for (auto& binding : m_activeSkills) {
+        const char* keyStr = TextFormat("[%d]", binding.keyNumber);
+        const char* name = binding.skill->getName();
+        Color color;
+        char line[64];
 
-    // HUD status Bomb (pojok kanan atas, di bawah shield)
-    const char* bombText;
-    Color bombColor;
-    if (bombSkill.isReady()) {
-        bombText = "BOMB: READY [2]";
-        bombColor = ORANGE;
-    } else if (bombSkill.isActive()) {
-        bombText = "BOMB: ACTIVE";
-        bombColor = RED;
-    } else {
-        float remaining = Config::bombCooldown * (1.0f - bombSkill.getCooldownProgress());
-        bombText = TextFormat("BOMB: %.0fs", remaining);
-        bombColor = GRAY;
+        if (binding.skill->isReady()) {
+            snprintf(line, sizeof(line), "%s: READY %s", name, keyStr);
+            color = GREEN;
+        } else if (binding.skill->isActive()) {
+            snprintf(line, sizeof(line), "%s: ACTIVE", name);
+            color = SKYBLUE;
+        } else {
+            // Gunakan cooldown skill — ambil dari getName untuk lookup (tidak 100% akurat)
+            // Alternatif: simpan cooldown value di SkillBinding
+            float remaining = 30.0f * (1.0f - binding.skill->getCooldownProgress());
+            snprintf(line, sizeof(line), "%s: %.0fs", name, remaining);
+            color = GRAY;
+        }
+        DrawText(line, Config::screenWidth - MeasureText(line, 15) - 10, hudY, 15, color);
+        hudY += 18;
     }
-    DrawText(bombText, Config::screenWidth - MeasureText(bombText, 15) - 10, 28, 15, bombColor);
 }
 
 void GameplayManager::reset() {
@@ -246,7 +314,6 @@ void GameplayManager::reset() {
     score = 0;
     totalKeystrokes = 0;
     correctKeystrokes = 0;
-    enemiesDefeated = 0;
     survivalTime = 0.0f;
     state = typingState::SEARCH_FOR_TARGET;
     currentTarget = nullptr;
@@ -254,9 +321,8 @@ void GameplayManager::reset() {
     comboStack.Reset();
     wordsCompleted = 0;
     wasPreviousKeyWrong = false;
-}
-
-float GameplayManager::GetAccuracy() const {
-    if (totalKeystrokes == 0) return 0.0f;
-    return (float)correctKeystrokes / totalKeystrokes * 100.0f;
+    explosionManager.reset();
+    scoreBoosterSkill = ScoreBoosterSkill();
+    auraFieldSkill = AuraFieldSkill();
+    instantCritSkill = InstantCritSkill();
 }

@@ -2,38 +2,38 @@
 #include <stdexcept>
 #include "raylib.h"
 
+// ===============================
+// 🌳 TECH TREE (GRAPH + BFS)
+// ===============================
+
 // Konstruktor: inisialisasi semua skill dengan posisi, biaya, dan dependensi
 TechTree::TechTree() {
     float boxW = 220.0f;
     float boxH = 75.0f;
 
-    // Definisikan 6 skill dengan posisi grid 3 baris × kolom
+    // Definisikan 5 skill dengan layout diamond
     skills = {
-        {SkillName::BARRIER,       {SkillName::BARRIER, 30, "Shield 1 hantaman", false,
-                                   {540.0f, 100.0f}, {540.0f - boxW/2, 100.0f - boxH/2, boxW, boxH}, LOCKED}},
+        {SkillName::AURA_FIELD,    {SkillName::AURA_FIELD, 100, "Shield aktif rentang waktu (10s)", false,
+                                    {540.0f, 100.0f}, {540.0f - boxW/2, 100.0f - boxH/2, boxW, boxH}, LOCKED}},
 
-        {SkillName::AURA_FIELD,    {SkillName::AURA_FIELD, 100, "Shield aktif rentang waktu", false,
-                                   {340.0f, 260.0f}, {340.0f - boxW/2, 260.0f - boxH/2, boxW, boxH}, LOCKED}},
+        {SkillName::BARRIER,       {SkillName::BARRIER, 30, "Shield 1 hantaman", false,
+                                    {540.0f, 240.0f}, {540.0f - boxW/2, 240.0f - boxH/2, boxW, boxH}, LOCKED}},
+
+        {SkillName::SCORE_BOOSTER, {SkillName::SCORE_BOOSTER, 250, "Multiplier 16x score (10s)", false,
+                                    {360.0f, 380.0f}, {360.0f - boxW/2, 380.0f - boxH/2, boxW, boxH}, LOCKED}},
 
         {SkillName::SHOCKWAVE,     {SkillName::SHOCKWAVE, 300, "Hancurkan asteroid sekitar", false,
-                                   {740.0f, 260.0f}, {740.0f - boxW/2, 260.0f - boxH/2, boxW, boxH}, LOCKED}},
+                                    {720.0f, 380.0f}, {720.0f - boxW/2, 380.0f - boxH/2, boxW, boxH}, LOCKED}},
 
-        {SkillName::CHRONO_STASIS, {SkillName::CHRONO_STASIS, 450, "Perlambat gerakan asteroid", false,
-                                   {340.0f, 420.0f}, {340.0f - boxW/2, 420.0f - boxH/2, boxW, boxH}, LOCKED}},
-
-        {SkillName::INSTANT_CRIT,  {SkillName::INSTANT_CRIT, 500, "Ketik huruf pertama untuk hancurkan", false,
-                                   {620.0f, 420.0f}, {620.0f - boxW/2, 420.0f - boxH/2, boxW, boxH}, LOCKED}},
-
-        {SkillName::SCORE_BOOSTER, {SkillName::SCORE_BOOSTER, 250, "Multiplier 16x score", false,
-                                   {860.0f, 420.0f}, {860.0f - boxW/2, 420.0f - boxH/2, boxW, boxH}, LOCKED}}
+        {SkillName::INSTANT_CRIT,  {SkillName::INSTANT_CRIT, 500, "Huruf pertama hancurkan asteroid (10s)", false,
+                                    {720.0f, 520.0f}, {720.0f - boxW/2, 520.0f - boxH/2, boxW, boxH}, LOCKED}}
     };
 
-    // Struktur dependensi: BARRIER root → 2 cabang (AURA_FIELD & SHOCKWAVE)
+    // Struktur dependensi: AURA_FIELD di atas BARRIER, BARRIER root → 3 child
     addDependency(SkillName::BARRIER, SkillName::AURA_FIELD);
+    addDependency(SkillName::BARRIER, SkillName::SCORE_BOOSTER);
     addDependency(SkillName::BARRIER, SkillName::SHOCKWAVE);
-    addDependency(SkillName::AURA_FIELD, SkillName::CHRONO_STASIS);
     addDependency(SkillName::SHOCKWAVE, SkillName::INSTANT_CRIT);
-    addDependency(SkillName::SHOCKWAVE, SkillName::SCORE_BOOSTER);
 
     // Hitung state awal: BARRIER jadi AVAILABLE, sisanya LOCKED
     updateSkillStates();
@@ -46,10 +46,9 @@ void TechTree::addDependency(SkillName parent, SkillName child) {
 
 // Konversi string (dari JSON) ke enum SkillName
 SkillName TechTree::SkillNameFromString(const std::string& str) {
-    if (str == "barrier")       return BARRIER;
     if (str == "aura_field")    return AURA_FIELD;
+    if (str == "barrier")       return BARRIER;
     if (str == "shockwave")     return SHOCKWAVE;
-    if (str == "chrono_stasis") return CHRONO_STASIS;
     if (str == "instant_crit")  return INSTANT_CRIT;
     if (str == "score_booster") return SCORE_BOOSTER;
     throw std::invalid_argument("TechTree: unknown skill name '" + str + "'");
@@ -58,10 +57,9 @@ SkillName TechTree::SkillNameFromString(const std::string& str) {
 // Konversi enum SkillName ke string (untuk serialisasi JSON)
 std::string TechTree::StringFromSkillName(SkillName name) {
     switch (name) {
-        case BARRIER:       return "barrier";
         case AURA_FIELD:    return "aura_field";
+        case BARRIER:       return "barrier";
         case SHOCKWAVE:     return "shockwave";
-        case CHRONO_STASIS: return "chrono_stasis";
         case INSTANT_CRIT:  return "instant_crit";
         case SCORE_BOOSTER: return "score_booster";
     }

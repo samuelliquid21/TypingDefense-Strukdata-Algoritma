@@ -2,6 +2,10 @@
 #include "raylib.h"
 #include "GameConfig.h"
 
+// ===============================
+// 🛡️ SHIELD SKILL
+// ===============================
+
 ShieldSkill::ShieldSkill() {}
 
 // Aktifkan shield: hanya bisa dari state IDLE

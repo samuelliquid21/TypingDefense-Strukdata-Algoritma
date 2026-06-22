@@ -3,6 +3,9 @@
 #include "GameConfig.h"
 #include "raymath.h"
 
+// ===============================
+// ☄️ ASTEROID
+// ===============================
 int Asteroid::counter = 0;
 
 // == FUNGSI PEMBANTU ANONYM ==
@@ -43,6 +46,7 @@ int Asteroid::typingAsteroid(char characterTyped) {
     // Jika kata sudah habis, nonaktifkan asteroid (hancur)
     if (word.empty()) {
         active = false;
+        if (onDestroyed) onDestroyed(position);
     }
 
     return 1; // Berhasil: 1 karakter diproses

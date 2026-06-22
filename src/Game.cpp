@@ -1,9 +1,11 @@
 #include "Game.h"
+#include "AudioManager.h"
+#include "AssetManager.h"
 #include "Leaderboard.h"
 #include "Credit.h"
 #include "GameConfig.h"
 #include "raylib.h"
-#include "rlgl.h"
+
 
 // ===============================
 // 🎮 GAME ENTRY POINT
@@ -19,10 +21,7 @@ void Game::Run() {
     // Bersihkan resource sebelum keluar
     bg.Unload();
     LeaderboardSystem::Unload();
-    UnloadMusicStream(musicLobby);
-    UnloadMusicStream(musicCredit);
-    UnloadSound(glitchMasuk);
-    UnloadSound(glitchKeluar);
+    AssetManager::getInstance().unloadAll();
     CloseAudioDevice();
     CloseWindow();
 }
@@ -33,15 +32,13 @@ void Game::Run() {
 
 Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
     InitWindow(1080, 720, "Cosmic Keypad - Kelompok 4");
-    InitAudioDevice();
-    SetTargetFPS(60);
-    SetExitKey(KEY_F12);         // F12 untuk force close (debug)
 
-    // Setup musik lobby (diputar di menu)
-    musicLobby = LoadMusicStream("assets/sound/soundtrack.mp3");
-    SetMusicVolume(musicLobby, 0.5f);
-    PlayMusicStream(musicLobby);
-    SeekMusicStream(musicLobby, 5.0f); // Skip 5 detik awal biar langsung rame
+    InitAudioDevice();
+    AudioManager::getInstance().Init();
+    
+    SetTargetFPS(60);
+
+    SetExitKey(KEY_F12);         // F12 untuk force close (debug)
 
     state = GameState::MENU;
     score = 0;
@@ -51,56 +48,37 @@ Game::Game() : gameplayManager(new GameplayManager()), techTreeUI(techTree) {
 
     techTree.loadFromProfile(m_currentPlayer);
 
+    AssetManager::getInstance().registerSpriteSheet("ship", "./assets/img/Spaceships.png", 5, 3);
+
     bg.Load("./assets/img/Space_Background.png", 20.0f);
     gameplayManager->textureInit();
+    gameplayManager->setUnlockedSkills(&m_currentPlayer.unlocked_skills);
 
-    // Callback saat asteroid hancur: unlock word dan beri research point
-    gameplayManager->SetAsteroidDestroyedCallback(
-        [this](const std::string& word) {
-            // Hindari duplikasi kata
-            for (const auto& w : m_currentPlayer.unlocked_words)
-                if (w == word) return;
-            m_currentPlayer.unlocked_words.push_back(word);
-            m_currentPlayer.research_point += 10;
-            DataManager::getInstance().SavePlayer(m_currentPlayer);
-        }
-    );
+    setupCallbacks();
 
     LeaderboardSystem::Init();
-
-    // Setup musik credit
-    musicCredit = LoadMusicStream("assets/sound/cosmic.mp3");
-    SetMusicVolume(musicCredit, 0.5f);
-
-    glitchMasuk = LoadSound("assets/sound/glitchmasuk.mp3");
-    glitchKeluar = LoadSound("assets/sound/glitchkeluar.mp3");
-
-    // Inisialisasi variabel transisi
-    transitionTimer = 0.0f;
-    isTransitioning = false;
-    glitchIntensity = 0.0f;
 }
 
 Game::~Game() {
     delete gameplayManager;
-    UnloadMusicStream(musicLobby);
-    UnloadMusicStream(musicCredit);
 }
 
 void Game::restartGame() {
-    // Buang manager lama dan buat baru untuk mereset seluruh state gameplay
+    auto* newMgr = new GameplayManager();
     delete gameplayManager;
-    gameplayManager = new GameplayManager();
+    gameplayManager = newMgr;
     gameplayManager->textureInit();
+    gameplayManager->setUnlockedSkills(&m_currentPlayer.unlocked_skills);
+    setupCallbacks();
+}
 
-    // Pasang ulang callback asteroid destroy
+void Game::setupCallbacks() {
     gameplayManager->SetAsteroidDestroyedCallback(
         [this](const std::string& word) {
             for (const auto& w : m_currentPlayer.unlocked_words)
                 if (w == word) return;
             m_currentPlayer.unlocked_words.push_back(word);
             m_currentPlayer.research_point += 10;
-            DataManager::getInstance().SavePlayer(m_currentPlayer);
         }
     );
 }
@@ -112,18 +90,7 @@ void Game::restartGame() {
 void Game::Update() {
     float dt = GetFrameTime();
 
-    // Jika sedang dalam transisi glitch, hitung mundur timer
-    if (isTransitioning) {
-        transitionTimer -= dt;
-        glitchIntensity = transitionTimer / 0.6f; // Normalisasi intensitas
-
-        if (transitionTimer <= 0) {
-            state = targetState; // Pindah ke state tujuan
-            isTransitioning = false;
-            glitchIntensity = 0.0f;
-        }
-        return; // Skip update state lain selama transisi
-    }
+    m_transitionEffect.Update(dt);
 
     // Background tetap bergerak kecuali saat pause
     if (state != GameState::PAUSE) {
@@ -150,52 +117,28 @@ void Game::Update() {
 
 void Game::Draw() {
     BeginDrawing();
+    ClearBackground(BLACK);
+    bg.Draw();
 
-    if (isTransitioning) {
-        // Selama transisi, gambar efek glitch di atas background
-        ClearBackground(BLACK);
-        float intensity = transitionTimer / 0.6f;
-        bg.Draw();
-
-        if (intensity > 0.01f) {
-            // Gambar garis-garis glitch acak cyan/pink
-            for (int i = 0; i < 12; i++) {
-                int y = GetRandomValue(0, 720);
-                int h = GetRandomValue(5, 25);
-
-                // Cyan & Pink/Magenta — warna identik efek dari Leaderboard
-                Color glitchColor = (i % 2 == 0) ?
-                    (Color){ 0, 255, 200, (unsigned char)(intensity * 180) } :
-                    (Color){ 255, 50, 120, (unsigned char)(intensity * 140) };
-
-                DrawRectangle(0, y, 1080, h, glitchColor);
-            }
-
-            // Kadang-kadang tambah garis putih tipis untuk variasi
-            if (GetRandomValue(0, 10) > 7) {
-                DrawRectangle(0, GetRandomValue(0, 720), 1080, GetRandomValue(1, 3), {255, 255, 255, 100});
-            }
-        }
-
-    } else {
-        bg.Draw();
-        // Delegasikan draw ke method sesuai state aktif
-        switch (state) {
-            case GameState::MENU:         DrawMenu(); break;
-            case GameState::GAMEPLAY:     DrawGameplay(); break;
-            case GameState::PAUSE:        DrawPause(); break;
-            case GameState::GAME_OVER:    DrawGameOver(); break;
-            case GameState::LEADERBOARD:       DrawLeaderboard(); break;
-            case GameState::CREDIT:            DrawCredit(); break;
-            case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
-            case GameState::REGISTER:          DrawRegister(); break;
-            case GameState::LOGOUT:            DrawLogout(); break;
-            case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
-            case GameState::WORD_DICTIONARY:   DrawDictionary(); break;
-            case GameState::UNLOCKED_WORDS:    DrawUnlockedWords(); break;
-            default: break;
-        }
+    // Delegasikan draw ke method sesuai state aktif
+    switch (state) {
+        case GameState::MENU:         DrawMenu(); break;
+        case GameState::GAMEPLAY:     DrawGameplay(); break;
+        case GameState::PAUSE:        DrawPause(); break;
+        case GameState::GAME_OVER:    DrawGameOver(); break;
+        case GameState::LEADERBOARD:       DrawLeaderboard(); break;
+        case GameState::CREDIT:            DrawCredit(); break;
+        case GameState::LOGIN_AND_REGISTER: DrawLoginRegister(); break;
+        case GameState::REGISTER:          DrawRegister(); break;
+        case GameState::LOGOUT:            DrawLogout(); break;
+        case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
+        case GameState::WORD_DICTIONARY:   DrawDictionary(); break;
+        case GameState::UNLOCKED_WORDS:    DrawUnlockedWords(); break;
+        default: break;
     }
+
+    // Overlay transisi di atas semua konten state
+    m_transitionEffect.Draw();
 
     EndDrawing();
 }
@@ -210,18 +153,13 @@ void Game::UpdateMenu() {
         return;
     }
 
-    UpdateMusicStream(musicLobby);
-
-    // Pastikan musik lobby selalu terputar; jika berhenti (looping), mainkan ulang
-    if (!IsMusicStreamPlaying(musicLobby)) {
-        PlayMusicStream(musicLobby);
-        SeekMusicStream(musicLobby, 5.0f);
-    }
+    AudioManager::getInstance().UpdateLobby();
 
     mainMenu.Update();
 
     // Tombol F1 untuk membuka dictionary kapan saja dari menu
     if (IsKeyPressed(KEY_F1)) {
+        AudioManager::getInstance().StopLobby();
         m_dictionary.Reset();
         state = GameState::WORD_DICTIONARY;
     }
@@ -231,39 +169,45 @@ void Game::UpdateMenu() {
         int choice = mainMenu.GetSelectedIndex();
 
         if (choice == 0) {
-            // Mulai game: hentikan musik lobby, reset game over, restart gameplay
-            StopMusicStream(musicLobby);
+            AudioManager::getInstance().StopLobby();
             gameOver.Reset();
+            m_sessionBackup = m_currentPlayer;  // Backup sebelum gameplay
             restartGame();
+            m_transitionEffect.PlaySoundIn();
             state = GameState::GAMEPLAY;
+            m_transitionEffect.Start();
         }
         else if (choice == 1) {
-            // Buka leaderboard
-            StopMusicStream(musicLobby);
+            AudioManager::getInstance().StopLobby();
             LeaderboardSystem::Init();
             state = GameState::LEADERBOARD;
         }
         else if (choice == 2) {
-            // Buka tech tree / unlock skill
+            AudioManager::getInstance().StopLobby();
             state = GameState::UNLOCK_SKILL;
+            m_transitionEffect.PlaySoundIn();
+            m_transitionEffect.Start();
         }
         else if (choice == 3) {
-            // Lihat kata yang sudah di-unlock
+            AudioManager::getInstance().StopLobby();
             m_unlockedWords.BuildFromPlayer(m_currentPlayer);
             state = GameState::UNLOCKED_WORDS;
+            m_transitionEffect.PlaySoundIn();
+            m_transitionEffect.Start();
         }
         else if (choice == 4) {
-            // Transisi ke credit dengan efek glitch
-            StopMusicStream(musicLobby);
-            if (!IsSoundPlaying(glitchMasuk)) PlaySound(glitchMasuk);
-            isTransitioning = true;
-            transitionTimer = 0.6f;
-            targetState = GameState::CREDIT;
+            AudioManager::getInstance().StopLobby();
+            creditScreen.Reset();
+            state = GameState::CREDIT;
+            m_transitionEffect.PlaySoundIn();
+            m_transitionEffect.Start();
         }
         else if (choice == 5) {
-            // Logout dan kembali ke login screen
+            AudioManager::getInstance().StopLobby();
             logoutScreen.Reset();
             state = GameState::LOGOUT;
+            m_transitionEffect.PlaySoundIn();
+            m_transitionEffect.Start();
         }
         else if (choice == 6) {
             // Keluar dari game
@@ -286,13 +230,13 @@ void Game::DrawMenu() {
         DrawText(greeting.c_str(), posX, posY, fontSize, WHITE);
     }
 
-    // Tampilkan info player (debug) jika diaktifkan
     if (m_isLoggedIn && Config::enableDebugPlayerInfo) {
-        DrawPlayerInfo();
+        DrawPlayerInfoPanel(m_currentPlayer);
     }
 }
 
 void Game::UpdateGameplay() {
+    AudioManager::getInstance().UpdateDefault();
     gameplayManager->update(GetFrameTime());
 
     // Cek apakah player terkena asteroid
@@ -303,11 +247,10 @@ void Game::UpdateGameplay() {
             int earnedRP = score / 100;
             if (earnedRP > 0)
                 m_currentPlayer.research_point += earnedRP;
-            if (score > m_currentPlayer.highest_score)
+            if (score > m_currentPlayer.highest_score) {
                 m_currentPlayer.highest_score = score;
-                m_currentPlayer.accuracy         = gameplayManager->GetAccuracy();
-                m_currentPlayer.enemies_defeated = gameplayManager->enemiesDefeated;
                 m_currentPlayer.survival_time    = gameplayManager->survivalTime;
+            }
             DataManager::getInstance().SavePlayer(m_currentPlayer);
         }
         restartGame();          // Reset gameplay untuk sesi berikutnya
@@ -325,14 +268,17 @@ void Game::DrawGameplay() {
 }
 
 void Game::UpdatePause() {
+    AudioManager::getInstance().UpdateDefault();
     pauseMenu.Update();
 
     if (pauseMenu.IsOptionChosen()) {
         if (pauseMenu.GetSelectedIndex() == 0) {
             pauseMenu.StartCountdown(); // Lanjutkan game dengan countdown
         } else if (pauseMenu.GetSelectedIndex() == 1) {
-            // Kembali ke menu — reset gameplay
+            // Kembali ke menu — undo semua perubahan session
+            AudioManager::getInstance().stopMusic("bgm");
             pauseMenu.Reset();
+            m_currentPlayer = m_sessionBackup;
             restartGame();
             state = GameState::MENU;
         }
@@ -351,8 +297,10 @@ void Game::DrawPause() {
 }
 
 void Game::UpdateGameOver() {
+    AudioManager::getInstance().UpdateDefault();
     gameOver.Update();
     if (gameOver.ShouldReturnToMenu()) {
+        AudioManager::getInstance().stopMusic("bgm");
         state = GameState::MENU;
     }
 }
@@ -368,7 +316,9 @@ void Game::DrawGameOver() {
 void Game::UpdateLeaderboard() {
     bool kembali = false;
     LeaderboardSystem::Update(kembali);
-    if (kembali) state = GameState::MENU;
+    if (kembali) {
+        state = GameState::MENU;
+    }
 }
 
 void Game::DrawLeaderboard() {
@@ -380,22 +330,16 @@ void Game::DrawLeaderboard() {
 // ===============================
 
 void Game::UpdateCredit() {
-    UpdateMusicStream(musicCredit);
-    if (!IsMusicStreamPlaying(musicCredit)) {
-        PlayMusicStream(musicCredit);
-        SeekMusicStream(musicCredit, 5.0f); // Langsung skip intro credit 5 detik
-    }
+    AudioManager::getInstance().UpdateCredit();
 
     bool backToMenu = false;
     creditScreen.Update(backToMenu);
 
-    // Transisi kembali ke menu dengan efek glitch
-    if (backToMenu && !isTransitioning) {
-        StopMusicStream(musicCredit);
-        if (!IsSoundPlaying(glitchKeluar)) PlaySound(glitchKeluar);
-        isTransitioning = true;
-        transitionTimer = 0.6f;
-        targetState = GameState::MENU;
+    if (backToMenu && !m_transitionEffect.IsActive()) {
+        AudioManager::getInstance().StopCredit();
+        state = GameState::MENU;
+        m_transitionEffect.PlaySoundOut();
+        m_transitionEffect.Start();
     }
 }
 
@@ -408,10 +352,7 @@ void Game::DrawCredit() {
 // ===============================
 
 void Game::UpdateLoginRegister() {
-    UpdateMusicStream(musicLobby);
-    if (!IsMusicStreamPlaying(musicLobby)) {
-        PlayMusicStream(musicLobby);
-    }
+    AudioManager::getInstance().UpdateLobbyNoSeek();
 
     loginScreen.Update();
     if (loginScreen.ShouldLogin()) {
@@ -435,10 +376,7 @@ void Game::DrawLoginRegister() {
 }
 
 void Game::UpdateRegister() {
-    UpdateMusicStream(musicLobby);
-    if (!IsMusicStreamPlaying(musicLobby)) {
-        PlayMusicStream(musicLobby);
-    }
+    AudioManager::getInstance().UpdateLobbyNoSeek();
 
     registerScreen.Update();
 
@@ -461,9 +399,11 @@ void Game::DrawRegister() {
 }
 
 void Game::UpdateLogout() {
+    AudioManager::getInstance().UpdateDefault();
     logoutScreen.Update();
 
     if (logoutScreen.IsFinished()) {
+        AudioManager::getInstance().stopMusic("bgm");
         m_currentPlayer = PlayerProfile{};
         m_isLoggedIn = false;
         techTree.loadFromProfile(m_currentPlayer);
@@ -483,6 +423,7 @@ void Game::DrawLogout() {
 // ===============================
 
 void Game::UpdateTechTree() {
+    AudioManager::getInstance().UpdateDefault();
     techTreeUI.Update();
 
     // Proses klik untuk membeli skill di tech tree
@@ -495,7 +436,10 @@ void Game::UpdateTechTree() {
     }
 
     if (IsKeyPressed(KEY_ESCAPE)) {
+        AudioManager::getInstance().stopMusic("bgm");
         state = GameState::MENU;
+        m_transitionEffect.PlaySoundOut();
+        m_transitionEffect.Start();
     }
 }
 
@@ -508,9 +452,13 @@ void Game::DrawTechTree() {
 // ===============================
 
 void Game::UpdateDictionary() {
+    AudioManager::getInstance().UpdateDefault();
     m_dictionary.Update();
     if (m_dictionary.WantsToGoBack()) {
+        AudioManager::getInstance().stopMusic("bgm");
         state = GameState::MENU;
+        m_transitionEffect.PlaySoundOut();
+        m_transitionEffect.Start();
     }
 }
 
@@ -523,9 +471,13 @@ void Game::DrawDictionary() {
 // ===============================
 
 void Game::UpdateUnlockedWords() {
+    AudioManager::getInstance().UpdateDefault();
     m_unlockedWords.Update();
     if (m_unlockedWords.WantsToGoBack()) {
+        AudioManager::getInstance().stopMusic("bgm");
         state = GameState::MENU;
+        m_transitionEffect.PlaySoundOut();
+        m_transitionEffect.Start();
     }
 }
 
@@ -533,33 +485,4 @@ void Game::DrawUnlockedWords() {
     m_unlockedWords.Draw();
 }
 
-// ===============================
-// PLAYER INFO PANEL (DEBUG)
-// ===============================
 
-void Game::DrawPlayerInfo() {
-    int panelWidth = 320;
-    int panelHeight = 150;
-    int padding = 15;
-    int x = Config::screenWidth - panelWidth - 20;
-    int y = Config::screenHeight - panelHeight - 20;
-
-    // Background panel semi-transparan dengan border cyan
-    DrawRectangle(x - 10, y - 10, panelWidth + 20, panelHeight + 20, Color{0, 0, 0, 180});
-    DrawRectangleLines(x - 10, y - 10, panelWidth + 20, panelHeight + 20, Color{0, 255, 200, 200});
-
-    int fontSize = 16;
-    int lineHeight = 24;
-    int curY = y + 5;
-
-    // Tampilkan data profil pemain
-    DrawText(TextFormat("Username: %s", m_currentPlayer.username.c_str()), x, curY, fontSize, WHITE);
-    curY += lineHeight;
-    DrawText(TextFormat("Highest Score: %d", m_currentPlayer.highest_score), x, curY, fontSize, WHITE);
-    curY += lineHeight;
-    DrawText(TextFormat("Research Points: %d", m_currentPlayer.research_point), x, curY, fontSize, WHITE);
-    curY += lineHeight;
-    DrawText(TextFormat("Unlocked Words: %zu", m_currentPlayer.unlocked_words.size()), x, curY, fontSize, WHITE);
-    curY += lineHeight;
-    DrawText(TextFormat("Unlocked Skills: %zu", m_currentPlayer.unlocked_skills.size()), x, curY, fontSize, WHITE);
-}

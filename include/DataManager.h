@@ -1,5 +1,5 @@
 #pragma once
-#include "../ext/nlohmann/json.hpp"
+#include "json.hpp"
 #include <string>
 #include <vector>
 
@@ -10,8 +10,6 @@ struct PlayerProfile {
     std::string username;                      // Nama unik player
     int highest_score = 0;                     // Skor tertinggi yang pernah dicapai
     int research_point = 0;                    // Poin riset (currency untuk unlock)
-    float accuracy         = 0.0f; 
-    int   enemies_defeated = 0;
     float survival_time    = 0.0f;
     std::vector<std::string> unlocked_words;   // Daftar kata-kata yang sudah di-unlock
     std::vector<std::string> unlocked_skills;  // Daftar skill yang sudah di-unlock

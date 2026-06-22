@@ -1,7 +1,11 @@
 #include "Game.h"
 
-// Entry point game TypingDefense
-// Membuat instance Game dan memulai game loop utama
+// ===============================
+// ▶️ ENTRY POINT
+// ===============================
+
+// Entry point game TypingDefense — Cosmic Keypad
+// Membuat instance Game dan memulai game loop utama (60 FPS)
 int main() {
     Game game;      // Inisialisasi seluruh subsistem game
     game.Run();     // Game loop: Update() -> Draw() setiap frame

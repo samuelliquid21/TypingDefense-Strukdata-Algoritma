@@ -1,6 +1,10 @@
 #include "DifficultyManager.h"
 #include "raylib.h"
 
+// ===============================
+// 📈 MANAGER KESULITAN
+// ===============================
+
 // Update akumulasi waktu berdasarkan frame time
 void DifficultyManager::updateTime() {
     counter += GetFrameTime();

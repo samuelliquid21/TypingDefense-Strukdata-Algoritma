@@ -1,53 +1,54 @@
 {
     "data": [
         {
-            "username": "hyperion",
             "highest_score": 10000,
-            "research_point": 300,
+            "research_point": 0,
+            "survival_time": 0.0,
+            "unlocked_skills": [],
             "unlocked_words": [],
-            "unlocked_skills": []
+            "username": "hyperion"
         },
         {
-            "username": "nova",
             "highest_score": 8500,
             "research_point": 200,
+            "unlocked_skills": [],
             "unlocked_words": [],
-            "unlocked_skills": []
+            "username": "nova"
         },
         {
-            "username": "orion",
             "highest_score": 7200,
             "research_point": 150,
+            "unlocked_skills": [],
             "unlocked_words": [],
-            "unlocked_skills": []
+            "username": "orion"
         },
         {
-            "username": "vega",
             "highest_score": 6300,
             "research_point": 180,
+            "unlocked_skills": [],
             "unlocked_words": [],
-            "unlocked_skills": []
+            "username": "vega"
         },
         {
-            "username": "pulsar",
             "highest_score": 5400,
             "research_point": 120,
+            "unlocked_skills": [],
             "unlocked_words": [],
-            "unlocked_skills": []
+            "username": "pulsar"
         },
         {
-            "username": "nebula",
             "highest_score": 4100,
             "research_point": 90,
+            "unlocked_skills": [],
             "unlocked_words": [],
-            "unlocked_skills": []
+            "username": "nebula"
         },
         {
-            "username": "comet",
             "highest_score": 3200,
             "research_point": 60,
+            "unlocked_skills": [],
             "unlocked_words": [],
-            "unlocked_skills": []
+            "username": "comet"
         }
     ]
 }

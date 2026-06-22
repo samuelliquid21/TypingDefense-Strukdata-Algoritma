@@ -1,5 +1,9 @@
 #include "Timer.h"
 
+// ===============================
+// ⏱️ TIMER UTILITY
+// ===============================
+
 // Mulai timer: set durasi baru, reset waktu berjalan, aktifkan
 void Timer::start (float dur) {
     duration = dur;

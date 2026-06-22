@@ -2,7 +2,9 @@
 #include "raylib.h"
 #include "GameConfig.h"
 
-// ==== CONSTRUCTOR DAN DESTRUCTOR ====
+// ===============================
+// ☄️ MANAGER ASTEROID
+// ===============================
 
 AsteroidManager::AsteroidManager() {
     // Inisialisasi awal: buat node shower awal, start semua timer
@@ -14,6 +16,16 @@ AsteroidManager::AsteroidManager() {
 }
 
 AsteroidManager::~AsteroidManager() {}
+
+void AsteroidManager::setExplosionCallback(std::function<void(Vector2)> cb) {
+    m_explosionCallback = cb;
+    // Update existing shower nodes yang dibuat sebelum setter dipanggil
+    for (auto* node = asteroidShower.getHead(); node; node = node->next)
+        node->data.onDestroyed = cb;
+    // Update pool asteroid yang sudah aktif
+    for (auto &ast : poolAsteroid)
+        if (ast.active) ast.onDestroyed = cb;
+}
 
 // ==== SCANNING ====
 
@@ -51,6 +63,7 @@ void AsteroidManager::spawnPoolAsteroid(int diff) {
         if (!poolAsteroid[idx].active) {
             // Aktifkan asteroid dengan tier yang ditentukan
             poolAsteroid[idx].asteroidType(diff);
+            poolAsteroid[idx].onDestroyed = m_explosionCallback;
             asteroidCurrent = (idx + 1) % 50; // Geser index untuk spawn berikutnya
             if constexpr (Config::enableAsteroidLog)
                 TraceLog(LOG_INFO, "[%.1f] spawnPoolAsteroid tier %d idx %d", difficultyManager.counter, diff, idx);
@@ -68,6 +81,7 @@ void AsteroidManager::spawnPoolAsteroid(int diff) {
 void AsteroidManager::addShowerNode() {
     // Tambah node asteroid kosong ke linked list shower
     Asteroid ast;
+    ast.onDestroyed = m_explosionCallback;
     asteroidShower.push_back(ast);
 }
 

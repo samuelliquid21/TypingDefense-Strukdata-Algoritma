@@ -14,6 +14,7 @@ struct CreditEntry {
 class Credit {
 public:
     Credit();                          // Constructor: init entries dan scroll position
+    void Reset();                      // Reset scrollY ke posisi awal
     void Update(bool& backToMenu);     // Update scroll + handle input (back, manual scroll)
     void Draw();                       // Render semua credit entries dengan scrolling
 

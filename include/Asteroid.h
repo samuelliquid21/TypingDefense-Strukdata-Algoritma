@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <functional>
 #include "raylib.h"
 
 // Struktur data asteroid: menyimpan properti posisi, kata, dan status
@@ -15,6 +16,8 @@ struct Asteroid {
     int textureId{0};           // ID tekstur untuk variasi visual (0-3)
     bool active{false};         // Status aktif: true = tampil dan bisa di-interaksi
     bool targeted{false};       // Status sedang ditarget oleh pemain
+
+    std::function<void(Vector2)> onDestroyed; // Callback saat asteroid hancur (posisi)
 
     static int counter; // Counter global jumlah objek Asteroid yang hidup
 
