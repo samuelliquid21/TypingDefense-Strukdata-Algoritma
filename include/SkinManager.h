@@ -45,6 +45,10 @@ private:
     std::vector<int> unlockedSkins;
     Texture2D spritesheet{0};
 
+    void parsePlayerData(const std::string& username); // Ekstrak data player dari JSON ke member
+    void createNewPlayerEntry();  // Buat entry player baru di JSON lalu simpan
+    int weightedRandomSelect(const std::vector<int>& ids) const; // Pilih ID berdasarkan bobot rarity
+
 public:
     const Texture2D& getSpritesheet() const { return spritesheet; }
 };

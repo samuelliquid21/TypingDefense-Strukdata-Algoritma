@@ -9,35 +9,30 @@
 
 // Konstruktor: inisialisasi semua skill dengan posisi, biaya, dan dependensi
 TechTree::TechTree() {
-    float boxW = 220.0f;
-    float boxH = 75.0f;
-
-    // Definisikan 5 skill dengan layout diamond
-    skills = {
-        {SkillName::AURA_FIELD,    {SkillName::AURA_FIELD, 100, "Shield aktif rentang waktu (10s)", false,
-                                    {540.0f, 100.0f}, {540.0f - boxW/2, 100.0f - boxH/2, boxW, boxH}, LOCKED}},
-
-        {SkillName::BARRIER,       {SkillName::BARRIER, 30, "Shield 1 hantaman", false,
-                                    {540.0f, 240.0f}, {540.0f - boxW/2, 240.0f - boxH/2, boxW, boxH}, LOCKED}},
-
-        {SkillName::SCORE_BOOSTER, {SkillName::SCORE_BOOSTER, 250, "Multiplier 16x score (10s)", false,
-                                    {360.0f, 380.0f}, {360.0f - boxW/2, 380.0f - boxH/2, boxW, boxH}, LOCKED}},
-
-        {SkillName::SHOCKWAVE,     {SkillName::SHOCKWAVE, 300, "Hancurkan asteroid sekitar", false,
-                                    {720.0f, 380.0f}, {720.0f - boxW/2, 380.0f - boxH/2, boxW, boxH}, LOCKED}},
-
-        {SkillName::INSTANT_CRIT,  {SkillName::INSTANT_CRIT, 500, "Huruf pertama hancurkan asteroid (10s)", false,
-                                    {720.0f, 520.0f}, {720.0f - boxW/2, 520.0f - boxH/2, boxW, boxH}, LOCKED}}
-    };
-
-    // Struktur dependensi: AURA_FIELD di atas BARRIER, BARRIER root → 3 child
+    InitSkills();
     addDependency(SkillName::BARRIER, SkillName::AURA_FIELD);
     addDependency(SkillName::BARRIER, SkillName::SCORE_BOOSTER);
     addDependency(SkillName::BARRIER, SkillName::SHOCKWAVE);
     addDependency(SkillName::SHOCKWAVE, SkillName::INSTANT_CRIT);
-
-    // Hitung state awal: BARRIER jadi AVAILABLE, sisanya LOCKED
     updateSkillStates();
+}
+
+// Helper: inisialisasi semua skill dengan posisi, biaya, dan dependensi
+void TechTree::InitSkills() {
+    float boxW = 220.0f;
+    float boxH = 75.0f;
+    skills = {
+        {SkillName::AURA_FIELD,    {SkillName::AURA_FIELD, 100, "Shield aktif rentang waktu (10s)", false,
+                                    {540.0f, 100.0f}, {540.0f - boxW/2, 100.0f - boxH/2, boxW, boxH}, LOCKED}},
+        {SkillName::BARRIER,       {SkillName::BARRIER, 30, "Shield 1 hantaman", false,
+                                    {540.0f, 240.0f}, {540.0f - boxW/2, 240.0f - boxH/2, boxW, boxH}, LOCKED}},
+        {SkillName::SCORE_BOOSTER, {SkillName::SCORE_BOOSTER, 250, "Multiplier 16x score (10s)", false,
+                                    {360.0f, 380.0f}, {360.0f - boxW/2, 380.0f - boxH/2, boxW, boxH}, LOCKED}},
+        {SkillName::SHOCKWAVE,     {SkillName::SHOCKWAVE, 300, "Hancurkan asteroid sekitar", false,
+                                    {720.0f, 380.0f}, {720.0f - boxW/2, 380.0f - boxH/2, boxW, boxH}, LOCKED}},
+        {SkillName::INSTANT_CRIT,  {SkillName::INSTANT_CRIT, 500, "Huruf pertama hancurkan asteroid (10s)", false,
+                                    {720.0f, 520.0f}, {720.0f - boxW/2, 520.0f - boxH/2, boxW, boxH}, LOCKED}}
+    };
 }
 
 // Tambah edge parent → child di adjacency list
@@ -136,7 +131,15 @@ bool TechTree::handleInput(Vector2 mousePos, bool isMouseClicked, PlayerProfile&
  * 3. Jika child juga sudah di-unlock, lanjutkan BFS ke child tersebut.
  * 4. BARRIER selalu AVAILABLE sebagai root (tidak perlu di-unlock). */
 void TechTree::updateSkillStates() {
-    // Step 1: Set state dasar berdasarkan isUnlocked
+    SetBaseStates();
+    BfsUpdateStates();
+    if (skills[SkillName::BARRIER].uiState == LOCKED) {
+        skills[SkillName::BARRIER].uiState = AVAILABLE;
+    }
+}
+
+// Helper: set state dasar semua skill berdasarkan isUnlocked
+void TechTree::SetBaseStates() {
     for (auto& [key, skill] : skills) {
         if (skill.isUnlocked) {
             skill.uiState = UNLOCKED;
@@ -144,38 +147,28 @@ void TechTree::updateSkillStates() {
             skill.uiState = LOCKED;
         }
     }
+}
 
-    // Step 2: BFS dari BARRIER untuk menentukan AVAILABLE nodes
+// Helper: BFS dari BARRIER untuk menentukan node AVAILABLE
+void TechTree::BfsUpdateStates() {
     std::queue<SkillName> q;
     std::unordered_map<SkillName, bool> visited;
-
     q.push(SkillName::BARRIER);
     visited[SkillName::BARRIER] = true;
-
     while (!q.empty()) {
         SkillName current = q.front();
         q.pop();
-
-        // Hanya proses child jika current sudah di-unlock
         if (skills[current].isUnlocked) {
             for (SkillName child : adjList[current]) {
-                if (!visited[child]) {
-                    visited[child] = true;
-                    if (!skills[child].isUnlocked) {
-                        // Child belum di-unlock → jadi AVAILABLE (bisa dibeli)
-                        skills[child].uiState = AVAILABLE;
-                    } else {
-                        // Child sudah di-unlock → lanjut BFS ke child
-                        q.push(child);
-                    }
+                if (visited[child]) continue;
+                visited[child] = true;
+                if (!skills[child].isUnlocked) {
+                    skills[child].uiState = AVAILABLE;
+                } else {
+                    q.push(child);
                 }
             }
         }
-    }
-
-    // Step 3: BARRIER selalu AVAILABLE (root skill, gratis)
-    if (skills[SkillName::BARRIER].uiState == LOCKED) {
-        skills[SkillName::BARRIER].uiState = AVAILABLE;
     }
 }
 

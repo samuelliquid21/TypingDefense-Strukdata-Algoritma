@@ -5,6 +5,17 @@
 // 💥 MANAGER LEDAKAN
 // ===============================
 
+// Inisialisasi partikel ledakan dengan arah dan kecepatan random
+static void initExplosionParticles(Explosion& e, Vector2 pos) {
+    for (int i = 0; i < e.particleCount; i++) {
+        float angle = GetRandomValue(0, 360) * DEG2RAD;
+        float speed = (float)GetRandomValue(80, 300);
+        e.particles[i].pos = pos;
+        e.particles[i].vel = { cosf(angle) * speed, sinf(angle) * speed };
+        e.particles[i].radius = (float)GetRandomValue(3, 8);
+    }
+}
+
 // Spawn partikel ledakan di posisi tertentu.
 // Mencari slot pool yang tidak aktif, lalu menginisialisasi
 // partikel dengan arah random dan kecepatan 80-300.
@@ -18,16 +29,7 @@ void ExplosionManager::spawn(Vector2 pos, int count, Color color) {
             e.active = true;
 
             // Init tiap partikel dengan arah dan kecepatan random
-            for (int i = 0; i < e.particleCount; i++) {
-                float angle = GetRandomValue(0, 360) * DEG2RAD;
-                float speed = (float)GetRandomValue(80, 300);
-                e.particles[i].pos = pos;
-                e.particles[i].vel = {
-                    cosf(angle) * speed,
-                    sinf(angle) * speed
-                };
-                e.particles[i].radius = (float)GetRandomValue(3, 8);
-            }
+            initExplosionParticles(e, pos);
             return;
         }
     }

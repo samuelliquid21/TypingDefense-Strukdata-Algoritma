@@ -100,6 +100,25 @@ private:
     void DrawSkinSelect();
     void DrawGacha();
 
+    // === Extracted Helper Methods ===
+    void initAudioAndWindow();
+    void initGameStateAndAssets();
+    void dispatchUpdateState();
+    void dispatchDrawState();
+    void handleMenuF1Key();
+    void handleMenuChoice();
+    void startGameplay();
+    void openLeaderboardFromMenu();
+    void openSkinSelectFromMenu();
+    void openTechTreeFromMenu();
+    void openUnlockedWordsFromMenu();
+    void openCreditFromMenu();
+    void openLogoutFromMenu();
+    void quitGame();
+    void handleGameplayHit();
+    void handlePauseChoice();
+    void handleTechTreeEscape();
+
     SkinSelect skinSelect;
     GachaScreen gachaScreen;
 

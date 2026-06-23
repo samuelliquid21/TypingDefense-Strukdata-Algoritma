@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include "DataManager.h"
 
 // Node untuk Circular Doubly Linked List yang menyimpan kata yang sudah di-unlock
@@ -50,6 +51,45 @@ private:
     void DrawWordList();
     // Render popup definisi (sama seperti Dictionary)
     void DrawDefinitionPopup();
+
+    // Helper untuk BuildFromPlayer: sisipkan node ke circular DLL
+    void InsertNode(WordNode* newNode);
+    // Helper untuk RebuildFilter: kumpulkan node yang cocok
+    void CollectFilteredNodes();
+    // Helper untuk Update: proses input saat popup definisi aktif
+    void HandleDefinitionInput();
+    // Helper untuk Update: proses input pencarian
+    void HandleSearchInput();
+    // Helper untuk Update: proses input sort (S/D)
+    void HandleSortInput();
+    // Helper untuk Update: navigasi bawah
+    void HandleDownInput(int visibleRows, int fc);
+    // Helper untuk Update: navigasi atas
+    void HandleUpInput(int visibleRows, int fc);
+    // Helper untuk DrawWordList: render bagian header
+    void DrawWordListHeader();
+    // Helper untuk DrawWordList: render search bar
+    void DrawSearchBar();
+    // Helper untuk DrawWordList: render pesan kosong
+    void DrawEmptyMessage();
+    // Helper untuk DrawWordList: render info hasil
+    void DrawResultInfo();
+    // Helper untuk DrawWordList: render petunjuk sort
+    void DrawSortHint();
+    // Helper untuk DrawWordList: render pesan tidak ditemukan
+    void DrawNotFoundMessage();
+    // Helper untuk DrawWordList: render item-item yang terlihat
+    void DrawListItems();
+    // Helper untuk DrawWordList: render satu item
+    void DrawListItem(int idx, int y, int rowHeight, WordNode* node);
+    // Helper untuk DrawDefinitionPopup: word-wrap definisi
+    void WordWrapDefinition();
+    // Helper untuk DrawDefinitionPopup: hitung dimensi popup
+    void ComputePopupDimensions(int& boxW, int& boxH, int& boxX, int& boxY, int& defHeight);
+    // Helper untuk DrawDefinitionPopup: render konten popup
+    void DrawPopupContent(int boxX, int boxY, int boxW, int boxH);
+
+    std::vector<std::string> m_definitionLines; // Baris-baris definisi setelah word-wrap
 
     bool m_isSorted;         // Apakah sort sedang aktif?
     bool m_sortAscending;    // true = A-Z, false = Z-A

@@ -45,6 +45,9 @@ private:
     void addShowerNode();       // Tambah node baru ke linked list shower
     void triggerShowerWave();   // Mulai wave shower: reset cursor + start timer
     void updateShowerWave(float deltaTime); // Proses wave: aktifkan asteroid satu per satu per interval
+    void ensureShowerNodesReady(); // Pastikan linked list punya cukup node untuk wave
+    void activateShowerAsteroid(); // Aktifkan satu asteroid dari cursor shower
+    void finishShowerWave();       // Akhiri wave shower, proses pending jika ada
 
     // -- TIMER --
     Timer timerNormal;          // Interval spawn asteroid normal
@@ -59,6 +62,14 @@ private:
     // Event diproses berdasarkan prioritas: ASTEROID_SHOWER (2) > NORMAL (1)
     std::priority_queue<EventType> eventQueue;
     void executeEvent(); // Ambil dan eksekusi event dengan prioritas tertinggi
+    void popExtraNormalEvent(); // Pop satu NORMAL tambahan dari queue agar tidak menumpuk
+
+    // -- UPDATE HELPERS --
+    void updateActiveAsteroids(float deltaTime); // Update semua asteroid aktif di pool dan shower
+    void processNormalTimer(float deltaTime);    // Timer spawn normal: push NORMAL ke queue
+    void processShowerTimer(float deltaTime);    // Timer shower: push ASTEROID_SHOWER ke queue
+    void processAddNodeTimer(float deltaTime);   // Timer penambahan node shower
+    void processExecuteTimer(float deltaTime);   // Timer eksekusi event dari queue
 
     // -- DEBUG --
     int getActiveAsteroidCount() const; // Hitung total asteroid aktif (pool + shower)

@@ -6,6 +6,18 @@
 // 🛡️ AURA FIELD SKILL
 // ===============================
 
+namespace {
+    // Lingkaran tipis transparan — indikasi aura siap dipakai
+    void drawAuraIdle() {
+        DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, AuraFieldSkill::AURA_RADIUS, {180, 0, 255, 30});
+    }
+    // Lingkaran ganda terang — aura aktif melindungi
+    void drawAuraActive() {
+        DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, AuraFieldSkill::AURA_RADIUS, {180, 0, 255, 150});
+        DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, AuraFieldSkill::AURA_RADIUS + 4, {180, 0, 255, 80});
+    }
+}
+
 AuraFieldSkill::AuraFieldSkill() {}
 
 // Aktifkan aura: hanya bisa dari state IDLE
@@ -37,25 +49,9 @@ void AuraFieldSkill::update(float deltaTime) {
 // ACTIVE: lingkaran ganda terang (aura aktif)
 void AuraFieldSkill::draw() {
     if (state == IDLE) {
-        DrawCircleLines(
-            Config::playerStartPos.x,
-            Config::playerStartPos.y,
-            AURA_RADIUS,
-            {180, 0, 255, 30}
-        );
+        drawAuraIdle();
     } else if (state == ACTIVE) {
-        DrawCircleLines(
-            Config::playerStartPos.x,
-            Config::playerStartPos.y,
-            AURA_RADIUS,
-            {180, 0, 255, 150}
-        );
-        DrawCircleLines(
-            Config::playerStartPos.x,
-            Config::playerStartPos.y,
-            AURA_RADIUS + 4,
-            {180, 0, 255, 80}
-        );
+        drawAuraActive();
     }
 }
 

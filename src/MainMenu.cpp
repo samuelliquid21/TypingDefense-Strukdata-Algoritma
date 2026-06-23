@@ -4,6 +4,18 @@
 // 📋 MENU UTAMA
 // ===============================
 
+// Tambah semua option default ke Circular Doubly Linked List
+void MainMenu::initOptionDefaults() {
+    AddOption("Play");
+    AddOption("Leaderboard");
+    AddOption("Skins");
+    AddOption("Skills");
+    AddOption("Word Bank");
+    AddOption("Credit");
+    AddOption("Logout");
+    AddOption("Quit");
+}
+
 MainMenu::MainMenu() {
     title = "Cosmic Keypad";
 
@@ -16,15 +28,7 @@ MainMenu::MainMenu() {
     titleFontSize = 100;
     menuFontSize = 30;
 
-    // Tambah options ke Circular Doubly Linked List
-    AddOption("Play");
-    AddOption("Leaderboard");
-    AddOption("Skins");
-    AddOption("Skills");
-    AddOption("Word Bank");
-    AddOption("Credit");
-    AddOption("Logout");
-    AddOption("Quit");
+    initOptionDefaults();
 }
 
 MainMenu::~MainMenu() {
@@ -36,7 +40,6 @@ MainMenu::~MainMenu() {
 // lalu prev/next di-link agar tetap circular.
 void MainMenu::AddOption(const std::string& option) {
     MenuNode* newNode = new MenuNode(option);
-
     if (head == nullptr) {
         // List kosong: node menjadi head dan circular ke dirinya sendiri
         // prev dan next sama-sama menunjuk ke node sendiri
@@ -77,43 +80,32 @@ void MainMenu::Update() {
         selectedIndex++;
         if (selectedIndex >= optionCount)
             selectedIndex = 0;  // Wrap-around ke index 0 (circular)
-
         current = current->next;  // Navigasi: pindah ke next node (DOWN)
     }
-
     if (IsKeyPressed(KEY_UP)) {
         selectedIndex--;
         if (selectedIndex < 0)
             selectedIndex = optionCount - 1;  // Wrap-around ke akhir (circular)
-
         current = current->prev;  // Navigasi: pindah ke prev node (UP)
     }
-
     if (IsKeyPressed(KEY_ENTER)) {
         optionChosen = true;  // Tandai bahwa user telah memilih option
     }
 }
 
-// Render menu dengan traversal Circular Doubly Linked List
-// Traversal dimulai dari head dan berhenti saat kembali ke head (do-while)
-void MainMenu::Draw() {
+// Gambar title di tengah layar horizontal, posisi Y=100
+void MainMenu::drawTitle() {
     int titleWidth = MeasureText(title.c_str(), titleFontSize);
-    // Gambar title di tengah layar horizontal, posisi Y=100
-    DrawText(
-        title.c_str(),
-        (1080 - titleWidth) / 2,
-        100,
-        titleFontSize,
-        WHITE
-    );
+    DrawText(title.c_str(), (1080 - titleWidth) / 2, 100, titleFontSize, WHITE);
+}
 
-    // Traversal circular list: start dari head, stop saat kembali ke head
+// Traversal circular list: start dari head, stop saat kembali ke head
+void MainMenu::drawMenuItems() {
     MenuNode* temp = head;
     int index = 0;
     do {
         std::string text = temp->data;
         int textWidth = MeasureText(text.c_str(), menuFontSize);
-
         int x = (1080 - textWidth) / 2;
         int y = 280 + index * 55;
 
@@ -126,6 +118,13 @@ void MainMenu::Draw() {
         temp = temp->next;  // Pindah ke node berikutnya
         index++;
     } while (temp != head);  // Berhenti saat kembali ke head (circular)
+}
+
+// Render menu dengan traversal Circular Doubly Linked List
+// Traversal dimulai dari head dan berhenti saat kembali ke head (do-while)
+void MainMenu::Draw() {
+    drawTitle();
+    drawMenuItems();
 }
 
 int MainMenu::GetSelectedIndex() const {

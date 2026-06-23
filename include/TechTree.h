@@ -45,6 +45,13 @@ private:
     // Perbarui uiState semua skill berdasarkan isUnlocked + BFS dari BARRIER
     void updateSkillStates();
 
+    // Helper untuk konstruktor: inisialisasi semua skill
+    void InitSkills();
+    // Helper untuk updateSkillStates: set state berdasarkan isUnlocked
+    void SetBaseStates();
+    // Helper untuk updateSkillStates: BFS untuk menentukan AVAILABLE
+    void BfsUpdateStates();
+
 public:
     TechTree();
 

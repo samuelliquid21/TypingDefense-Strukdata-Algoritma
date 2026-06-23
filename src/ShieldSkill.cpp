@@ -6,6 +6,18 @@
 // 🛡️ SHIELD SKILL
 // ===============================
 
+namespace {
+    // Lingkaran tipis transparan — indikasi shield siap dipakai
+    void drawShieldIdle() {
+        DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, 48, {0, 200, 255, 30});
+    }
+    // Lingkaran ganda terang — shield aktif melindungi
+    void drawShieldActive() {
+        DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, 48, {0, 200, 255, 100});
+        DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, 52, {0, 200, 255, 50});
+    }
+}
+
 ShieldSkill::ShieldSkill() {}
 
 // Aktifkan shield: hanya bisa dari state IDLE
@@ -31,27 +43,9 @@ void ShieldSkill::update(float deltaTime) {
 // Render visual shield di sekitar posisi player
 void ShieldSkill::draw() {
     if (state == IDLE) {
-        // Lingkaran tipis transparan — indikasi shield siap dipakai
-        DrawCircleLines(
-            Config::playerStartPos.x,
-            Config::playerStartPos.y,
-            48,
-            {0, 200, 255, 30}
-        );
+        drawShieldIdle();
     } else if (state == ACTIVE) {
-        // Lingkaran ganda terang — shield aktif melindungi
-        DrawCircleLines(
-            Config::playerStartPos.x,
-            Config::playerStartPos.y,
-            48,
-            {0, 200, 255, 100}
-        );
-        DrawCircleLines(
-            Config::playerStartPos.x,
-            Config::playerStartPos.y,
-            52,
-            {0, 200, 255, 50}
-        );
+        drawShieldActive();
     }
     // COOLDOWN: tidak ada visual (shield habis)
 }

@@ -25,4 +25,15 @@ private:
     bool isRegisterSuccess; // Flag: registrasi berhasil
     bool goToLogin;         // Flag: kembali ke login
     std::string registeredUsername; // Username yang berhasil didaftarkan
+
+    void handleTextInput();     // Baca karakter dari keyboard
+    void handleBackspace();     // Hapus karakter terakhir
+    void handleSubmit();        // Submit registrasi dengan ENTER
+    void handleEscape();        // ESC untuk kembali ke login
+    void drawRegisterForm();    // Render title, label, kotak input
+    void drawRegisterTitle();   // Render judul "REGISTER"
+    void drawRegisterLabel();   // Render label "Create new username:"
+    void drawRegisterInputBox(); // Render kotak input dan teks user
+    void drawStatusMessage();   // Render pesan error/sukses
+    void drawNavigationHints(); // Render hint navigasi
 };

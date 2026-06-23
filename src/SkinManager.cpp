@@ -17,38 +17,36 @@ void SkinManager::init() {
     spritesheet = LoadTexture("assets/img/Spaceships.png");
 }
 
+// Ekstrak data player dari JSON ke member variables
+void SkinManager::parsePlayerData(const std::string& username) {
+    auto& data = DataManager::getInstance().getData();
+    if (data.is_null() || !data.contains("data") || !data["data"].is_array()) return;
+
+    for (auto& player : data["data"]) {
+        if (player.contains("username") && player["username"] == username) {
+            if (player.contains("research_point")) researchPoint = player["research_point"];
+            if (player.contains("free_spin"))      freeSpinCount = player["free_spin"];
+            if (player.contains("active_skin"))    activeSkin = player["active_skin"];
+
+            unlockedSkins.clear();
+            if (player.contains("unlocked_skins") && player["unlocked_skins"].is_array()) {
+                for (auto& s : player["unlocked_skins"])
+                    unlockedSkins.push_back(s);
+            }
+            break;
+        }
+    }
+}
+
 void SkinManager::init(const std::string& username) {
     currentUsername = username;
-    auto& dm = DataManager::getInstance();
-
-    auto& data = dm.getData();
 
     researchPoint = 0;
     activeSkin = 0;
     freeSpinCount = 0;
     unlockedSkins = {0, 5, 10};
 
-    if (!data.is_null() && data.contains("data") && data["data"].is_array()) {
-        for (auto& player : data["data"]) {
-            if (player.contains("username") && player["username"] == username) {
-                if (player.contains("research_point"))
-                    researchPoint = player["research_point"];
-
-                if (player.contains("free_spin"))
-                    freeSpinCount = player["free_spin"];
-
-                if (player.contains("active_skin"))
-                    activeSkin = player["active_skin"];
-
-                unlockedSkins.clear();
-                if (player.contains("unlocked_skins") && player["unlocked_skins"].is_array()) {
-                    for (auto& s : player["unlocked_skins"])
-                        unlockedSkins.push_back(s);
-                }
-                break;
-            }
-        }
-    }
+    parsePlayerData(username);
 
     if (unlockedSkins.empty())
         unlockedSkins = {0, 5, 10};
@@ -59,34 +57,12 @@ void SkinManager::init(const std::string& username) {
     spritesheet = LoadTexture("assets/img/Spaceships.png");
 }
 
-void SkinManager::save() {
+// Buat entry player baru di JSON data, lalu simpan ke file
+void SkinManager::createNewPlayerEntry() {
     auto& dm = DataManager::getInstance();
     auto& data = dm.getData();
-
-    if (currentUsername.empty()) return;
-
-    if (data.is_null() || !data.contains("data") || !data["data"].is_array()) {
-        data["data"] = json::array();
-    }
-
-    for (auto& player : data["data"]) {
-        if (player.contains("username") && player["username"] == currentUsername) {
-            player["research_point"] = researchPoint;
-            player["free_spin"] = freeSpinCount;
-            player["active_skin"] = activeSkin;
-
-            json arr = json::array();
-            for (int id : unlockedSkins) arr.push_back(id);
-            player["unlocked_skins"] = arr;
-
-            dm.save();
-            return;
-        }
-    }
-
-    auto& dm2 = DataManager::getInstance();
-    dm2.load();
-    dm2.getData();
+    dm.load();
+    dm.getData();
     if (data.contains("data") && data["data"].is_array()) {
         data["data"].push_back(json::object());
         auto& player = data["data"][data["data"].size()-1];
@@ -99,6 +75,41 @@ void SkinManager::save() {
         player["unlocked_skins"] = arr;
         dm.save();
     }
+}
+
+// Update data player yang sudah ada di JSON, return true jika ditemukan
+static bool updateExistingPlayerData(json& data, const std::string& username,
+                                      int rp, int spin, int skin, const std::vector<int>& skins) {
+    for (auto& player : data["data"]) {
+        if (player.contains("username") && player["username"] == username) {
+            player["research_point"] = rp;
+            player["free_spin"] = spin;
+            player["active_skin"] = skin;
+            json arr = json::array();
+            for (int id : skins) arr.push_back(id);
+            player["unlocked_skins"] = arr;
+            return true;
+        }
+    }
+    return false;
+}
+
+void SkinManager::save() {
+    auto& dm = DataManager::getInstance();
+    auto& data = dm.getData();
+
+    if (currentUsername.empty()) return;
+
+    if (data.is_null() || !data.contains("data") || !data["data"].is_array()) {
+        data["data"] = json::array();
+    }
+
+    if (updateExistingPlayerData(data, currentUsername, researchPoint, freeSpinCount, activeSkin, unlockedSkins)) {
+        dm.save();
+        return;
+    }
+
+    createNewPlayerEntry();
 }
 
 int SkinManager::getRP() const { return researchPoint; }
@@ -133,6 +144,25 @@ const std::vector<int>& SkinManager::getUnlockedSkins() const {
     return unlockedSkins;
 }
 
+// Pilih satu ID dari daftar berdasarkan bobot rarity (weighted random selection)
+int SkinManager::weightedRandomSelect(const std::vector<int>& ids) const {
+    int weightsByCol[5] = {0, 45, 30, 17, 8};
+
+    int totalWeight = 0;
+    for (int id : ids) {
+        totalWeight += weightsByCol[skinToCol(id)];
+    }
+
+    int roll = GetRandomValue(1, totalWeight);
+    int cumulative = 0;
+    for (int id : ids) {
+        cumulative += weightsByCol[skinToCol(id)];
+        if (roll <= cumulative) return id;
+    }
+
+    return ids.back();
+}
+
 int SkinManager::gachaPull() {
     std::vector<int> unowned;
     for (int id = 1; id < SKIN_COUNT; id++) {
@@ -142,19 +172,5 @@ int SkinManager::gachaPull() {
 
     if (unowned.empty()) return -1;
 
-    int weightsByCol[5] = {0, 45, 30, 17, 8};
-
-    int totalWeight = 0;
-    for (int id : unowned) {
-        totalWeight += weightsByCol[skinToCol(id)];
-    }
-
-    int roll = GetRandomValue(1, totalWeight);
-    int cumulative = 0;
-    for (int id : unowned) {
-        cumulative += weightsByCol[skinToCol(id)];
-        if (roll <= cumulative) return id;
-    }
-
-    return unowned.back();
+    return weightedRandomSelect(unowned);
 }
