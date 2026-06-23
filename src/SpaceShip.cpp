@@ -1,5 +1,6 @@
 #include "SpaceShip.h"
 #include "AssetManager.h"
+#include "SkinManager.h"
 #include "raylib.h"
 
 // ===============================
@@ -13,8 +14,13 @@ SpaceShip::~SpaceShip() {
 }
 
 void SpaceShip::init() {
-    texture = AssetManager::getInstance().getTexture("ship");
-    frame = AssetManager::getInstance().getSpriteFrame("ship", 2, 1);
+    auto& skinMgr = SkinManager::getInstance();
+    texture = skinMgr.getSpritesheet();
+    const SkinInfo& info = getSkinInfo(skinMgr.getActiveSkin());
+    currentSkinId = skinMgr.getActiveSkin();
+    float fw = (float)texture.width / GRID_COLS;
+    float fh = (float)texture.height / GRID_ROWS;
+    frame = { info.col * fw, info.row * fh, fw, fh };
 }
 
 // Aktifkan laser dan arahkan ke target (posisi asteroid)
@@ -61,4 +67,18 @@ void SpaceShip::update(float deltaTime) {
 void SpaceShip::draw() {
     drawLaser();
     drawSpaceShip();
+}
+
+void SpaceShip::setSkin(int skinId) {
+    currentSkinId = skinId;
+    auto& skinMgr = SkinManager::getInstance();
+    texture = skinMgr.getSpritesheet();
+    const SkinInfo& info = getSkinInfo(skinId);
+    float fw = (float)texture.width / GRID_COLS;
+    float fh = (float)texture.height / GRID_ROWS;
+    frame = { info.col * fw, info.row * fh, fw, fh };
+}
+
+int SpaceShip::getSkinId() const {
+    return currentSkinId;
 }

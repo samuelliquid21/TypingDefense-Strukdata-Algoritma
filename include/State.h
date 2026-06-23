@@ -14,5 +14,7 @@ enum class GameState {
     UNLOCK_SKILL,        // Tech tree untuk membuka skill
     WORD_DICTIONARY,     // Daftar kata yang tersedia
     UNLOCKED_WORDS,       // Kata-kata yang sudah dibuka pemain
-    REGISTER            // Layar pendaftaran akun baru
+    REGISTER,            // Layar pendaftaran akun baru
+    SKIN_SELECT,         // Pilih skin / beli skin
+    GACHA                // Gacha crate
 };

@@ -4,6 +4,7 @@
 #include "Leaderboard.h"
 #include "Credit.h"
 #include "GameConfig.h"
+#include "SkinManager.h"
 #include "raylib.h"
 
 
@@ -17,6 +18,8 @@ void Game::Run() {
         Update();
         Draw();
     }
+
+    SkinManager::getInstance().save();
 
     // Bersihkan resource sebelum keluar
     bg.Unload();
@@ -78,7 +81,7 @@ void Game::setupCallbacks() {
             for (const auto& w : m_currentPlayer.unlocked_words)
                 if (w == word) return;
             m_currentPlayer.unlocked_words.push_back(word);
-            m_currentPlayer.research_point += 10;
+            SkinManager::getInstance().addRP(10);
         }
     );
 }
@@ -111,6 +114,8 @@ void Game::Update() {
         case GameState::UNLOCK_SKILL:      UpdateTechTree(); break;
         case GameState::WORD_DICTIONARY:   UpdateDictionary(); break;
         case GameState::UNLOCKED_WORDS:    UpdateUnlockedWords(); break;
+        case GameState::SKIN_SELECT:       UpdateSkinSelect(); break;
+        case GameState::GACHA:             UpdateGacha(); break;
         default: break;
     }
 }
@@ -134,6 +139,8 @@ void Game::Draw() {
         case GameState::UNLOCK_SKILL:      DrawTechTree(); break;
         case GameState::WORD_DICTIONARY:   DrawDictionary(); break;
         case GameState::UNLOCKED_WORDS:    DrawUnlockedWords(); break;
+        case GameState::SKIN_SELECT:       DrawSkinSelect(); break;
+        case GameState::GACHA:             DrawGacha(); break;
         default: break;
     }
 
@@ -184,32 +191,38 @@ void Game::UpdateMenu() {
         }
         else if (choice == 2) {
             AudioManager::getInstance().StopLobby();
-            state = GameState::UNLOCK_SKILL;
+            state = GameState::SKIN_SELECT;
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start();
         }
         else if (choice == 3) {
+            AudioManager::getInstance().StopLobby();
+            state = GameState::UNLOCK_SKILL;
+            m_transitionEffect.PlaySoundIn();
+            m_transitionEffect.Start();
+        }
+        else if (choice == 4) {
             AudioManager::getInstance().StopLobby();
             m_unlockedWords.BuildFromPlayer(m_currentPlayer);
             state = GameState::UNLOCKED_WORDS;
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start();
         }
-        else if (choice == 4) {
+        else if (choice == 5) {
             AudioManager::getInstance().StopLobby();
             creditScreen.Reset();
             state = GameState::CREDIT;
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start();
         }
-        else if (choice == 5) {
+        else if (choice == 6) {
             AudioManager::getInstance().StopLobby();
             logoutScreen.Reset();
             state = GameState::LOGOUT;
             m_transitionEffect.PlaySoundIn();
             m_transitionEffect.Start();
         }
-        else if (choice == 6) {
+        else if (choice == 7) {
             // Keluar dari game
             statusMenuQuit = true;
         }
@@ -246,12 +259,13 @@ void Game::UpdateGameplay() {
         if (m_isLoggedIn) {
             int earnedRP = score / 100;
             if (earnedRP > 0)
-                m_currentPlayer.research_point += earnedRP;
+                SkinManager::getInstance().addRP(earnedRP);
             if (score > m_currentPlayer.highest_score) {
                 m_currentPlayer.highest_score = score;
                 m_currentPlayer.survival_time    = gameplayManager->survivalTime;
             }
             DataManager::getInstance().SavePlayer(m_currentPlayer);
+            SkinManager::getInstance().save();
         }
         restartGame();          // Reset gameplay untuk sesi berikutnya
         state = GameState::GAME_OVER;
@@ -357,6 +371,7 @@ void Game::UpdateLoginRegister() {
     loginScreen.Update();
     if (loginScreen.ShouldLogin()) {
         m_currentPlayer = loginScreen.GetProfile();
+        SkinManager::getInstance().init(m_currentPlayer.username);
         techTree.loadFromProfile(m_currentPlayer);
         m_isLoggedIn = true;
         loginScreen.Reset();
@@ -382,6 +397,7 @@ void Game::UpdateRegister() {
 
     if (registerScreen.IsRegisterSuccess()) {
         DataManager::getInstance().FindPlayer(registerScreen.GetRegisteredUsername(), m_currentPlayer);
+        SkinManager::getInstance().init(m_currentPlayer.username);
         techTree.loadFromProfile(m_currentPlayer);
         m_isLoggedIn = true;
         registerScreen.Reset();
@@ -406,6 +422,7 @@ void Game::UpdateLogout() {
         AudioManager::getInstance().stopMusic("bgm");
         m_currentPlayer = PlayerProfile{};
         m_isLoggedIn = false;
+        SkinManager::getInstance().init();
         techTree.loadFromProfile(m_currentPlayer);
         logoutScreen.Reset();
         state = GameState::LOGIN_AND_REGISTER;
@@ -433,6 +450,7 @@ void Game::UpdateTechTree() {
     if (techTree.handleInput(mousePos, clicked, m_currentPlayer)) {
         // Jika ada perubahan, simpan profile pemain
         DataManager::getInstance().SavePlayer(m_currentPlayer);
+        SkinManager::getInstance().save();
     }
 
     if (IsKeyPressed(KEY_ESCAPE)) {
@@ -483,6 +501,48 @@ void Game::UpdateUnlockedWords() {
 
 void Game::DrawUnlockedWords() {
     m_unlockedWords.Draw();
+}
+
+// ===============================
+// SKIN SELECT
+// ===============================
+
+void Game::UpdateSkinSelect() {
+    AudioManager::getInstance().UpdateDefault();
+    bool backToMenu = false;
+    bool goToGacha = false;
+    skinSelect.Update(backToMenu, goToGacha);
+    if (backToMenu) {
+        AudioManager::getInstance().stopMusic("bgm");
+        state = GameState::MENU;
+        m_transitionEffect.PlaySoundOut();
+        m_transitionEffect.Start();
+    }
+    if (goToGacha) {
+        state = GameState::GACHA;
+    }
+}
+
+void Game::DrawSkinSelect() {
+    skinSelect.Draw();
+}
+
+// ===============================
+// GACHA
+// ===============================
+
+void Game::UpdateGacha() {
+    AudioManager::getInstance().UpdateDefault();
+    bool backToSkinSelect = false;
+    bool goToSkinSelect = false;
+    gachaScreen.Update(backToSkinSelect, goToSkinSelect);
+    if (backToSkinSelect || goToSkinSelect) {
+        state = GameState::SKIN_SELECT;
+    }
+}
+
+void Game::DrawGacha() {
+    gachaScreen.Draw();
 }
 
 

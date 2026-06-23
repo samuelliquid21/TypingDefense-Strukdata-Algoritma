@@ -19,6 +19,7 @@ MainMenu::MainMenu() {
     // Tambah options ke Circular Doubly Linked List
     AddOption("Play");
     AddOption("Leaderboard");
+    AddOption("Skins");
     AddOption("Skills");
     AddOption("Word Bank");
     AddOption("Credit");

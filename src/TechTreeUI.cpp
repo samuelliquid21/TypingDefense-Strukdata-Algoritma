@@ -1,5 +1,6 @@
 #include "TechTreeUI.h"
 #include "GameConfig.h"
+#include "SkinManager.h"
 #include <string>
 
 // ===============================
@@ -50,7 +51,7 @@ void TechTreeUI::Draw(const PlayerProfile& profile) {
     ClearBackground(Color{10, 10, 25, 255});
 
     DrawTitle();                                 // Judul "SKILL LAB" di tengah atas
-    DrawResearchPoints(profile.research_point);  // Jumlah RP di pojok kanan atas
+    DrawResearchPoints(SkinManager::getInstance().getRP());  // Jumlah RP di pojok kanan atas
     DrawEdges();                                 // Garis dependensi antar node
 
     // Gambar node yang tidak LOCKED

@@ -1,6 +1,7 @@
 #include "TechTree.h"
 #include <stdexcept>
 #include "raylib.h"
+#include "SkinManager.h"
 
 // ===============================
 // 🌳 TECH TREE (GRAPH + BFS)
@@ -99,9 +100,8 @@ void TechTree::saveToProfile(PlayerProfile& profile) {
 
 // Unlock skill: kurangi RP, update state,simpan ke profil
 bool TechTree::unlockSkill(SkillName name, PlayerProfile& profile) {
-    // Cek: RP cukup dan skill benar-benar AVAILABLE (parent sudah di-unlock)
-    if (profile.research_point >= skills[name].rpCost && skills[name].uiState == AVAILABLE) {
-        profile.research_point -= skills[name].rpCost;          // Kurangi RP
+    // Cek: RP cukup (via SkinManager) dan skill benar-benar AVAILABLE (parent sudah di-unlock)
+    if (skills[name].uiState == AVAILABLE && SkinManager::getInstance().spendRP(skills[name].rpCost)) {
         skills[name].isUnlocked = true;                          // Tandai sebagai ter-unlock
         profile.unlocked_skills.push_back(StringFromSkillName(name)); // Simpan ke profil
         updateSkillStates(); // Perbarui state child menjadi AVAILABLE
