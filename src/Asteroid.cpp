@@ -86,11 +86,11 @@ void Asteroid::asteroidType(const int tier) {
 
     originalWord = word; // Simpan kata asli sebelum diketik
 
+    // Radius proporsional dengan panjang kata (HITUNG dulu sebelum dipakai)
+    radius = 20 + (word.length() * 2);
     // Muncul dari tepi kiri layar, posisi Y random
     position.x = -radius;
     position.y = GetRandomValue(0, Config::screenHeight);
-    // Radius proporsional dengan panjang kata
-    radius = 20 + (word.length() * 2);
     textureId = GetRandomValue(0, 3); // Variasi visual random
     active = true;
     targeted = false;

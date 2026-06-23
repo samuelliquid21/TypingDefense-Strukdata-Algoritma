@@ -86,9 +86,23 @@ void AsteroidManager::addShowerNode() {
 }
 
 void AsteroidManager::triggerShowerWave() {
-    // Memulai wave shower: hitung jumlah node, reset cursor, start timer interval
+    // Jika wave masih berjalan (misal setelah freeze/lag), tunda sampai wave selesai
+    if (showerWaveActive) {
+        pendingShower = true;
+        if constexpr (Config::enableAsteroidLog)
+            TraceLog(LOG_INFO, "[%.1f] triggerShowerWave DEFERRED", difficultyManager.counter);
+        return;
+    }
+
+    // Pastikan linked list punya cukup node berdasarkan difficulty
+    int target = difficultyManager.getAsteroidCountForSpecialSpawn();
     int count = 0;
     for (auto* n = asteroidShower.getHead(); n; n = n->next) count++;
+    while (count < target) {
+        addShowerNode();
+        count++;
+    }
+
     if constexpr (Config::enableAsteroidLog)
         TraceLog(LOG_INFO, "[%.1f] triggerShowerWave (%d nodes)", difficultyManager.counter, count);
     asteroidShower.resetCursor();
@@ -105,8 +119,10 @@ void AsteroidManager::updateShowerWave(float deltaTime) {
     // Ambil node asteroid saat ini dari cursor linked list
     auto* ast = asteroidShower.getCurrent();
     if (ast != nullptr) {
-        // Aktifkan asteroid dengan tier random 1-2, lalu maju ke node berikutnya
-        int tier = GetRandomValue(1, 2);
+        // Tier shower naik seiring waktu: 1-2 awal, maksimal 1-4
+        int maxTier = 2 + static_cast<int>(difficultyManager.counter / 60.0f);
+        if (maxTier > 4) maxTier = 4;
+        int tier = GetRandomValue(1, maxTier);
         ast->asteroidType(tier);
         if constexpr (Config::enableAsteroidLog)
             TraceLog(LOG_INFO, "[%.1f] updateShowerWave activate tier %d", difficultyManager.counter, tier);
@@ -117,6 +133,23 @@ void AsteroidManager::updateShowerWave(float deltaTime) {
         if constexpr (Config::enableAsteroidLog)
             TraceLog(LOG_INFO, "[%.1f] updateShowerWave DONE", difficultyManager.counter);
         showerWaveActive = false;
+
+        // Jika ada wave yang tertunda (pendingShower), jalankan sekarang
+        if (pendingShower) {
+            pendingShower = false;
+            int target = difficultyManager.getAsteroidCountForSpecialSpawn();
+            int count = 0;
+            for (auto* n = asteroidShower.getHead(); n; n = n->next) count++;
+            while (count < target) {
+                addShowerNode();
+                count++;
+            }
+            if constexpr (Config::enableAsteroidLog)
+                TraceLog(LOG_INFO, "[%.1f] triggerShowerWave (deferred, %d nodes)", difficultyManager.counter, count);
+            asteroidShower.resetCursor();
+            timerShowerInterval.start(Config::showerWaveInterval);
+            showerWaveActive = true;
+        }
     }
 }
 
@@ -137,6 +170,11 @@ void AsteroidManager::executeEvent() {
     } else if (type == ASTEROID_SHOWER) {
         // Trigger wave asteroid shower
         triggerShowerWave();
+        // Pop satu NORMAL tambahan agar queue tidak menumpuk
+        if (!eventQueue.empty() && eventQueue.top() == NORMAL) {
+            eventQueue.pop();
+            spawnPoolAsteroid(difficultyManager.getAsteroidTier());
+        }
     }
 }
 

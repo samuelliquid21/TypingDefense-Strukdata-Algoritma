@@ -14,7 +14,7 @@ namespace Config {
     constexpr float showerEventInterval{30};        // interval menambah event shower event
     constexpr float normalSpawnInterval{2.0f};      // interval meanmbah event asteroid biasa
     constexpr float executeEventInterval{2.0f};     // interval eksekusi event
-    constexpr float addShowerNodeInterval{60.0f};   // interval menambah node asteroid baru di asteroid shower list
+    constexpr float addShowerNodeInterval{30.0f};   // interval menambah node asteroid baru di asteroid shower list
     constexpr float showerWaveInterval{0.2f};       // interval spawn antar asteroid saat event shower
     constexpr int initialShowerNodes{5};            // banyak asteroid pada event asteroid shower pertama
     constexpr bool enableAsteroidLog{true};         // memunculkan trace log asteroid

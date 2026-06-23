@@ -53,6 +53,7 @@ private:
     Timer timerExecute;         // Interval eksekusi event dari queue
     Timer timerAddNode;         // Interval penambahan node shower baru (60 detik)
     bool showerWaveActive = false; // Flag: apakah wave shower sedang berlangsung
+    bool pendingShower = false;    // Flag: ada wave tertunda (saat freeze/lag)
 
     // -- PRIORITY QUEUE --
     // Event diproses berdasarkan prioritas: ASTEROID_SHOWER (2) > NORMAL (1)
