@@ -21,6 +21,9 @@
 #include "DebugOverlay.h"
 #include "SkinSelect.h"
 #include "GachaScreen.h"
+#include "OpeningScene.h"
+#include "LoadingScreen.h"
+#include "EventNotification.h"
 
 // Kelas utama game — mengelola state machine, game loop, dan seluruh subsistem.
 // Menggunakan pola Game::Run() -> Update() / Draw() yang dipanggil tiap frame.
@@ -64,12 +67,19 @@ private:
     // === Transisi & Efek Glitch ===
     TransitionEffect m_transitionEffect;
 
+    // === Opening & Loading ===
+    OpeningScene openingScene;
+    LoadingScreen loadingScreen;
+    EventNotification eventNotif;
+
     // === Metode Update per State ===
     void Update();
     void Draw();
     void restartGame();
     void setupCallbacks();
 
+    void UpdateLoading();
+    void UpdateOpening();
     void UpdateMenu();
     void UpdateGameplay();
     void UpdatePause();
@@ -85,6 +95,8 @@ private:
     void UpdateSkinSelect();
     void UpdateGacha();
 
+    void DrawLoading();
+    void DrawOpening();
     void DrawMenu();
     void DrawGameplay();
     void DrawPause();

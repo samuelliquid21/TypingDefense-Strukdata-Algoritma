@@ -22,6 +22,7 @@ void Game::Run() {
     SkinManager::getInstance().save();
 
     // Bersihkan resource sebelum keluar
+    openingScene.Unload();
     bg.Unload();
     LeaderboardSystem::Unload();
     AssetManager::getInstance().unloadAll();
@@ -56,7 +57,7 @@ void Game::initAudioAndWindow() {
 
 // Inisialisasi state game, data player, dan resource assets
 void Game::initGameStateAndAssets() {
-    state = GameState::MENU;
+    state = GameState::LOADING;
     score = 0;
     statusMenuQuit = false;
 
@@ -104,8 +105,8 @@ void Game::Update() {
 
     m_transitionEffect.Update(dt);
 
-    // Background tetap bergerak kecuali saat pause
-    if (state != GameState::PAUSE) {
+    // Background tetap bergerak kecuali saat pause, loading, atau opening
+    if (state != GameState::PAUSE && state != GameState::LOADING && state != GameState::OPENING) {
         bg.Update();
     }
 
@@ -116,6 +117,8 @@ void Game::Update() {
 // Delegasikan panggilan update ke method state yang sesuai
 void Game::dispatchUpdateState() {
     switch (state) {
+        case GameState::LOADING:      UpdateLoading(); break;
+        case GameState::OPENING:      UpdateOpening(); break;
         case GameState::MENU:         UpdateMenu(); break;
         case GameState::GAMEPLAY:     UpdateGameplay(); break;
         case GameState::PAUSE:        UpdatePause(); break;
@@ -137,13 +140,15 @@ void Game::dispatchUpdateState() {
 void Game::Draw() {
     BeginDrawing();
     ClearBackground(BLACK);
-    bg.Draw();
+    if (state != GameState::LOADING && state != GameState::OPENING)
+        bg.Draw();
 
     // Delegasikan draw ke method sesuai state aktif
     dispatchDrawState();
 
     // Overlay transisi di atas semua konten state
-    m_transitionEffect.Draw();
+    if (state != GameState::LOADING && state != GameState::OPENING)
+        m_transitionEffect.Draw();
 
     EndDrawing();
 }
@@ -151,6 +156,8 @@ void Game::Draw() {
 // Delegasikan panggilan draw ke method state yang sesuai
 void Game::dispatchDrawState() {
     switch (state) {
+        case GameState::LOADING:      DrawLoading(); break;
+        case GameState::OPENING:      DrawOpening(); break;
         case GameState::MENU:         DrawMenu(); break;
         case GameState::GAMEPLAY:     DrawGameplay(); break;
         case GameState::PAUSE:        DrawPause(); break;
@@ -172,6 +179,32 @@ void Game::dispatchDrawState() {
 // ===============================
 // 🧠 GAME STATE LOGIC
 // ===============================
+
+void Game::UpdateLoading() {
+    bool done = false;
+    loadingScreen.Update(done);
+    if (done) {
+        openingScene.Init();
+        state = GameState::OPENING;
+    }
+}
+
+void Game::DrawLoading() {
+    loadingScreen.Draw();
+}
+
+void Game::UpdateOpening() {
+    bool done = false;
+    openingScene.Update(done);
+    if (done) {
+        openingScene.Unload();
+        state = GameState::MENU;
+    }
+}
+
+void Game::DrawOpening() {
+    openingScene.Draw();
+}
 
 void Game::UpdateMenu() {
     if (!m_isLoggedIn) {
