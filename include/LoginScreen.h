@@ -25,4 +25,15 @@ private:
     bool shouldLogin;       // Flag: login berhasil
     bool goToRegister;      // Flag: pindah ke register
     bool goBack;            // Flag: kembali/keluar
+
+    void handleTextInput();     // Baca karakter dari keyboard
+    void handleBackspace();     // Hapus karakter terakhir
+    void handleSubmit();        // Submit login dengan ENTER
+    void handleNavigationKeys(); // TAB ke register, ESC untuk quit
+    void drawLoginForm();       // Render title, label, kotak input
+    void drawLoginTitle();      // Render judul "LOGIN"
+    void drawLoginLabel();      // Render label "Enter username:"
+    void drawLoginInputBox();   // Render kotak input dan teks user
+    void drawStatusMessage();   // Render pesan error
+    void drawNavigationHints(); // Render hint navigasi
 };

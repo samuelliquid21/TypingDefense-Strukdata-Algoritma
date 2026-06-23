@@ -18,27 +18,32 @@ void TransitionEffect::Update(float dt) {
     }
 }
 
-void TransitionEffect::Draw() const {
-    if (!m_active || m_intensity <= 0.01f) return;
-
+// Gambar garis-garis glitch horizontal dengan warna bergantian cyan/magenta
+static void drawGlitchLines(float intensity) {
     for (int i = 0; i < 12; i++) {
         int y = GetRandomValue(0, Config::screenHeight);
         int h = GetRandomValue(5, 25);
-
         Color glitchColor = (i % 2 == 0)
-            ? Color{ 0, 255, 200, (unsigned char)(m_intensity * 180) }
-            : Color{ 255, 50, 120, (unsigned char)(m_intensity * 140) };
-
+            ? Color{ 0, 255, 200, (unsigned char)(intensity * 180) }
+            : Color{ 255, 50, 120, (unsigned char)(intensity * 140) };
         DrawRectangle(0, y, Config::screenWidth, h, glitchColor);
     }
+}
 
+// Gambar garis putih tipis tambahan sesekali (random 30% chance)
+static void drawWhiteNoiseLine() {
     if (GetRandomValue(0, 10) > 7) {
-        DrawRectangle(
-            0, GetRandomValue(0, Config::screenHeight),
+        DrawRectangle(0, GetRandomValue(0, Config::screenHeight),
             Config::screenWidth, GetRandomValue(1, 3),
-            Color{ 255, 255, 255, 100 }
-        );
+            Color{ 255, 255, 255, 100 });
     }
+}
+
+void TransitionEffect::Draw() const {
+    if (!m_active || m_intensity <= 0.01f) return;
+
+    drawGlitchLines(m_intensity);
+    drawWhiteNoiseLine();
 }
 
 void TransitionEffect::Start() {

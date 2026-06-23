@@ -19,6 +19,8 @@
 #include "LogoutScreen.h"
 #include "TransitionEffect.h"
 #include "DebugOverlay.h"
+#include "SkinSelect.h"
+#include "GachaScreen.h"
 
 // Kelas utama game — mengelola state machine, game loop, dan seluruh subsistem.
 // Menggunakan pola Game::Run() -> Update() / Draw() yang dipanggil tiap frame.
@@ -80,6 +82,8 @@ private:
     void UpdateTechTree();
     void UpdateDictionary();
     void UpdateUnlockedWords();
+    void UpdateSkinSelect();
+    void UpdateGacha();
 
     void DrawMenu();
     void DrawGameplay();
@@ -93,5 +97,29 @@ private:
     void DrawTechTree();
     void DrawDictionary();
     void DrawUnlockedWords();
+    void DrawSkinSelect();
+    void DrawGacha();
+
+    // === Extracted Helper Methods ===
+    void initAudioAndWindow();
+    void initGameStateAndAssets();
+    void dispatchUpdateState();
+    void dispatchDrawState();
+    void handleMenuF1Key();
+    void handleMenuChoice();
+    void startGameplay();
+    void openLeaderboardFromMenu();
+    void openSkinSelectFromMenu();
+    void openTechTreeFromMenu();
+    void openUnlockedWordsFromMenu();
+    void openCreditFromMenu();
+    void openLogoutFromMenu();
+    void quitGame();
+    void handleGameplayHit();
+    void handlePauseChoice();
+    void handleTechTreeEscape();
+
+    SkinSelect skinSelect;
+    GachaScreen gachaScreen;
 
 };

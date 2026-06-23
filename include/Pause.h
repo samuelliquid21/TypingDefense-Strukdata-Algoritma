@@ -36,4 +36,8 @@ private:
 
     bool isCountingDown;                     // Apakah sedang dalam state countdown?
     float countdownTimer;                    // Timer countdown (3.0 -> 2.0 -> 1.0 -> 0 -> "GO!")
+
+    void handleNavigation();                 // Navigasi opsi naik/turun dengan wrap-around
+    void drawCountdown();                    // Tampilkan angka countdown (3, 2, 1, GO!)
+    void drawMenuOptions();                  // Tampilan menu pause dengan pilihan
 };

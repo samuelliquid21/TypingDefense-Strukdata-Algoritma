@@ -51,6 +51,28 @@ private:
     const std::vector<std::string>* m_unlockedSkills = nullptr; // Pointer ke daftar skill yang sudah di-unlock
     std::vector<SkillBinding> m_activeSkills;                    // Skill aktif yg ter-unlock (dibangun ulang otomatis)
 
+    // === Extracted Helper Methods ===
+    int getHitRadius() const;
+    bool handleAuraAbsorption(const std::vector<Asteroid*>& hits);
+    bool handleShieldAbsorption(const std::vector<Asteroid*>& hits);
+    void triggerGameOver();
+    void updateSubsystems(float deltaTime);
+    void updateActiveSkills(float deltaTime);
+    void handleBombShockwave();
+    void processAllCharInputs();
+    bool isTargetInvalid() const;
+    void resetToSearchTarget();
+    void processSearchForTarget(char c);
+    Asteroid* findNearestTarget(char c);
+    void playSearchError();
+    void handleInstantCritOrLock();
+    void processTargetTyping(char c);
+    void handleSuccessfulTyping(int result);
+    void drawGameObjects();
+    void drawScoreAndCombo();
+    void drawActiveSkillsHUD();
+    void drawSkillBindingLine(const SkillBinding& binding, int& hudY);
+
 public:
     int   score = 0;   // Skor pemain saat ini
     int   totalKeystrokes   = 0;

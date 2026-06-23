@@ -2,6 +2,7 @@
 
 #include "raylib.h"
 #include "GameConfig.h"
+#include "SkinData.h"
 
 constexpr float LASER_DELAY = 0.1f; // Durasi laser menyala sebelum mati otomatis (detik)
 
@@ -19,6 +20,7 @@ private:
 
     Texture2D texture;  // Texture sprite spaceship
     Rectangle frame;    // Area sprite yang diambil dari spritesheet
+    int currentSkinId = 0;
 
     void drawTexture();     // Gambar texture spaceship
     void deactivateLaser(); // Matikan laser jika sudah waktunya
@@ -33,4 +35,7 @@ public:
     void activateLaser(Vector2 &target); // Aktifkan laser dan arahkan ke target
     void update(float deltaTime);        // Update logika (deactivate laser)
     void draw();                         // Render laser + spaceship
+
+    void setSkin(int skinId);
+    int getSkinId() const;
 };

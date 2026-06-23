@@ -6,6 +6,18 @@
 // ⭐ SCORE BOOSTER SKILL
 // ===============================
 
+namespace {
+    // Lingkaran tipis transparan — indikasi score booster siap
+    void drawBoosterIdle() {
+        DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, 64, {255, 200, 0, 30});
+    }
+    // Lingkaran ganda terang — multiplier aktif
+    void drawBoosterActive() {
+        DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, 64, {255, 220, 0, 150});
+        DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, 68, {255, 200, 0, 80});
+    }
+}
+
 ScoreBoosterSkill::ScoreBoosterSkill() {}
 
 // Aktifkan score booster: hanya bisa dari state IDLE
@@ -37,25 +49,9 @@ void ScoreBoosterSkill::update(float deltaTime) {
 // ACTIVE: lingkaran ganda terang (multiplier aktif)
 void ScoreBoosterSkill::draw() {
     if (state == IDLE) {
-        DrawCircleLines(
-            Config::playerStartPos.x,
-            Config::playerStartPos.y,
-            64,
-            {255, 200, 0, 30}
-        );
+        drawBoosterIdle();
     } else if (state == ACTIVE) {
-        DrawCircleLines(
-            Config::playerStartPos.x,
-            Config::playerStartPos.y,
-            64,
-            {255, 220, 0, 150}
-        );
-        DrawCircleLines(
-            Config::playerStartPos.x,
-            Config::playerStartPos.y,
-            68,
-            {255, 200, 0, 80}
-        );
+        drawBoosterActive();
     }
 }
 

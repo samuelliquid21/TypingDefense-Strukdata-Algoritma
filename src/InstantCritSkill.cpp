@@ -6,6 +6,18 @@
 // ⚡ INSTANT CRIT SKILL
 // ===============================
 
+namespace {
+    // Garis tipis transparan — indikasi crit siap
+    void drawCritIdle() {
+        DrawRectangleLines(Config::playerStartPos.x - 32, Config::playerStartPos.y - 32, 64, 64, {255, 60, 60, 30});
+    }
+    // Garis ganda terang — crit aktif
+    void drawCritActive() {
+        DrawRectangleLines(Config::playerStartPos.x - 32, Config::playerStartPos.y - 32, 64, 64, {255, 60, 60, 180});
+        DrawRectangleLines(Config::playerStartPos.x - 36, Config::playerStartPos.y - 36, 72, 72, {255, 60, 60, 80});
+    }
+}
+
 InstantCritSkill::InstantCritSkill() {}
 
 // Aktifkan instant crit: hanya bisa dari state IDLE
@@ -37,25 +49,9 @@ void InstantCritSkill::update(float deltaTime) {
 // ACTIVE: garis ganda terang
 void InstantCritSkill::draw() {
     if (state == IDLE) {
-        DrawRectangleLines(
-            Config::playerStartPos.x - 32,
-            Config::playerStartPos.y - 32,
-            64, 64,
-            {255, 60, 60, 30}
-        );
+        drawCritIdle();
     } else if (state == ACTIVE) {
-        DrawRectangleLines(
-            Config::playerStartPos.x - 32,
-            Config::playerStartPos.y - 32,
-            64, 64,
-            {255, 60, 60, 180}
-        );
-        DrawRectangleLines(
-            Config::playerStartPos.x - 36,
-            Config::playerStartPos.y - 36,
-            72, 72,
-            {255, 60, 60, 80}
-        );
+        drawCritActive();
     }
 }
 

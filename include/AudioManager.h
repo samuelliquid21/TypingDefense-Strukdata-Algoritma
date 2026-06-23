@@ -31,4 +31,8 @@ private:
     ~AudioManager() = default;
     AudioManager(const AudioManager&) = delete;
     AudioManager& operator=(const AudioManager&) = delete;
+
+    void loadMusicTracks(); // Load semua music tracks
+    void loadSoundEffects(); // Load semua sound effects
+    void setDefaultVolumes(); // Set volume default untuk SFX dan music
 };

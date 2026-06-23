@@ -57,6 +57,16 @@ void DataManager::setFilePath(const std::string& path) {
 
 // ==== PLAYER MANAGEMENT ====
 
+// Salin data dari JSON entry ke struct PlayerProfile
+static void copyJsonToProfile(const json& entry, PlayerProfile& outProfile, const std::string& username) {
+    outProfile.username = username;
+    outProfile.highest_score = entry.value("highest_score", 0);
+    outProfile.research_point = entry.value("research_point", 0);
+    outProfile.unlocked_words = entry.value("unlocked_words", std::vector<std::string>{});
+    outProfile.unlocked_skills = entry.value("unlocked_skills", std::vector<std::string>{});
+    outProfile.survival_time    = entry.value("survival_time",    0.0f);
+}
+
 // Cari player berdasarkan username dengan iterasi array "data"
 bool DataManager::FindPlayer(const std::string& username, PlayerProfile& outProfile) {
     // Pastikan struktur JSON valid: ada key "data" dan berupa array
@@ -68,13 +78,7 @@ bool DataManager::FindPlayer(const std::string& username, PlayerProfile& outProf
     for (const auto& entry : m_data["data"]) {
         try {
             if (entry.contains("username") && entry["username"].get<std::string>() == username) {
-                // Salin data dari JSON ke struct PlayerProfile
-                outProfile.username = username;
-                outProfile.highest_score = entry.value("highest_score", 0);
-                outProfile.research_point = entry.value("research_point", 0);
-                outProfile.unlocked_words = entry.value("unlocked_words", std::vector<std::string>{});
-                outProfile.unlocked_skills = entry.value("unlocked_skills", std::vector<std::string>{});
-                outProfile.survival_time    = entry.value("survival_time",    0.0f);
+                copyJsonToProfile(entry, outProfile, username);
                 return true;
             }
         } catch (const nlohmann::detail::type_error& e) {
@@ -91,7 +95,6 @@ void DataManager::SavePlayer(const PlayerProfile& profile) {
         if (!m_data.contains("data") || !m_data["data"].is_array()) {
             m_data["data"] = json::array();
         }
-
         for (auto& entry : m_data["data"]) {
             if (entry.contains("username") && entry["username"].get<std::string>() == profile.username) {
                 entry["highest_score"] = profile.highest_score;

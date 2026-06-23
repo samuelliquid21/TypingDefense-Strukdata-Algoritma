@@ -43,21 +43,11 @@ void BombSkill::draw() {
 
     // Alpha: 1.0 di awal → 0.0 di akhir ledakan
     float alpha = 1.0f - (timer / Config::bombShockwaveDuration);
-    Color c1 = {255, 255, 255, (unsigned char)(alpha * 180)};     // Lingkaran luar (putih)
-    Color c2 = {0, 200, 255, (unsigned char)(alpha * 80)};        // Lingkaran dalam (cyan)
+    Color c1 = {255, 255, 255, (unsigned char)(alpha * 180)}; // Lingkaran luar (putih)
+    Color c2 = {0, 200, 255, (unsigned char)(alpha * 80)};    // Lingkaran dalam (cyan)
 
-    DrawCircleLines(
-        Config::playerStartPos.x,
-        Config::playerStartPos.y,
-        shockwaveRadius,
-        c1
-    );
-    DrawCircleLines(
-        Config::playerStartPos.x,
-        Config::playerStartPos.y,
-        shockwaveRadius * 0.8f,
-        c2
-    );
+    DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, shockwaveRadius, c1);
+    DrawCircleLines(Config::playerStartPos.x, Config::playerStartPos.y, shockwaveRadius * 0.8f, c2);
 }
 
 const char* BombSkill::getName() const {

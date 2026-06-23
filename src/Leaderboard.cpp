@@ -15,13 +15,14 @@ namespace LeaderboardSystem {
     static AVLTree playerTree;                       // Storage utama pakai AVL
     static std::vector<PlayerData> sortedPlayers;    // Hasil traversal
     static int selectedIndex = 0;                    // Index player yang terpilih di list
-    static const int MAX_DISPLAY = 10;               // Maksimal baris yang ditampilkan
+    static int scrollOffset = 0;                     // Scroll offset untuk baris tabel
+    static const int MAX_VISIBLE_ROWS = 7;           // Jumlah baris yang terlihat di tabel
     static bool showingDetail = false;               // Mode detail player (pop-up)
     static int detailIndex = -1;                     // Index player yang ditampilkan detailnya
     static float fadeIn = 0.0f;                      // Animasi fade-in keseluruhan
     static float titlePulse = 0.0f;                  // Pulse effect pada title
     static float podiumRise[3] = {0,0,0};            // Animasi naik podium (rank 1-3)
-    static float rowSlideIn[10] = {0};               // Animasi slide-in setiap baris
+    static float rowSlideIn[MAX_VISIBLE_ROWS] = {0}; // Animasi slide-in setiap baris tabel
     static float scanLinePos = 0.0f;                 // Posisi scan line horizontal (efek retro)
     static bool isEntering = true;                   // Flag animasi masuk
     static bool isExiting = false;                   // Flag animasi keluar
@@ -129,9 +130,9 @@ namespace LeaderboardSystem {
 
     // Reset semua state ke nilai awal (untuk Init/re-init)
     void FullReset() {
-        selectedIndex = 0; showingDetail = false; detailIndex = -1; fadeIn = 0.0f; scanLinePos = 0.0f;
+        selectedIndex = 0; scrollOffset = 0; showingDetail = false; detailIndex = -1; fadeIn = 0.0f; scanLinePos = 0.0f;
         for (int i = 0; i < 3; i++) podiumRise[i] = 0.0f;
-        for (int i = 0; i < 10; i++) rowSlideIn[i] = 0.0f;
+        for (int i = 0; i < MAX_VISIBLE_ROWS; i++) rowSlideIn[i] = 0.0f;
         isEntering = true; isExiting = false; enterTimer = 0.0f; exitTimer = 0.0f;
         glitchIntensity = 1.0f; glitchEnterPlayed = false; glitchExitPlayed = false; musicVolume = 0.0f;
         InitStars();
@@ -196,12 +197,13 @@ namespace LeaderboardSystem {
     }
 
     // Gambar podium untuk 3 besar dengan mahkota untuk rank 1
-    void DrawPodium(float cx, float cy, float w, float h, int rank, const PlayerData* p) {
+    void DrawPodium(float cx, float cy, float w, float h, int rank, const PlayerData* p, bool selected) {
         float a = (isEntering||isExiting) ? 0 : fadeIn * podiumRise[rank-1];
         Color c; if (rank==1) c={255,195,35,255}; else if (rank==2) c={185,195,210,255}; else c={195,130,45,255};
         float ct = cy - h/2;
-        DrawRectangle(cx-w/2,ct,w,h,ColorAlpha({6,18,28,255},a*0.95f));
-        DrawRectangleLinesEx({cx-w/2,ct,w,h},1.5f,ColorAlpha(c,a));
+        DrawRectangle(cx-w/2,ct,w,h,ColorAlpha(selected?(Color){18,48,58,220}:(Color){6,18,28,255},a*0.95f));
+        DrawRectangleLinesEx({cx-w/2,ct,w,h},selected?2.5f:1.5f,ColorAlpha(selected?(Color){0,245,225,255}:c,a));
+        if (selected) { DrawRectangle(cx-w/2,ct,4,h,ColorAlpha({0,245,225,255},a)); DrawText(">",cx-w/2+8,ct+h/2-9,16,ColorAlpha({0,245,225,255},a)); }
         if (p) {
             // Mahkota sederhana untuk juara 1
             if (rank==1) { DrawRectangle(cx-15,ct-20,30,5,ColorAlpha(GOLD,a)); DrawRectangle(cx-15,ct-28,6,12,ColorAlpha(GOLD,a)); DrawRectangle(cx-3,ct-32,6,16,ColorAlpha(GOLD,a)); DrawRectangle(cx+9,ct-28,6,12,ColorAlpha(GOLD,a)); }
@@ -215,7 +217,21 @@ namespace LeaderboardSystem {
         float a = (isEntering||isExiting) ? 0 : rowSlideIn[idx] * fadeIn;
         DrawRectangle(70,y,Config::screenWidth-140,40,ColorAlpha(sel?(Color){18,48,58,200}:(Color){8,15,22,200},a));
         if (sel) { DrawRectangle(70,y,4,40,ColorAlpha({0,245,225,255},a)); DrawText(">",82,y+12,16,ColorAlpha({0,245,225,255},a)); }
-        DrawText(TextFormat("#%02d",p.rank),100,y+11,17,ColorAlpha({180,200,210,255},a));
+
+        // Rank badge: gold/silver/bronze untuk 3 besar
+        if (p.rank == 1) {
+            DrawCircle(100, y+20, 11, ColorAlpha({255,195,35,255},a));
+            DrawText("1",95,y+11,13,ColorAlpha({0,0,0,255},a));
+        } else if (p.rank == 2) {
+            DrawCircle(100, y+20, 11, ColorAlpha({185,195,210,255},a));
+            DrawText("2",95,y+11,13,ColorAlpha({0,0,0,255},a));
+        } else if (p.rank == 3) {
+            DrawCircle(100, y+20, 11, ColorAlpha({195,130,45,255},a));
+            DrawText("3",95,y+11,13,ColorAlpha({0,0,0,255},a));
+        } else {
+            DrawText(TextFormat("#%02d",p.rank),100,y+11,17,ColorAlpha({180,200,210,255},a));
+        }
+
         DrawText(p.name.c_str(),165,y+11,17,ColorAlpha(WHITE,a));
         const char* sc = TextFormat("%d",p.score); DrawText(sc,Config::screenWidth-100-MeasureText(sc,17),y+11,17,ColorAlpha({0,235,215,255},a));
     }
@@ -259,8 +275,11 @@ namespace LeaderboardSystem {
     DrawText(hint, Config::screenWidth/2 - MeasureText(hint, 13)/2, py + 320, 13, {120, 200, 200, 150});
     }
 
-    void Init() { FullReset(); LoadAudio(); LoadFromJSON("data/PlayerData.json"); }
+    void Init() {
+        FullReset(); LoadAudio(); LoadFromJSON("data/PlayerData.json");
+    }
     void AddPlayerData(const PlayerData& d) { playerTree.insert(d); SortPlayers(); }
+
     void ClearData() { playerTree.clear(); sortedPlayers.clear(); }
     int GetPlayerCount() { return (int)sortedPlayers.size(); }
 
@@ -288,15 +307,25 @@ namespace LeaderboardSystem {
         if (!isEntering && fadeIn<1) { fadeIn+=dt*1.8f; if (fadeIn>1) fadeIn=1; }
         // Animasi naik podium (rank 1 naik duluan, 2&3 menyusul)
         if (fadeIn>0.2f) { podiumRise[0]=std::min(podiumRise[0]+dt*2.0f,1.0f); podiumRise[1]=std::min(podiumRise[1]+dt*2.3f,1.0f); podiumRise[2]=std::min(podiumRise[2]+dt*2.3f,1.0f); }
-        // Animasi slide-in baris data
-        if (fadeIn>0.5f) { for (int i=0;i<10;i++) if (i<(int)sortedPlayers.size()) rowSlideIn[i]=std::min(rowSlideIn[i]+dt*1.8f,1.0f); }
+        // Animasi slide-in baris data (hanya untuk baris yang terlihat)
+        if (fadeIn>0.5f) { for (int i=0;i<MAX_VISIBLE_ROWS;i++) { int idx=3+scrollOffset+i; if (idx<(int)sortedPlayers.size()) rowSlideIn[i]=std::min(rowSlideIn[i]+dt*1.8f,1.0f); } }
         // Mode detail: blocking, tunggu ENTER/ESC untuk keluar
-        if (showingDetail) { if (IsKeyPressed(KEY_ENTER)||IsKeyPressed(KEY_ESCAPE)) { showingDetail=false; AudioManager::getInstance().playSfx("click"); } return; }
-        // Navigasi W/S atau UP/DOWN dalam list (non-detail mode)
-        int total=(int)sortedPlayers.size(), maxIdx=total>0?std::min(total,MAX_DISPLAY)-1:0;
-        if ((IsKeyPressed(KEY_W)||IsKeyPressed(KEY_UP))&&selectedIndex>0) { selectedIndex--; AudioManager::getInstance().playSfx("click"); }
-        if ((IsKeyPressed(KEY_S)||IsKeyPressed(KEY_DOWN))&&selectedIndex<maxIdx) { selectedIndex++; AudioManager::getInstance().playSfx("click"); }
-        if (IsKeyPressed(KEY_ENTER)&&selectedIndex<total) { showingDetail=true; detailIndex=selectedIndex; AudioManager::getInstance().playSfx("click"); }
+        if (showingDetail) { if (IsKeyPressed(KEY_ENTER)||IsKeyPressed(KEY_ESCAPE)) { showingDetail=false; } return; }
+        // Navigasi W/S atau UP/DOWN dalam list dengan scroll (non-detail mode)
+        int total=(int)sortedPlayers.size();
+        if (total==0) return;
+        if ((IsKeyPressed(KEY_W)||IsKeyPressed(KEY_UP))&&selectedIndex>0) {
+            selectedIndex--;
+            if (selectedIndex>=3 && selectedIndex<3+scrollOffset) scrollOffset--;
+        }
+        if ((IsKeyPressed(KEY_S)||IsKeyPressed(KEY_DOWN))&&selectedIndex<total-1) {
+            selectedIndex++;
+            if (selectedIndex>=3+scrollOffset+MAX_VISIBLE_ROWS) scrollOffset++;
+        }
+        // Clamp scrollOffset ke rentang valid
+        int maxScrollOffset = std::max(0, total - 3 - MAX_VISIBLE_ROWS);
+        scrollOffset = std::max(0, std::min(scrollOffset, maxScrollOffset));
+        if (IsKeyPressed(KEY_ENTER)&&selectedIndex<total) { showingDetail=true; detailIndex=selectedIndex; }
         // ESC/BACKSPACE memulai animasi keluar
         if (IsKeyPressed(KEY_ESCAPE)||IsKeyPressed(KEY_BACKSPACE)) { isExiting=true; isEntering=false; exitTimer=0; glitchExitPlayed=false; }
     }
@@ -307,14 +336,17 @@ namespace LeaderboardSystem {
         // Posisi podium: rank 2 di kiri, rank 1 di tengah (lebih lebar & tinggi), rank 3 di kanan
         struct { float cx,w,h; int r,i; } pd[3] = {{290,215,145,2,1},{540,245,165,1,0},{790,215,145,3,2}};
         PlayerData* t3[3] = {0}; for (int i=0;i<3&&i<(int)sortedPlayers.size();i++) t3[i]=&sortedPlayers[i];
-        for (int i=0;i<3;i++) DrawPodium(pd[i].cx,py,pd[i].w,pd[i].h,pd[i].r,t3[pd[i].i]);
+        for (int i=0;i<3;i++) DrawPodium(pd[i].cx,py,pd[i].w,pd[i].h,pd[i].r,t3[pd[i].i],selectedIndex==pd[i].i);
         float sy=370, a=(isEntering||isExiting)?0:fadeIn;
         // Header kolom tabel
         DrawText("RANK",95,sy+10,12,ColorAlpha({200,170,40,255},a));
         DrawText("PLAYER",165,sy+10,12,ColorAlpha({200,170,40,255},a));
         DrawText("SCORE",Config::screenWidth-170,sy+10,12,ColorAlpha({200,170,40,255},a));
-        // Baris data mulai dari index 3 (setelah 3 besar ditampilkan di podium)
-        for (int i=3;i<MAX_DISPLAY;i++) { if (i<(int)sortedPlayers.size()) DrawRow(sortedPlayers[i],i-3,sy+26+(i-3)*44,i==selectedIndex); }
+        // Baris data scrolling: mulai dari 3+scrollOffset, tampilkan MAX_VISIBLE_ROWS baris
+        for (int i=0;i<MAX_VISIBLE_ROWS;i++) {
+            int idx=3+scrollOffset+i;
+            if (idx<(int)sortedPlayers.size()) DrawRow(sortedPlayers[idx],i,sy+26+i*44,idx==selectedIndex);
+        }
         DrawFooter();
 
         // Tampilkan detail jika showingDetail aktif

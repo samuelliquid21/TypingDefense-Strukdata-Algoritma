@@ -24,4 +24,17 @@ private:
     void DrawHelpText();                                     // Tampilkan petunjuk kontrol di bawah
 
     static Color GetStateColor(SkillState state);            // Dapatkan warna berdasarkan state
+
+    // Helper untuk Update: handle hover dan klik kanan
+    bool HandleHover(Vector2 mouse);
+    // Helper untuk DrawTooltip: word-wrap deskripsi
+    void WordWrapDescription(const std::string& text, int maxTextW, int fontSize, std::vector<std::string>& outLines);
+    // Helper untuk DrawTooltip: hitung posisi panel
+    void ComputeTooltipPosition(const SkillData& skill, int panelW, int panelH, float& panelX, float& panelY);
+    // Helper untuk DrawTooltip: render background panel
+    void DrawTooltipBox(float panelX, float panelY, float panelW, float panelH);
+    // Helper untuk DrawTooltip: render header (nama skill)
+    void DrawTooltipHeader(const SkillData& skill, float panelX, float panelY);
+    // Helper untuk DrawTooltip: render body (desc, cost, status, hint)
+    void DrawTooltipBody(const SkillData& skill, const std::vector<std::string>& descLines, float panelX, float panelY);
 };

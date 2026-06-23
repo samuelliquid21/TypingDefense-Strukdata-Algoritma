@@ -39,4 +39,7 @@ private:
 
     void AddOption(const std::string& option);  // Tambah node baru ke Circular Doubly Linked List
     void ClearOptions();                        // Hapus semua nodes dan cleanup memory
+    void initOptionDefaults();                  // Tambah semua option default (Play, Quit, dll)
+    void drawTitle();                           // Render judul "Cosmic Keypad"
+    void drawMenuItems();                       // Render daftar menu dengan navigasi circular
 };

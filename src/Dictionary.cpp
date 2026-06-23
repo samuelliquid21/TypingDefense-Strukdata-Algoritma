@@ -4,6 +4,22 @@
 #include "raylib.h"
 #include <algorithm>
 
+namespace {
+    // Helper: cari spasi terakhir yang muat dalam lebar maksimal
+    size_t FindLastFittingSpace(const std::string& text, int fontSize, int maxWidth) {
+        size_t lastSpace = std::string::npos;
+        for (size_t i = 0; i < text.size(); ++i) {
+            if (text[i] == ' ') {
+                std::string testLine = text.substr(0, i);
+                if (MeasureText(testLine.c_str(), fontSize) > maxWidth)
+                    break;
+                lastSpace = i;
+            }
+        }
+        return lastSpace;
+    }
+}
+
 // ===============================
 // 📖 KAMUS KATA
 // ===============================#include <string>
@@ -38,36 +54,36 @@ bool Dictionary::WantsToGoBack() {
 // Muat kata dari tiga pool word_module, gabung ke satu vector, lalu urutkan alfabetis
 void Dictionary::LoadWords() {
     m_entries.clear();
+    PopulateEntriesFromPools();
+    std::sort(m_entries.begin(), m_entries.end(),
+        [](const DictionaryEntry& a, const DictionaryEntry& b) {
+            return a.word < b.word;
+        });
+    m_wordStrings.clear();
+    for (auto it = m_entries.begin(); it != m_entries.end(); ++it)
+        m_wordStrings.push_back(it->word);
+    ComputeDifficultyCounts();
+    m_filteredEntries = m_entries;
+}
 
-    // Gabungkan semua kata dari easy, medium, hard beserta label kesulitannya
+// Helper: isi m_entries dari pool kata easy, medium, hard
+void Dictionary::PopulateEntriesFromPools() {
     for (auto it = easy.begin(); it != easy.end(); ++it)
         m_entries.push_back({*it, "Easy"});
     for (auto it = medium.begin(); it != medium.end(); ++it)
         m_entries.push_back({*it, "Medium"});
     for (auto it = hard.begin(); it != hard.end(); ++it)
         m_entries.push_back({*it, "Hard"});
+}
 
-    // Urut alfabetis agar kamus rapi dan memudahkan pencarian biner
-    std::sort(m_entries.begin(), m_entries.end(),
-        [](const DictionaryEntry& a, const DictionaryEntry& b) {
-            return a.word < b.word;
-        });
-
-    // Ekstrak hanya kata-katanya ke m_wordStrings untuk pencari definisi via std::find
-    m_wordStrings.clear();
-    for (auto it = m_entries.begin(); it != m_entries.end(); ++it)
-        m_wordStrings.push_back(it->word);
-
-    // Hitung jumlah tiap level kesulitan untuk ditampilkan di UI
+// Helper: hitung jumlah tiap level kesulitan dari m_entries
+void Dictionary::ComputeDifficultyCounts() {
     std::vector<std::string> diffs;
     for (auto it = m_entries.begin(); it != m_entries.end(); ++it)
         diffs.push_back(it->difficulty);
-
     m_easyCount   = (int)std::count(diffs.begin(), diffs.end(), std::string("Easy"));
     m_mediumCount = (int)std::count(diffs.begin(), diffs.end(), std::string("Medium"));
     m_hardCount   = (int)std::count(diffs.begin(), diffs.end(), std::string("Hard"));
-
-    m_filteredEntries = m_entries;
 }
 
 // Filter entri berdasarkan substring pada m_searchQuery
@@ -90,17 +106,30 @@ void Dictionary::ApplyFilter() {
 
 void Dictionary::Update() {
     int visibleRows = (Config::screenHeight - 100 - 60) / 30;
-
-    // Jika popup definisi aktif, hanya proses tombol ENTER untuk menutup
     if (m_showDefinition) {
-        if (IsKeyPressed(KEY_ENTER)) {
-            m_showDefinition = false;
-        }
+        HandleDefinitionInput();
         return;
     }
+    HandleSearchInput();
+    if (IsKeyPressed(KEY_DOWN))
+        HandleDownInput(visibleRows);
+    if (IsKeyPressed(KEY_UP))
+        HandleUpInput(visibleRows);
+    if (IsKeyPressed(KEY_ENTER))
+        HandleEnterInput();
+    if (IsKeyPressed(KEY_ESCAPE))
+        m_requestBack = true;
+}
 
-    // === INPUT PENCARIAN ===
-    // Tangkap karakter ASCII yang diketik (huruf, angka, simbol)
+// Helper: proses input saat popup definisi aktif (hanya ENTER)
+void Dictionary::HandleDefinitionInput() {
+    if (IsKeyPressed(KEY_ENTER)) {
+        m_showDefinition = false;
+    }
+}
+
+// Helper: proses input pencarian (karakter dan backspace)
+void Dictionary::HandleSearchInput() {
     int c = GetCharPressed();
     while (c > 0) {
         if (c >= 32 && c <= 126) {
@@ -111,8 +140,6 @@ void Dictionary::Update() {
         }
         c = GetCharPressed();
     }
-
-    // BACKSPACE: hapus satu karakter dari query pencarian
     if (IsKeyPressed(KEY_BACKSPACE)) {
         if (!m_searchQuery.empty()) {
             m_searchQuery.pop_back();
@@ -121,69 +148,62 @@ void Dictionary::Update() {
             m_scrollOffset = 0;
         }
     }
+}
 
-    // NAVIGASI BAWAH: circular scroll ke bawah
-    if (IsKeyPressed(KEY_DOWN)) {
-        if (m_filteredEntries.empty()) return;
-        m_selectedIndex++;
-        if (m_selectedIndex >= (int)m_filteredEntries.size())
-            m_selectedIndex = 0; // circular
-        // Geser scroll jika item di luar area visible
-        if (m_selectedIndex >= m_scrollOffset + visibleRows)
-            m_scrollOffset = m_selectedIndex - visibleRows + 1;
-        else if (m_selectedIndex == 0)
-            m_scrollOffset = 0;
+// Helper: navigasi bawah dengan circular scroll
+void Dictionary::HandleDownInput(int visibleRows) {
+    if (m_filteredEntries.empty()) return;
+    m_selectedIndex++;
+    if (m_selectedIndex >= (int)m_filteredEntries.size())
+        m_selectedIndex = 0;
+    if (m_selectedIndex >= m_scrollOffset + visibleRows)
+        m_scrollOffset = m_selectedIndex - visibleRows + 1;
+    else if (m_selectedIndex == 0)
+        m_scrollOffset = 0;
+}
+
+// Helper: navigasi atas dengan circular scroll
+void Dictionary::HandleUpInput(int visibleRows) {
+    if (m_filteredEntries.empty()) return;
+    m_selectedIndex--;
+    if (m_selectedIndex < 0)
+        m_selectedIndex = (int)m_filteredEntries.size() - 1;
+    if (m_selectedIndex < m_scrollOffset)
+        m_scrollOffset = m_selectedIndex;
+    else if (m_selectedIndex >= (int)m_filteredEntries.size() - 1) {
+        int maxOff = (int)m_filteredEntries.size() - visibleRows;
+        if (maxOff < 0) maxOff = 0;
+        m_scrollOffset = maxOff;
     }
+}
 
-    // NAVIGASI ATAS: circular scroll ke atas
-    if (IsKeyPressed(KEY_UP)) {
-        if (m_filteredEntries.empty()) return;
-        m_selectedIndex--;
-        if (m_selectedIndex < 0)
-            m_selectedIndex = (int)m_filteredEntries.size() - 1; // circular
-        if (m_selectedIndex < m_scrollOffset)
-            m_scrollOffset = m_selectedIndex;
-        else if (m_selectedIndex >= (int)m_filteredEntries.size() - 1) {
-            // Jika di item terakhir, scroll ke paling bawah
-            int maxOff = (int)m_filteredEntries.size() - visibleRows;
-            if (maxOff < 0) maxOff = 0;
-            m_scrollOffset = maxOff;
-        }
+// Helper: proses ENTER — cari definisi dan tampilkan popup
+void Dictionary::HandleEnterInput() {
+    if (m_filteredEntries.empty()) return;
+    m_currentWord = m_filteredEntries[m_selectedIndex].word;
+    auto it = std::find(m_wordStrings.begin(), m_wordStrings.end(), m_currentWord);
+    if (it != m_wordStrings.end()) {
+        int idx = (int)(it - m_wordStrings.begin());
+        LookupDefinition(m_entries[idx].difficulty);
     }
+    WordWrapDefinition();
+    m_showDefinition = true;
+}
 
-    // ENTER: cari definisi kata yang dipilih dan tampilkan popup
-    if (IsKeyPressed(KEY_ENTER)) {
-        if (m_filteredEntries.empty()) return;
-        m_currentWord = m_filteredEntries[m_selectedIndex].word;
-
-        // Cari index kata di m_wordStrings untuk mendapatkan level kesulitan asli
-        auto it = std::find(m_wordStrings.begin(), m_wordStrings.end(), m_currentWord);
-        if (it != m_wordStrings.end()) {
-            int idx = (int)(it - m_wordStrings.begin());
-            const std::string& diff = m_entries[idx].difficulty;
-
-            // Ambil definisi dari map yang sesuai dengan level kesulitan
-            if (diff == "Easy") {
-                auto defIt = easy_definitions.find(m_currentWord);
-                if (defIt != easy_definitions.end())
-                    m_currentDefinition = defIt->second;
-            } else if (diff == "Medium") {
-                auto defIt = medium_definitions.find(m_currentWord);
-                if (defIt != medium_definitions.end())
-                    m_currentDefinition = defIt->second;
-            } else if (diff == "Hard") {
-                auto defIt = hard_definitions.find(m_currentWord);
-                if (defIt != hard_definitions.end())
-                    m_currentDefinition = defIt->second;
-            }
-        }
-        WordWrapDefinition();
-        m_showDefinition = true;
-    }
-
-    // ESC: minta kembali ke menu sebelumnya
-    if (IsKeyPressed(KEY_ESCAPE)) {
-        m_requestBack = true;
+// Helper: ambil definisi dari map yang sesuai dengan level kesulitan
+void Dictionary::LookupDefinition(const std::string& diff) {
+    if (diff == "Easy") {
+        auto defIt = easy_definitions.find(m_currentWord);
+        if (defIt != easy_definitions.end())
+            m_currentDefinition = defIt->second;
+    } else if (diff == "Medium") {
+        auto defIt = medium_definitions.find(m_currentWord);
+        if (defIt != medium_definitions.end())
+            m_currentDefinition = defIt->second;
+    } else if (diff == "Hard") {
+        auto defIt = hard_definitions.find(m_currentWord);
+        if (defIt != hard_definitions.end())
+            m_currentDefinition = defIt->second;
     }
 }
 
@@ -195,9 +215,6 @@ void Dictionary::Draw() {
 
 // Render daftar kata dengan search bar, info jumlah, dan virtual scrolling
 void Dictionary::DrawWordList() {
-    int rowHeight = 30;
-    int startY = 100;
-
     DrawText("KAMUS BAHASA", (Config::screenWidth - MeasureText("KAMUS BAHASA", 30)) / 2, 20, 30, WHITE);
 
     // Info jumlah total dan per level kesulitan
@@ -226,40 +243,43 @@ void Dictionary::DrawWordList() {
     }
     DrawText(resultInfo.c_str(), 120, 95, 14, Color{200, 200, 200, 180});
 
-    // Hitung rentang yang terlihat untuk virtual scrolling
+    DrawListItems();
+}
+
+// Helper: render item-item yang terlihat dengan virtual scrolling
+void Dictionary::DrawListItems() {
+    int rowHeight = 30;
+    int startY = 100;
     int visibleRows = (Config::screenHeight - 120 - 60) / rowHeight;
     int endIdx = m_scrollOffset + visibleRows;
     if (endIdx > (int)m_filteredEntries.size())
         endIdx = (int)m_filteredEntries.size();
-
-    // Loop render item yang terlihat saja (efisiensi)
     int y = startY + 30;
     int idx = m_scrollOffset;
     for (auto it = m_filteredEntries.begin() + m_scrollOffset;
          it != m_filteredEntries.begin() + endIdx && it != m_filteredEntries.end();
          ++it, ++idx)
     {
-        // Highlight baris yang dipilih
-        if (idx == m_selectedIndex) {
-            DrawRectangle(100, y, Config::screenWidth - 200, rowHeight, Color{255, 255, 255, 30});
-        }
-
-        // Warna tag kesulitan: hijau = Easy, kuning = Medium, merah = Hard
-        Color diffColor;
-        if (it->difficulty == "Easy")   diffColor = Color{100, 255, 100, 255};
-        else if (it->difficulty == "Medium") diffColor = Color{255, 255, 100, 255};
-        else                             diffColor = Color{255, 100, 100, 255};
-
-        DrawText(it->word.c_str(), 120, y + (rowHeight - 20) / 2, 20,
-                 idx == m_selectedIndex ? YELLOW : WHITE);
-
-        std::string tag = "[" + it->difficulty + "]";
-        DrawText(tag.c_str(),
-                 Config::screenWidth - 120 - MeasureText(tag.c_str(), 16),
-                 y + (rowHeight - 16) / 2, 16, diffColor);
-
+        DrawListItem(idx, y, rowHeight, *it);
         y += rowHeight;
     }
+}
+
+// Helper: render satu item dalam daftar
+void Dictionary::DrawListItem(int idx, int y, int rowHeight, const DictionaryEntry& entry) {
+    if (idx == m_selectedIndex) {
+        DrawRectangle(100, y, Config::screenWidth - 200, rowHeight, Color{255, 255, 255, 30});
+    }
+    Color diffColor;
+    if (entry.difficulty == "Easy")   diffColor = Color{100, 255, 100, 255};
+    else if (entry.difficulty == "Medium") diffColor = Color{255, 255, 100, 255};
+    else                             diffColor = Color{255, 100, 100, 255};
+    DrawText(entry.word.c_str(), 120, y + (rowHeight - 20) / 2, 20,
+             idx == m_selectedIndex ? YELLOW : WHITE);
+    std::string tag = "[" + entry.difficulty + "]";
+    DrawText(tag.c_str(),
+             Config::screenWidth - 120 - MeasureText(tag.c_str(), 16),
+             y + (rowHeight - 16) / 2, 16, diffColor);
 }
 
 // Word-wrap definisi ke baris-baris yang muat dalam lebar 540px
@@ -267,33 +287,17 @@ void Dictionary::WordWrapDefinition() {
     m_definitionLines.clear();
     int maxWidth = 540;
     int fontSize = 16;
-
     std::string remaining = m_currentDefinition;
     while (!remaining.empty()) {
-        // Jika sisa teks sudah muat dalam satu baris, masukkan dan selesai
         if (MeasureText(remaining.c_str(), fontSize) <= maxWidth) {
             m_definitionLines.push_back(remaining);
             break;
         }
-
-        // Cari spasi terakhir sebelum melebihi maxWidth
-        size_t lastSpace = std::string::npos;
-        for (size_t i = 0; i < remaining.size(); ++i) {
-            if (remaining[i] == ' ') {
-                std::string testLine = remaining.substr(0, i);
-                if (MeasureText(testLine.c_str(), fontSize) > maxWidth)
-                    break;
-                lastSpace = i;
-            }
-        }
-
-        // Jika tidak ada spasi sama sekali, masukkan apa adanya
+        size_t lastSpace = FindLastFittingSpace(remaining, fontSize, maxWidth);
         if (lastSpace == std::string::npos) {
             m_definitionLines.push_back(remaining);
             break;
         }
-
-        // Ambil potongan hingga spasi terakhir yang muat
         m_definitionLines.push_back(remaining.substr(0, lastSpace));
         remaining = remaining.substr(lastSpace + 1);
     }
@@ -301,35 +305,39 @@ void Dictionary::WordWrapDefinition() {
 
 // Render popup definisi dengan latar belakang gelap dan kotak definisi
 void Dictionary::DrawDefinitionPopup() {
-    // Gelapkan seluruh layar
     DrawRectangle(0, 0, Config::screenWidth, Config::screenHeight, Color{0, 0, 0, 180});
+    int boxW, boxH, boxX, boxY, defHeight;
+    ComputePopupDimensions(boxW, boxH, boxX, boxY, defHeight);
+    DrawPopupContent(boxX, boxY, boxW, boxH);
+}
 
+// Helper: hitung dimensi popup berdasarkan jumlah baris definisi
+void Dictionary::ComputePopupDimensions(int& boxW, int& boxH, int& boxX, int& boxY, int& defHeight) {
     int lineHeight = 22;
-    // Tinggi kotak menyesuaikan jumlah baris definisi, minimal 40px
-    int defHeight = (int)m_definitionLines.size() * lineHeight + 20;
+    defHeight = (int)m_definitionLines.size() * lineHeight + 20;
     if (defHeight < 40) defHeight = 40;
-    int boxW = 600;
-    int boxH = 80 + defHeight;
+    boxW = 600;
+    boxH = 80 + defHeight;
     if (boxH > Config::screenHeight - 60)
         boxH = Config::screenHeight - 60;
-    int boxX = (Config::screenWidth - boxW) / 2;
-    int boxY = (Config::screenHeight - boxH) / 2;
+    boxX = (Config::screenWidth - boxW) / 2;
+    boxY = (Config::screenHeight - boxH) / 2;
+}
 
+// Helper: render konten popup (kata, definisi, hint)
+void Dictionary::DrawPopupContent(int boxX, int boxY, int boxW, int boxH) {
+    int lineHeight = 22;
+    int fontSize = 16;
     DrawRectangle(boxX, boxY, boxW, boxH, Color{20, 20, 50, 255});
     DrawRectangleLines(boxX, boxY, boxW, boxH, Color{0, 255, 200, 200});
-
-    // Judul kata (warna kuning)
     DrawText(m_currentWord.c_str(),
              (Config::screenWidth - MeasureText(m_currentWord.c_str(), 28)) / 2,
              boxY + 20, 28, YELLOW);
-
-    // Render setiap baris definisi hasil word-wrap
     int defY = boxY + 60;
     for (auto it = m_definitionLines.begin(); it != m_definitionLines.end(); ++it) {
-        DrawText(it->c_str(), boxX + 30, defY, 16, WHITE);
+        DrawText(it->c_str(), boxX + 30, defY, fontSize, WHITE);
         defY += lineHeight;
     }
-
     const char* hint = "ENTER untuk kembali";
     DrawText(hint, (Config::screenWidth - MeasureText(hint, 14)) / 2,
              boxY + boxH - 25, 14, Color{200, 200, 200, 180});

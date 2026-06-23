@@ -50,4 +50,29 @@ private:
     void DrawWordList();
     // Render popup definisi di atas layar (latar belakang digelapkan)
     void DrawDefinitionPopup();
+
+    // Helper untuk LoadWords: isi m_entries dari pool kata
+    void PopulateEntriesFromPools();
+    // Helper untuk LoadWords: hitung jumlah tiap kesulitan
+    void ComputeDifficultyCounts();
+    // Helper untuk Update: proses input saat popup definisi aktif
+    void HandleDefinitionInput();
+    // Helper untuk Update: proses input pencarian
+    void HandleSearchInput();
+    // Helper untuk Update: navigasi bawah
+    void HandleDownInput(int visibleRows);
+    // Helper untuk Update: navigasi atas
+    void HandleUpInput(int visibleRows);
+    // Helper untuk Update: proses ENTER — lookup definisi
+    void HandleEnterInput();
+    // Helper untuk HandleEnterInput: ambil definisi dari map sesuai level
+    void LookupDefinition(const std::string& diff);
+    // Helper untuk DrawWordList: render item-item yang terlihat
+    void DrawListItems();
+    // Helper untuk DrawWordList: render satu item
+    void DrawListItem(int idx, int y, int rowHeight, const DictionaryEntry& entry);
+    // Helper untuk DrawDefinitionPopup: hitung dimensi popup
+    void ComputePopupDimensions(int& boxW, int& boxH, int& boxX, int& boxY, int& defHeight);
+    // Helper untuk DrawDefinitionPopup: render konten popup
+    void DrawPopupContent(int boxX, int boxY, int boxW, int boxH);
 };

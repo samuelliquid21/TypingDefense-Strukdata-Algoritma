@@ -7,14 +7,16 @@ AudioManager& AudioManager::getInstance() {
     return instance;
 }
 
-void AudioManager::Init() {
-    // Music
+// Load semua music tracks
+void AudioManager::loadMusicTracks() {
     AssetManager::getInstance().loadMusic("lobby", "assets/sound/soundtrack.mp3");
     AssetManager::getInstance().loadMusic("credit", "assets/sound/cosmic.mp3");
     AssetManager::getInstance().loadMusic("bgmLeaderboard", "assets/sound/bgm.mp3");
     AssetManager::getInstance().loadMusic("bgm", "assets/sound/bgm.mp3");
+}
 
-    // SFX
+// Load semua sound effects
+void AudioManager::loadSoundEffects() {
     AssetManager::getInstance().loadSound("glitchMasuk", "assets/sound/glitchmasuk.mp3");
     AssetManager::getInstance().loadSound("glitchKeluar", "assets/sound/glitchkeluar.mp3");
     AssetManager::getInstance().loadSound("click", "assets/sound/click.mp3");
@@ -22,8 +24,10 @@ void AudioManager::Init() {
     AssetManager::getInstance().loadSound("error", "assets/sound/error.mp3");
     AssetManager::getInstance().loadSound("gameover", "assets/sound/gameover.mp3");
     AssetManager::getInstance().loadSound("explosion", "assets/sound/explosion.mp3");
+}
 
-    // Default volumes
+// Set volume default untuk SFX dan music
+void AudioManager::setDefaultVolumes() {
     setSfxVolume("laser", 0.4f);
     setSfxVolume("error", 0.5f);
     setSfxVolume("gameover", 0.8f);
@@ -32,8 +36,13 @@ void AudioManager::Init() {
     setMusicVolume("lobby", 0.5f);
     setMusicVolume("credit", 0.5f);
     setMusicVolume("bgm", 0.5f);
+}
 
-    // Start lobby
+void AudioManager::Init() {
+    loadMusicTracks();
+    loadSoundEffects();
+    setDefaultVolumes();
+
     playMusic("lobby");
     SeekMusicStream(AssetManager::getInstance().getMusic("lobby"), 5.0f);
 }

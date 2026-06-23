@@ -28,6 +28,43 @@ namespace {
         }
     }
 
+    // Tentukan word dan speed horizontal berdasarkan tier asteroid (1-6)
+    // Tier ganjil: speed lambat (50), genap: speed cepat (80)
+    void assignWordAndSpeed(Asteroid& ast, int tier) {
+        switch (tier) {
+        case 1: ast.word = WordSystem::getRandomWord(Difficulty::EASY);   ast.velocity.x = 50; break;
+        case 2: ast.word = WordSystem::getRandomWord(Difficulty::EASY);   ast.velocity.x = 80; break;
+        case 3: ast.word = WordSystem::getRandomWord(Difficulty::MEDIUM); ast.velocity.x = 50; break;
+        case 4: ast.word = WordSystem::getRandomWord(Difficulty::MEDIUM); ast.velocity.x = 80; break;
+        case 5: ast.word = WordSystem::getRandomWord(Difficulty::HARD);   ast.velocity.x = 50; break;
+        case 6: ast.word = WordSystem::getRandomWord(Difficulty::HARD);   ast.velocity.x = 80; break;
+        default: break;
+        }
+    }
+
+    // Set arah velocity Y: 50% menuju player, 50% random
+    void setRandomVelocityDirection(Asteroid& ast) {
+        int toPlayer = GetRandomValue(0, 1);
+        if (toPlayer) {
+            ast.velocity.y = velocityYToPlayer(ast);
+        } else {
+            ast.velocity.y = randomVelocityY(ast);
+        }
+    }
+
+    // Gambar kotak semi-transparan merah di sekeliling asteroid yang ditarget
+    void drawTargetedBox(const Asteroid& ast) {
+        float size = ast.radius * 2.2f;
+        DrawRectangle(ast.position.x - size/2, ast.position.y - size/2, size, size, Fade(RED, 0.5f));
+    }
+
+    // Label "TARGETED" di atas asteroid
+    void drawTargetedLabel(const Asteroid& ast) {
+        const char* targetText = "TARGETED";
+        int targetWidth = MeasureText(targetText, 20);
+        DrawText(targetText, ast.position.x - targetWidth/2, ast.position.y - ast.radius - 30, 20, RED);
+    }
+
 }
 
 Asteroid::Asteroid() { counter++; }  // Tambah counter saat objek dibuat
@@ -53,36 +90,8 @@ int Asteroid::typingAsteroid(char characterTyped) {
 }
 
 void Asteroid::asteroidType(const int tier) {
-    // Tentukan kata dan kecepatan berdasarkan tier (1-6)
-    // Tier ganjil: speed lambat (50), genap: speed cepat (80)
-    switch (tier) {
-    case 1:
-        word = WordSystem::getRandomWord(Difficulty::EASY);
-        velocity.x = 50;
-        break;
-    case 2:
-        word = WordSystem::getRandomWord(Difficulty::EASY);
-        velocity.x = 80;
-        break;
-    case 3:
-        word = WordSystem::getRandomWord(Difficulty::MEDIUM);
-        velocity.x = 50;
-        break;
-    case 4:
-        word = WordSystem::getRandomWord(Difficulty::MEDIUM);
-        velocity.x = 80;
-        break;
-    case 5:
-        word = WordSystem::getRandomWord(Difficulty::HARD);
-        velocity.x = 50;
-        break;
-    case 6:
-        word = WordSystem::getRandomWord(Difficulty::HARD);
-        velocity.x = 80;
-        break;
-    default:
-        break;
-    }
+    // Tentukan kata dan kecepatan berdasarkan tier menggunakan helper
+    assignWordAndSpeed(*this, tier);
 
     originalWord = word; // Simpan kata asli sebelum diketik
 
@@ -96,12 +105,7 @@ void Asteroid::asteroidType(const int tier) {
     targeted = false;
 
     // 50% chance: asteroid bergerak menuju player, 50% random
-    int toPlayer = GetRandomValue(0, 1);
-    if (toPlayer) {
-        velocity.y = velocityYToPlayer(*this);
-    } else {
-        velocity.y = randomVelocityY(*this);
-    }
+    setRandomVelocityDirection(*this);
 }
 
 void Asteroid::update(float deltaTime) {
@@ -109,7 +113,6 @@ void Asteroid::update(float deltaTime) {
     if (this->active) {
         position.x += velocity.x * deltaTime;
         position.y += velocity.y * deltaTime;
-
         // Nonaktifkan jika keluar dari batas layar (semua 4 sisi)
         if (position.x - radius > Config::screenWidth) {
             this->active = false;
@@ -143,24 +146,8 @@ void Asteroid::draw() {
 
 void Asteroid::drawTargeted() {
     // Gambar kotak semi-transparan merah di sekeliling asteroid yang ditarget
-    float size = radius * 2.2f;
-
-    DrawRectangle(
-        position.x - size/2,
-        position.y - size/2,
-        size,
-        size,
-        Fade(RED, 0.5f)
-    );
+    drawTargetedBox(*this);
 
     // Label "TARGETED" di atas asteroid
-    const char* targetText = "TARGETED";
-    int targetWidth = MeasureText(targetText, 20);
-    DrawText(
-        targetText,
-        position.x - targetWidth/2,
-        position.y - radius - 30,
-        20,
-        RED
-    );
+    drawTargetedLabel(*this);
 }
