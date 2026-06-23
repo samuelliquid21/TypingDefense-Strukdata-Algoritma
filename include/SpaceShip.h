@@ -10,7 +10,6 @@ class SpaceShip
 {
 private:
     Vector2 position{Config::playerStartPos}; // Posisi spaceship di layar (tetap)
-    int radiusHitbox{30};                     // Radius hitbox untuk deteksi tabrakan
     bool hitPlayer{false};                    // Flag apakah sedang terkena asteroid
 
     // Sistem laser
@@ -30,8 +29,6 @@ public:
     SpaceShip();
     ~SpaceShip();       // Unload texture di destructor
     void init();        // Load texture dari file, setup frame sprite
-
-    bool asteroiHitSpaceship(Vector2 &asteroidPosition, int asteroidRadius); // Deteksi tabrakan lingkaran
 
     void activateLaser(Vector2 &target); // Aktifkan laser dan arahkan ke target
     void update(float deltaTime);        // Update logika (deactivate laser)

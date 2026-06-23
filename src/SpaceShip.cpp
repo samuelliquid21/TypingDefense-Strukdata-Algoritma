@@ -38,11 +38,6 @@ void SpaceShip::drawLaser() {
     }
 }
 
-// Cek tabrakan antara asteroid dan spaceship (collision circle-circle)
-bool SpaceShip::asteroiHitSpaceship(Vector2 &asteroidPosition, int asteroidRadius) {
-    return CheckCollisionCircles(asteroidPosition, asteroidRadius, position, radiusHitbox);
-}
-
 // Gambar spaceship dengan texture dari spritesheet
 void SpaceShip::drawSpaceShip() {
     float scale = 2.5f;

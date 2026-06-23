@@ -149,109 +149,107 @@ void GameplayManager::update(float deltaTime) {
         }
     }
 
-    // Tangkap input karakter dari keyboard
-    int key = GetCharPressed();
-    if (key == 0) return; // Tidak ada input, keluar
-
-    char c = (char)key;
-    // Filter: hanya huruf A-Z dan a-z yang diproses
-    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) return;
-
     // ===== STATE MACHINE TYPING =====
-    if (state == SEARCH_FOR_TARGET) {
-        // Cari semua asteroid aktif yang huruf pertamanya cocok dengan input
-        auto targets = asteroidManager.scanAllAsteroids([c](const Asteroid& ast) {
-            return ast.active && !ast.word.empty() && ast.word[0] == c;
-        });
-        // Pilih asteroid terdekat dengan player sebagai target
-        currentTarget = nullptr;
-        for (auto* t : targets) {
-            if (currentTarget == nullptr ||
-                Vector2DistanceSqr(t->position, Config::playerStartPos) <
-                Vector2DistanceSqr(currentTarget->position, Config::playerStartPos)) {
-                currentTarget = t;
-            }
-        }
-        if (currentTarget != nullptr) {
-            // Kunci target, aktifkan laser, proses karakter pertama
-            currentTarget->targeted = true;
-            spaceship.activateLaser(currentTarget->position);
-            int result = currentTarget->typingAsteroid(c);
-            totalKeystrokes++;
-            if (result > 0) {
-                correctKeystrokes++;
-                AudioManager::getInstance().playSfx("laser");
-                AddScore(result);
-
-                // INSTANT_CRIT: huruf pertama langsung hancurkan asteroid
-                if (instantCritSkill.isActive() && currentTarget->active) {
-                    currentTarget->word = "";
-                    currentTarget->active = false;
-                    if (currentTarget->onDestroyed) currentTarget->onDestroyed(currentTarget->position);
-                    if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
-                    wordsCompleted++;
-                    if (wordsCompleted >= 5) {
-                        comboStack.Push();
-                        wordsCompleted = 0;
+    // Loop semua karakter input yang di-buffer agar typing lebih responsif
+    int key = GetCharPressed();
+    while (key != 0) {
+        char c = (char)key;
+        // Filter: hanya huruf A-Z dan a-z yang diproses
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+            if (state == SEARCH_FOR_TARGET) {
+                // Cari semua asteroid aktif yang huruf pertamanya cocok dengan input
+                auto targets = asteroidManager.scanAllAsteroids([c](const Asteroid& ast) {
+                    return ast.active && !ast.word.empty() && ast.word[0] == c;
+                });
+                // Pilih asteroid terdekat dengan player sebagai target
+                currentTarget = nullptr;
+                for (auto* t : targets) {
+                    if (currentTarget == nullptr ||
+                        Vector2DistanceSqr(t->position, Config::playerStartPos) <
+                        Vector2DistanceSqr(currentTarget->position, Config::playerStartPos)) {
+                        currentTarget = t;
                     }
+                }
+                if (currentTarget != nullptr) {
+                    // Kunci target, aktifkan laser, proses karakter pertama
+                    currentTarget->targeted = true;
+                    spaceship.activateLaser(currentTarget->position);
+                    int result = currentTarget->typingAsteroid(c);
+                    totalKeystrokes++;
+                    if (result > 0) {
+                        correctKeystrokes++;
+                        AudioManager::getInstance().playSfx("laser");
+                        AddScore(result);
+
+                        // INSTANT_CRIT: huruf pertama langsung hancurkan asteroid
+                        if (instantCritSkill.isActive() && currentTarget->active) {
+                            currentTarget->word = "";
+                            currentTarget->active = false;
+                            if (currentTarget->onDestroyed) currentTarget->onDestroyed(currentTarget->position);
+                            if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
+                            wordsCompleted++;
+                            if (wordsCompleted >= 5) {
+                                comboStack.Push();
+                                wordsCompleted = 0;
+                            }
+                            state = SEARCH_FOR_TARGET;
+                            currentTarget = nullptr;
+                            wasPreviousKeyWrong = false;
+                        } else {
+                            state = TARGET_LOCKED;
+                            wasPreviousKeyWrong = false;
+                        }
+                    }
+                } else {
+                    // Tidak ada target yang cocok: bunyi error sekali saja per urutan salah
+                    if (!wasPreviousKeyWrong) {
+                        AudioManager::getInstance().playSfx("error");
+                        comboStack.Pop();
+                        wasPreviousKeyWrong = true;
+                    }
+                }
+            } else if (state == TARGET_LOCKED) {
+                // Jika target sudah tidak aktif, tidak ditarget (ter-reset shower), atau hilang
+                if (currentTarget == nullptr || !currentTarget->active || !currentTarget->targeted) {
                     state = SEARCH_FOR_TARGET;
                     currentTarget = nullptr;
                     wasPreviousKeyWrong = false;
-                    return;
+                    key = GetCharPressed();
+                    continue;
                 }
 
-                state = TARGET_LOCKED; // Pindah ke state mengetik
-                wasPreviousKeyWrong = false;
-            }
-        } else {
-            // Tidak ada target yang cocok: bunyi error sekali saja per urutan salah
-            if (!wasPreviousKeyWrong) {
-                AudioManager::getInstance().playSfx("error");
-                comboStack.Pop(); // Reset combo karena salah ketik
-                wasPreviousKeyWrong = true;
-            }
-        }
-    } else if (state == TARGET_LOCKED) {
-        // Jika target sudah tidak aktif (hancur), kembali mencari target baru
-        if (currentTarget == nullptr || !currentTarget->active) {
-            state = SEARCH_FOR_TARGET;
-            currentTarget = nullptr;
-            wasPreviousKeyWrong = false;
-            return;
-        }
+                // Proses input karakter berikutnya pada asteroid yang sama
+                int result = currentTarget->typingAsteroid(c);
+                totalKeystrokes++;
+                if (result > 0) {
+                    correctKeystrokes++;
+                    AudioManager::getInstance().playSfx("laser");
+                    AddScore(result);
+                    wasPreviousKeyWrong = false;
 
-        // Proses input karakter berikutnya pada asteroid yang sama
-        int result = currentTarget->typingAsteroid(c);
-        totalKeystrokes++;
-        if (result > 0) {
-            correctKeystrokes++;
-            AudioManager::getInstance().playSfx("laser");
-            AddScore(result);
-            wasPreviousKeyWrong = false;
-
-            // Jika seluruh kata telah diketik, asteroid hancur
-            if (currentTarget->word.empty()) {
-                if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
-                wordsCompleted++;
-                // Naikkan level combo setiap 5 kata berhasil diketik
-                if (wordsCompleted >= 5) {
-                    comboStack.Push();
-                    wordsCompleted = 0;
+                    // Jika seluruh kata telah diketik, asteroid hancur
+                    if (currentTarget->word.empty()) {
+                        if (onAsteroidDestroyed != nullptr) onAsteroidDestroyed(currentTarget->originalWord);
+                        wordsCompleted++;
+                        if (wordsCompleted >= 5) {
+                            comboStack.Push();
+                            wordsCompleted = 0;
+                        }
+                        state = SEARCH_FOR_TARGET;
+                        currentTarget = nullptr;
+                    } else {
+                        spaceship.activateLaser(currentTarget->position);
+                    }
+                } else {
+                    if (!wasPreviousKeyWrong) {
+                        AudioManager::getInstance().playSfx("error");
+                        comboStack.Pop();
+                        wasPreviousKeyWrong = true;
+                    }
                 }
-                state = SEARCH_FOR_TARGET;
-                currentTarget = nullptr;
-            } else {
-                // Update posisi laser mengikuti target yang bergerak
-                spaceship.activateLaser(currentTarget->position);
-            }
-        } else {
-            // Salah ketik di tengah-tengah kata: error sound sekali saja
-            if (!wasPreviousKeyWrong) {
-                AudioManager::getInstance().playSfx("error");
-                comboStack.Pop();
-                wasPreviousKeyWrong = true;
             }
         }
+        key = GetCharPressed();
     }
 }
 
