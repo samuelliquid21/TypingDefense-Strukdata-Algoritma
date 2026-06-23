@@ -175,6 +175,7 @@ void GameplayManager::handleBombShockwave() {
         for (auto* ast : hit) {
             explosionManager.spawn(ast->position, 16, ORANGE);
             ast->active = false;
+            AddScore((int)ast->originalWord.length());
         }
     }
 }

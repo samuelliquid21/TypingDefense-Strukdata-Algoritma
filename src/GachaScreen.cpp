@@ -58,12 +58,12 @@ void GachaScreen::LoadContent() {
     if (contentLoaded) return;
 
     if (!texLoaded) {
-        if (FileExists("assets/img/ZONK_1.jpg")) texZonk1 = LoadTexture("assets/img/ZONK_1.jpg");
-        if (FileExists("assets/img/ZONK_2.jpg")) texZonk2 = LoadTexture("assets/img/ZONK_2.jpg");
-        if (FileExists("assets/img/ZONK_3.jpg")) texZonk3 = LoadTexture("assets/img/ZONK_3.jpg");
-        if (FileExists("assets/img/ZONK_4.jpg")) texZonk4 = LoadTexture("assets/img/ZONK_4.jpg");
-        if (FileExists("assets/img/KOIN.jpg")) texCoin = LoadTexture("assets/img/KOIN.jpg");
-        if (FileExists("assets/img/FREE_SPIN.jpg")) texFreeSpin = LoadTexture("assets/img/FREE_SPIN.jpg");
+        if (FileExists("assets/img/ZONK_1.png")) texZonk1 = LoadTexture("assets/img/ZONK_1.png");
+        if (FileExists("assets/img/ZONK_2.png")) texZonk2 = LoadTexture("assets/img/ZONK_2.png");
+        if (FileExists("assets/img/ZONK_3.png")) texZonk3 = LoadTexture("assets/img/ZONK_3.png");
+        if (FileExists("assets/img/ZONK_4.png")) texZonk4 = LoadTexture("assets/img/ZONK_4.png");
+        if (FileExists("assets/img/KOIN.png")) texCoin = LoadTexture("assets/img/KOIN.png");
+        if (FileExists("assets/img/FREE_SPIN.png")) texFreeSpin = LoadTexture("assets/img/FREE_SPIN.png");
         texLoaded = true;
     }
 
