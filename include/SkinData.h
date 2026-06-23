@@ -57,11 +57,6 @@ inline const SkinInfo& getSkinInfo(int id) {
 }
 
 inline int skinToCol(int id) { return id % GRID_COLS; }
-inline int skinToRow(int id) { return id / GRID_COLS; }
-
-inline bool isDefaultSkin(int id) {
-    return id == 0 || id == 5 || id == 10;
-}
 
 inline const char* rarityLabel(int rarity) {
     switch (rarity) {
@@ -93,27 +88,6 @@ inline Color rarityGlow(int rarity) {
         case 4: return {180, 0, 255, 80};
         case 5: return {255, 180, 0, 80};
         default: return {255, 255, 255, 40};
-    }
-}
-
-// Bonus gacha item definitions
-inline const char* gachaLabel(GachaItemType type, int rarity) {
-    if (type == GachaItemType::SKIN) return rarityLabel(rarity);
-    switch (type) {
-        case GachaItemType::ZONK: return "ZONK";
-        case GachaItemType::COIN: return "COIN";
-        case GachaItemType::FREE_SPIN: return "FREE SPIN";
-        default: return "";
-    }
-}
-
-inline Color gachaColor(GachaItemType type, int rarity) {
-    if (type == GachaItemType::SKIN) return rarityColor(rarity);
-    switch (type) {
-        case GachaItemType::ZONK: return {120, 120, 120, 255};
-        case GachaItemType::COIN: return GOLD;
-        case GachaItemType::FREE_SPIN: return {0, 255, 255, 255};
-        default: return WHITE;
     }
 }
 

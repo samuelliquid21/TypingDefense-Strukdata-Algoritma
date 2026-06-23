@@ -10,11 +10,6 @@ void DifficultyManager::updateTime() {
     counter += GetFrameTime();
 }
 
-// Reset waktu ke 0 (dipanggil saat game restart)
-void DifficultyManager::resetTime() {
-    counter = 0.0f;
-}
-
 // Tentukan tier asteroid (1-6) berdasarkan waktu yang telah berlalu
 // Tier atas naik 1 setiap ~20 detik (0.05 per detik), maksimal 6
 // Tier bawah mulai naik setelah 60 detik, maksimal 4

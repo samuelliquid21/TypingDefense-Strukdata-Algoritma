@@ -20,12 +20,6 @@ void ComboStack::Pop() {
     }
 }
 
-// Reset: kosongkan semua level, kembali ke multiplier 1×
-void ComboStack::Reset() {
-    for (int i = 0; i < top; i++) stack[i] = 0;  // Kosongkan semua slot yang terpakai
-    top = 0;                                      // Reset top ke 0
-}
-
 // GetMultiplier: ambil nilai multiplier saat ini.
 // Return 1× jika stack kosong (tidak ada combo aktif).
 int ComboStack::GetMultiplier() const {

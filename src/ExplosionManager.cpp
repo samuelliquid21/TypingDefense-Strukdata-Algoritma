@@ -73,9 +73,4 @@ void ExplosionManager::draw() {
     }
 }
 
-// Nonaktifkan semua ledakan (reset pool).
-void ExplosionManager::reset() {
-    for (auto &e : m_pool) {
-        e.active = false;
-    }
-}
+

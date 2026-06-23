@@ -54,13 +54,6 @@ Rectangle AssetManager::getSpriteFrame(const std::string& key, int col, int row)
     };
 }
 
-Vector2 AssetManager::getSpriteFrameSize(const std::string& key) const {
-    auto it = m_sheets.find(key);
-    if (it == m_sheets.end())
-        return Vector2{0, 0};
-    return Vector2{it->second.frameWidth, it->second.frameHeight};
-}
-
 // ===============================
 // SOUNDS
 // ===============================

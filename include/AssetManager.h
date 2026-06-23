@@ -19,7 +19,6 @@ public:
     void registerSpriteSheet(const std::string& key, const std::string& filepath,
                              int columns, int rows); // Daftarkan sprite sheet grid
     Rectangle getSpriteFrame(const std::string& key, int col, int row) const; // Ambil frame tertentu dari sheet
-    Vector2 getSpriteFrameSize(const std::string& key) const; // Ukuran tiap frame dalam sprite sheet
 
     // === Sound API ===
     Sound loadSound(const std::string& key, const std::string& filepath);

@@ -99,5 +99,4 @@ public:
 
     void update(float deltaTime);   // Update utama: state machine typing, skill, input
     void draw();                    // Render semua objek game + HUD
-    void reset();                   // Reset seluruh state ke kondisi awal permainan
 };

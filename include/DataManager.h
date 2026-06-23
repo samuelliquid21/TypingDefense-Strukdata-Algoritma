@@ -26,8 +26,6 @@ public:
     json& getData(); // Ambil referensi data JSON (bisa dimodifikasi langsung)
     const json& getData() const; // Ambil referensi data JSON (read-only)
 
-    void setFilePath(const std::string& path); // Ganti path file data
-
     bool FindPlayer(const std::string& username, PlayerProfile& outProfile); // Cari player berdasarkan username
     void SavePlayer(const PlayerProfile& profile); // Update data player di JSON + simpan ke file
     void CreatePlayer(const std::string& username); // Buat entry player baru dengan default values

@@ -12,6 +12,5 @@ public:
     ComboStack() = default;
     void Push();                                 // Tambah combo: ×2 dari level sebelumnya
     void Pop();                                  // Kurangi combo: hapus level teratas
-    void Reset();                                // Reset ke 1× (kosongkan stack)
     int GetMultiplier() const;                   // Dapatkan multiplier saat ini (1× jika kosong)
 };

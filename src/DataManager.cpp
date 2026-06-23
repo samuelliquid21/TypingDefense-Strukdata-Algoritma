@@ -49,12 +49,6 @@ const json& DataManager::getData() const {
     return m_data;
 }
 
-// ==== SETTER ====
-
-void DataManager::setFilePath(const std::string& path) {
-    m_filePath = path;
-}
-
 // ==== PLAYER MANAGEMENT ====
 
 // Salin data dari JSON entry ke struct PlayerProfile

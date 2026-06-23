@@ -387,20 +387,3 @@ void GameplayManager::drawSkillBindingLine(const SkillBinding& binding, int& hud
     hudY += 18;
 }
 
-void GameplayManager::reset() {
-    // Reset semua state ke kondisi awal permainan
-    score = 0;
-    totalKeystrokes = 0;
-    correctKeystrokes = 0;
-    survivalTime = 0.0f;
-    state = typingState::SEARCH_FOR_TARGET;
-    currentTarget = nullptr;
-    spaceship = SpaceShip();
-    comboStack.Reset();
-    wordsCompleted = 0;
-    wasPreviousKeyWrong = false;
-    explosionManager.reset();
-    scoreBoosterSkill = ScoreBoosterSkill();
-    auraFieldSkill = AuraFieldSkill();
-    instantCritSkill = InstantCritSkill();
-}
