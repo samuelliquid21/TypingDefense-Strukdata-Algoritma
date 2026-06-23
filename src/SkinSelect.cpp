@@ -6,7 +6,6 @@
 SkinSelect::SkinSelect() {
     cursorRow = 0;
     cursorCol = 0;
-    skinChanged = false;
 }
 
 SkinSelect::~SkinSelect() {}
@@ -92,14 +91,12 @@ void SkinSelect::handleSelection() {
         if (mgr.isUnlocked(skinId)) {
             mgr.setActiveSkin(skinId);
             mgr.save();
-            skinChanged = true;
         } else {
             const SkinInfo& info = getSkinInfo(skinId);
             if (mgr.spendRP(info.price)) {
                 mgr.unlockSkin(skinId);
                 mgr.setActiveSkin(skinId);
                 mgr.save();
-                skinChanged = true;
             }
         }
     }

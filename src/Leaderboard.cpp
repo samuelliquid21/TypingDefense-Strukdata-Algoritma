@@ -278,10 +278,7 @@ namespace LeaderboardSystem {
     void Init() {
         FullReset(); LoadAudio(); LoadFromJSON("data/PlayerData.json");
     }
-    void AddPlayerData(const PlayerData& d) { playerTree.insert(d); SortPlayers(); }
 
-    void ClearData() { playerTree.clear(); sortedPlayers.clear(); }
-    int GetPlayerCount() { return (int)sortedPlayers.size(); }
 
     void Update(bool& back) {
         float dt = GetFrameTime();

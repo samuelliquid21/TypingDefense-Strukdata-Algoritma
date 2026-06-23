@@ -25,7 +25,6 @@ public:
     void spawn(Vector2 pos, int count, Color color);
     void update(float dt);
     void draw();
-    void reset();
 
 private:
     static const int MAX_EXPLOSIONS = 64;

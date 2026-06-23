@@ -19,7 +19,6 @@ void AudioManager::loadMusicTracks() {
 void AudioManager::loadSoundEffects() {
     AssetManager::getInstance().loadSound("glitchMasuk", "assets/sound/glitchmasuk.mp3");
     AssetManager::getInstance().loadSound("glitchKeluar", "assets/sound/glitchkeluar.mp3");
-    AssetManager::getInstance().loadSound("click", "assets/sound/click.mp3");
     AssetManager::getInstance().loadSound("laser", "assets/sound/laser.mp3");
     AssetManager::getInstance().loadSound("error", "assets/sound/error.mp3");
     AssetManager::getInstance().loadSound("gameover", "assets/sound/gameover.mp3");

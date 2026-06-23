@@ -64,7 +64,6 @@ public:
 
     // Load/save status skill dari/ke PlayerProfile (persistensi)
     void loadFromProfile(const PlayerProfile& profile);
-    void saveToProfile(PlayerProfile& profile);
 
     // Unlock skill: kurangi RP, update state, return true jika berhasil
     bool unlockSkill(SkillName name, PlayerProfile& profile);

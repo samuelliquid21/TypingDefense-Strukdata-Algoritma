@@ -83,16 +83,6 @@ void TechTree::loadFromProfile(const PlayerProfile& profile) {
     updateSkillStates();
 }
 
-// Simpan daftar skill yang sudah di-unlock ke PlayerProfile
-void TechTree::saveToProfile(PlayerProfile& profile) {
-    profile.unlocked_skills.clear();
-    for (auto& [key, skill] : skills) {
-        if (skill.isUnlocked) {
-            profile.unlocked_skills.push_back(StringFromSkillName(skill.name));
-        }
-    }
-}
-
 // Unlock skill: kurangi RP, update state,simpan ke profil
 bool TechTree::unlockSkill(SkillName name, PlayerProfile& profile) {
     // Cek: RP cukup (via SkinManager) dan skill benar-benar AVAILABLE (parent sudah di-unlock)

@@ -22,7 +22,6 @@ private:
     Rectangle frame;    // Area sprite yang diambil dari spritesheet
     int currentSkinId = 0;
 
-    void drawTexture();     // Gambar texture spaceship
     void deactivateLaser(); // Matikan laser jika sudah waktunya
     void drawLaser();       // Gambar garis laser ke target
     void drawSpaceShip();   // Gambar spaceship di posisi saat ini

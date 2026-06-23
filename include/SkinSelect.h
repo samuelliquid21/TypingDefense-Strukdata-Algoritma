@@ -13,7 +13,6 @@ public:
 private:
     int cursorRow;
     int cursorCol;
-    bool skinChanged;
 
     Rectangle getCellRect(int col, int row) const;
     Rectangle getShipFrame(int col, int row) const;
