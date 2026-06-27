@@ -52,7 +52,7 @@ void LoadingScreen::LoadStorySlides() {
     struct { const char* folder; const char* file; float show; float end; } defs[] = {
         { "img01", "Pesawat Luar Angkasa Dekat Jupiter.png",  0.0f,  4.5f },
         { "img05", "Kapal Luna Lepas Landas.png",             4.5f,  9.0f },
-        { "img07", "Gambar Blackhole.jpg",                    9.0f, 12.5f },
+        { "img07", "Gambar Blackhole.png",                    9.0f, 12.5f },
         { "img09", "Cockpit Lost Sinyal.png",                 12.5f, 17.5f },
         { "img16", "Menemukan Sinyal Pesawat Luna.png",       17.5f, 20.5f },
         { "img12", "Target Mission.png",                      20.5f, 24.0f },
@@ -72,8 +72,8 @@ void LoadingScreen::LoadStorySlides() {
         }
     }
 
-    if (!bgJpgLoaded && FileExists("assets/img/background.jpg")) {
-        texBgJpg = LoadTexture("assets/img/background.jpg");
+    if (!bgJpgLoaded && FileExists("assets/img/background.png")) {
+        texBgJpg = LoadTexture("assets/img/background.png");
         bgJpgLoaded = true;
     }
 }

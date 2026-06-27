@@ -123,8 +123,8 @@ void OpeningScene::Init() {
     }
 
     // Textures
-    am.loadTexture("nova",          "assets/img/nova.jpg");
-    am.loadTexture("captain_voss",  "assets/img/captain_voss.jpg");
+    am.loadTexture("nova",          "assets/img/nova.png");
+    am.loadTexture("captain_voss",  "assets/img/captain_voss.png");
     am.loadTexture("spaceship_ace", "assets/img/spaceship_ace.png");
 
     // Dialog audio
