@@ -19,30 +19,46 @@ static std::vector<CreditEntry> createDefaultEntries() {
     // Engineering Section
     {"", "=== ENGINEERING ===", true},
     {"Gameplay Programmer", "Abiyu", false},
-    
+    {"Asteroid System", "Abiyu", false},
+    {"Skill System", "Abiyu", false},
+    {"Tech Tree & Dictionary", "Abiyu", false},
+    {"Login & Register System", "Abiyu & Ahya Mujahid", false},
+    {"Skin System & Gacha", "Sardenggan ", false},
+    {"RP & Icon System", "Sardenggan", false},
+    {"Singly Linked List Module", "Abiyu", false},
+    {"Asset & Audio Manager", "Abiyu", false},
+    {"Data Manager", "Abiyu", false},
+    {"Code Cleanup", "Andaru", false},
+    {"", "", false},
 
     // Design Section
     {"", "=== DESIGN ===", true},
     {"Lead Designer", "Abiyu", false},
+    {"Opening Scene Creator", "Sardenggan", false},
+    {"Opening Scene Image Creator", "Andaru", false},
+    {"Opening Scene Image Creator", "Given", false},
+    {"Loading Screen Creator", "Sardenggan ", false},
     {"Game Over Designer", "Given Elyada", false},
     {"Game Pause Designer", "Ahya Mujahid", false},
-    {"Visual Effects Design", "Samuel", false},
+    {"Visual Effects Design", "Sardenggan ", false},
     {"Credit Designer", "Andaru", false},
+    {"Leaderboard Designer", "Given Elyada", false},
     {"", "", false},
 
     // Art Section
     {"", "=== ART ===", true},
-    {"Background Artist", "Abiyu", false},
-    {"VFX Artist", "Samuel", false},
+    {"Background Artist", "Abiyu & Andaru", false},
+    {"VFX Artist", "Sardenggan ", false},
+    {"Video Background", "Sardenggan ", false},
+    {"Slideshow & Assets", "Sardenggan & Andaru", false},
     {"", "", false},
 
     // Audio Section
     {"", "=== AUDIO ===", true},
-    {"Sound Designer", "Samuel", false},
-    {"Music Composer", "Samuel", false},
-    {"Audio Engineer", "Samuel", false},
+    {"Sound Designer", "Sardenggan Samuel Gani Munte", false},
+    {"Music Composer", "Sardenggan Samuel Gani Munte", false},
+    {"Audio Engineer", "Sardenggan Samuel Gani Munte", false},
     {"", "", false},
-
 
     // Special Thanks
     {"", "=== SPECIAL THANKS ===", true},
