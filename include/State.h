@@ -3,6 +3,8 @@
 // Enum yang merepresentasikan seluruh state dalam game state machine.
 // Setiap state memiliki Update*() dan Draw*() sendiri di Game.cpp.
 enum class GameState {
+    LOADING,             // Loading screen + opening text
+    OPENING,             // Cinematic opening conversation
     MENU,                // Tampilan menu utama
     GAMEPLAY,            // Permainan sedang berjalan
     PAUSE,               // Game dijeda (ESC) — countdown sebelum kembali
